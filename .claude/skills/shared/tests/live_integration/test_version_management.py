@@ -135,9 +135,10 @@ class TestVersionCRUD:
             release_date = datetime.now().strftime('%Y-%m-%d')
 
             # Release the version
-            released = jira_client.release_version(
+            released = jira_client.update_version(
                 created['id'],
-                release_date=release_date
+                released=True,
+                releaseDate=release_date
             )
 
             assert released['released'] == True
@@ -156,7 +157,10 @@ class TestVersionCRUD:
 
         try:
             # Archive the version
-            archived = jira_client.archive_version(created['id'])
+            archived = jira_client.update_version(
+                created['id'],
+                archived=True
+            )
 
             assert archived['archived'] == True
 
@@ -375,15 +379,19 @@ class TestVersionWorkflow:
             # Step 3: Release version
             print("  Releasing version...")
             release_date = datetime.now().strftime('%Y-%m-%d')
-            released = jira_client.release_version(
+            released = jira_client.update_version(
                 version['id'],
-                release_date=release_date
+                released=True,
+                releaseDate=release_date
             )
             assert released['released'] == True
 
             # Step 4: Archive version
             print("  Archiving version...")
-            archived = jira_client.archive_version(version['id'])
+            archived = jira_client.update_version(
+                version['id'],
+                archived=True
+            )
             assert archived['archived'] == True
 
             # Step 5: Clean up
@@ -426,7 +434,7 @@ class TestVersionWorkflow:
 
         try:
             # Release one version
-            jira_client.release_version(released_version['id'])
+            jira_client.update_version(released_version['id'], released=True)
 
             # Get all versions
             versions = jira_client.get_project_versions(test_project['key'])
@@ -459,7 +467,7 @@ class TestVersionWorkflow:
 
         try:
             # Archive one version
-            jira_client.archive_version(archived_version['id'])
+            jira_client.update_version(archived_version['id'], archived=True)
 
             # Get all versions
             versions = jira_client.get_project_versions(test_project['key'])

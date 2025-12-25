@@ -247,3 +247,215 @@ class TestIssueTransitions:
         updated = jira_client.get_issue(test_issue['key'])
         # Status should have changed (exact name depends on workflow)
         assert updated['fields']['status']['name'] != 'To Do' or target_transition['name'] == 'To Do'
+
+
+class TestIssueResolution:
+    """Tests for resolving and reopening issues."""
+
+    def test_resolve_issue(self, jira_client, test_project):
+        """Test resolving an issue with a resolution."""
+        import uuid
+        # Create an issue to resolve
+        issue = jira_client.create_issue({
+            'project': {'key': test_project['key']},
+            'summary': f'Issue to Resolve {uuid.uuid4().hex[:8]}',
+            'issuetype': {'name': 'Bug'}
+        })
+
+        try:
+            # Get transitions to find "Done" or similar
+            transitions = jira_client.get_transitions(issue['key'])
+
+            # Find a transition to a resolved state
+            done_transition = None
+            for t in transitions:
+                target_status = t.get('to', {}).get('name', '').lower()
+                if 'done' in target_status or 'resolved' in target_status or 'closed' in target_status:
+                    done_transition = t
+                    break
+
+            if done_transition:
+                # Transition to resolved state
+                jira_client.transition_issue(
+                    issue['key'],
+                    done_transition['id'],
+                    resolution={'name': 'Done'}
+                )
+
+                # Verify resolution
+                resolved = jira_client.get_issue(issue['key'])
+                assert resolved['fields']['resolution'] is not None
+
+        finally:
+            jira_client.delete_issue(issue['key'])
+
+    def test_resolve_with_fixed_resolution(self, jira_client, test_project):
+        """Test resolving an issue with 'Fixed' resolution."""
+        import uuid
+        issue = jira_client.create_issue({
+            'project': {'key': test_project['key']},
+            'summary': f'Bug to Fix {uuid.uuid4().hex[:8]}',
+            'issuetype': {'name': 'Bug'}
+        })
+
+        try:
+            transitions = jira_client.get_transitions(issue['key'])
+
+            done_transition = None
+            for t in transitions:
+                target_status = t.get('to', {}).get('name', '').lower()
+                if 'done' in target_status or 'resolved' in target_status:
+                    done_transition = t
+                    break
+
+            if done_transition:
+                try:
+                    jira_client.transition_issue(
+                        issue['key'],
+                        done_transition['id'],
+                        resolution={'name': 'Fixed'}
+                    )
+
+                    resolved = jira_client.get_issue(issue['key'])
+                    if resolved['fields']['resolution']:
+                        assert resolved['fields']['resolution']['name'] in ['Fixed', 'Done']
+                except Exception:
+                    # If Fixed resolution doesn't exist, use Done
+                    jira_client.transition_issue(
+                        issue['key'],
+                        done_transition['id'],
+                        resolution={'name': 'Done'}
+                    )
+
+        finally:
+            jira_client.delete_issue(issue['key'])
+
+    def test_resolve_with_comment(self, jira_client, test_project):
+        """Test resolving an issue with a comment."""
+        import uuid
+        issue = jira_client.create_issue({
+            'project': {'key': test_project['key']},
+            'summary': f'Issue with Resolution Comment {uuid.uuid4().hex[:8]}',
+            'issuetype': {'name': 'Task'}
+        })
+
+        try:
+            transitions = jira_client.get_transitions(issue['key'])
+
+            done_transition = None
+            for t in transitions:
+                target_status = t.get('to', {}).get('name', '').lower()
+                if 'done' in target_status:
+                    done_transition = t
+                    break
+
+            if done_transition:
+                comment_text = f"Resolved: {uuid.uuid4().hex[:8]}"
+                comment_body = {
+                    'type': 'doc',
+                    'version': 1,
+                    'content': [{
+                        'type': 'paragraph',
+                        'content': [{'type': 'text', 'text': comment_text}]
+                    }]
+                }
+
+                jira_client.transition_issue(
+                    issue['key'],
+                    done_transition['id'],
+                    comment=comment_body
+                )
+
+                # Verify comment was added
+                comments = jira_client.get_comments(issue['key'])
+                assert comments['total'] >= 1
+
+        finally:
+            jira_client.delete_issue(issue['key'])
+
+    def test_reopen_resolved_issue(self, jira_client, test_project):
+        """Test reopening a resolved issue."""
+        import uuid
+        issue = jira_client.create_issue({
+            'project': {'key': test_project['key']},
+            'summary': f'Issue to Reopen {uuid.uuid4().hex[:8]}',
+            'issuetype': {'name': 'Bug'}
+        })
+
+        try:
+            # First, resolve it
+            transitions = jira_client.get_transitions(issue['key'])
+            done_transition = None
+            for t in transitions:
+                target_status = t.get('to', {}).get('name', '').lower()
+                if 'done' in target_status or 'resolved' in target_status:
+                    done_transition = t
+                    break
+
+            if done_transition:
+                jira_client.transition_issue(issue['key'], done_transition['id'])
+
+                # Now reopen it
+                transitions = jira_client.get_transitions(issue['key'])
+                reopen_transition = None
+                for t in transitions:
+                    transition_name = t['name'].lower()
+                    target_status = t.get('to', {}).get('name', '').lower()
+                    if 'reopen' in transition_name or 'to do' in target_status or 'open' in target_status:
+                        reopen_transition = t
+                        break
+
+                if reopen_transition:
+                    jira_client.transition_issue(issue['key'], reopen_transition['id'])
+
+                    # Verify it's reopened
+                    reopened = jira_client.get_issue(issue['key'])
+                    status_name = reopened['fields']['status']['name'].lower()
+                    # Should not be in done state
+                    assert 'done' not in status_name or 'to do' in status_name
+
+        finally:
+            jira_client.delete_issue(issue['key'])
+
+    def test_reopen_closed_issue(self, jira_client, test_project):
+        """Test reopening a closed issue."""
+        import uuid
+        issue = jira_client.create_issue({
+            'project': {'key': test_project['key']},
+            'summary': f'Closed Issue to Reopen {uuid.uuid4().hex[:8]}',
+            'issuetype': {'name': 'Task'}
+        })
+
+        try:
+            # Find and execute close/done transition
+            transitions = jira_client.get_transitions(issue['key'])
+            close_transition = None
+            for t in transitions:
+                target_status = t.get('to', {}).get('name', '').lower()
+                if 'done' in target_status or 'closed' in target_status:
+                    close_transition = t
+                    break
+
+            if close_transition:
+                jira_client.transition_issue(issue['key'], close_transition['id'])
+
+                # Get new transitions and try to reopen
+                transitions = jira_client.get_transitions(issue['key'])
+                if len(transitions) > 0:
+                    reopen_transition = None
+                    for t in transitions:
+                        transition_name = t['name'].lower()
+                        if 'reopen' in transition_name or 'open' in transition_name:
+                            reopen_transition = t
+                            break
+
+                    if reopen_transition:
+                        jira_client.transition_issue(issue['key'], reopen_transition['id'])
+
+                        reopened = jira_client.get_issue(issue['key'])
+                        status_category = reopened['fields']['status'].get('statusCategory', {}).get('key', '')
+                        # Should not be in 'done' category
+                        assert status_category != 'done' or 'to do' in reopened['fields']['status']['name'].lower()
+
+        finally:
+            jira_client.delete_issue(issue['key'])

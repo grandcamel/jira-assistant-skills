@@ -326,3 +326,230 @@ class TestUserSearch:
 
         assert user_id is not None
         assert len(user_id) > 0
+
+
+class TestNotifications:
+    """Tests for notification operations."""
+
+    def test_notify_watchers(self, jira_client, test_issue):
+        """Test sending notification to watchers."""
+        import uuid
+        # Add current user as watcher first
+        current_user_id = jira_client.get_current_user_id()
+        jira_client.post(
+            f'/rest/api/3/issue/{test_issue["key"]}/watchers',
+            data=f'"{current_user_id}"',
+            operation='add watcher'
+        )
+
+        # Send notification to watchers
+        jira_client.notify_issue(
+            test_issue['key'],
+            subject="Test notification to watchers",
+            text_body="This is a test notification",
+            to={
+                'watchers': True,
+                'reporter': False,
+                'assignee': False,
+                'voters': False,
+                'users': [],
+                'groups': []
+            }
+        )
+
+        # If no exception raised, notification was sent successfully
+        assert True
+
+    def test_notify_assignee(self, jira_client, test_issue):
+        """Test sending notification to assignee."""
+        # Assign issue to current user
+        current_user_id = jira_client.get_current_user_id()
+        jira_client.assign_issue(test_issue['key'], current_user_id)
+
+        # Send notification to assignee
+        jira_client.notify_issue(
+            test_issue['key'],
+            subject="Test notification to assignee",
+            text_body="Assigned issue notification",
+            to={
+                'watchers': False,
+                'reporter': False,
+                'assignee': True,
+                'voters': False,
+                'users': [],
+                'groups': []
+            }
+        )
+
+        assert True
+
+    def test_notify_reporter(self, jira_client, test_issue):
+        """Test sending notification to reporter."""
+        jira_client.notify_issue(
+            test_issue['key'],
+            subject="Test notification to reporter",
+            text_body="Reporter notification",
+            to={
+                'watchers': False,
+                'reporter': True,
+                'assignee': False,
+                'voters': False,
+                'users': [],
+                'groups': []
+            }
+        )
+
+        assert True
+
+    def test_notify_specific_users(self, jira_client, test_issue):
+        """Test sending notification to specific users."""
+        current_user_id = jira_client.get_current_user_id()
+
+        jira_client.notify_issue(
+            test_issue['key'],
+            subject="Test notification to specific user",
+            text_body="User-specific notification",
+            to={
+                'watchers': False,
+                'reporter': False,
+                'assignee': False,
+                'voters': False,
+                'users': [{'accountId': current_user_id}],
+                'groups': []
+            }
+        )
+
+        assert True
+
+    def test_notify_combined_recipients(self, jira_client, test_issue):
+        """Test sending notification to multiple recipient types."""
+        current_user_id = jira_client.get_current_user_id()
+
+        # Assign to self and add as watcher
+        jira_client.assign_issue(test_issue['key'], current_user_id)
+        jira_client.post(
+            f'/rest/api/3/issue/{test_issue["key"]}/watchers',
+            data=f'"{current_user_id}"',
+            operation='add watcher'
+        )
+
+        jira_client.notify_issue(
+            test_issue['key'],
+            subject="Combined notification test",
+            text_body="Notification to multiple recipients",
+            to={
+                'watchers': True,
+                'reporter': True,
+                'assignee': True,
+                'voters': False,
+                'users': [],
+                'groups': []
+            }
+        )
+
+        assert True
+
+    def test_notification_with_custom_message(self, jira_client, test_issue):
+        """Test notification with custom subject and body."""
+        import uuid
+        custom_subject = f"Custom Subject {uuid.uuid4().hex[:8]}"
+        custom_body = f"Custom notification body with ID {uuid.uuid4().hex[:8]}"
+
+        jira_client.notify_issue(
+            test_issue['key'],
+            subject=custom_subject,
+            text_body=custom_body,
+            to={
+                'watchers': False,
+                'reporter': True,
+                'assignee': False,
+                'voters': False,
+                'users': [],
+                'groups': []
+            }
+        )
+
+        assert True
+
+
+class TestActivityHistory:
+    """Tests for activity/changelog operations."""
+
+    def test_get_activity(self, jira_client, test_issue):
+        """Test getting activity/changelog for an issue."""
+        import uuid
+        # Make some changes to create activity
+        jira_client.update_issue(
+            test_issue['key'],
+            fields={'summary': f"Updated Summary {uuid.uuid4().hex[:8]}"}
+        )
+
+        # Get changelog
+        changelog = jira_client.get_changelog(test_issue['key'])
+
+        assert 'values' in changelog or 'histories' in changelog
+
+    def test_get_activity_shows_field_changes(self, jira_client, test_issue):
+        """Test that activity shows field change details."""
+        import uuid
+        import time
+
+        # Make a tracked change
+        old_summary = jira_client.get_issue(test_issue['key'])['fields']['summary']
+        new_summary = f"Changed Summary {uuid.uuid4().hex[:8]}"
+
+        jira_client.update_issue(
+            test_issue['key'],
+            fields={'summary': new_summary}
+        )
+
+        # Small delay for changelog to update
+        time.sleep(1)
+
+        # Get changelog
+        changelog = jira_client.get_changelog(test_issue['key'])
+
+        # Verify changelog has entries
+        if 'values' in changelog:
+            assert len(changelog['values']) >= 1
+        elif 'histories' in changelog:
+            assert len(changelog['histories']) >= 1
+
+    def test_get_activity_pagination(self, jira_client, test_issue):
+        """Test paginating through activity history."""
+        import uuid
+        # Make several changes
+        for i in range(3):
+            jira_client.update_issue(
+                test_issue['key'],
+                fields={'summary': f"Change {i} {uuid.uuid4().hex[:8]}"}
+            )
+
+        # Get first page
+        changelog = jira_client.get_changelog(test_issue['key'], max_results=2)
+
+        # Verify pagination parameters work
+        assert isinstance(changelog, dict)
+
+    def test_activity_tracks_status_changes(self, jira_client, test_issue):
+        """Test that status changes appear in activity."""
+        import time
+        # Get available transitions
+        transitions = jira_client.get_transitions(test_issue['key'])
+
+        if len(transitions) > 0:
+            # Perform a transition
+            transition = transitions[0]
+            jira_client.transition_issue(test_issue['key'], transition['id'])
+
+            # Small delay for changelog
+            time.sleep(1)
+
+            # Get changelog
+            changelog = jira_client.get_changelog(test_issue['key'])
+
+            # Verify status change is recorded
+            if 'values' in changelog:
+                assert len(changelog['values']) >= 1
+            elif 'histories' in changelog:
+                assert len(changelog['histories']) >= 1

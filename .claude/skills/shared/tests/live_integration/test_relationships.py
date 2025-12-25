@@ -276,3 +276,165 @@ class TestLinkDeletion:
         jira_client.delete_issue(main_issue['key'])
         for issue in related:
             jira_client.delete_issue(issue['key'])
+
+
+class TestIssueCloning:
+    """Tests for issue cloning operations."""
+
+    def test_clone_issue(self, jira_client, test_project):
+        """Test cloning a basic issue."""
+        # Create original issue
+        original = jira_client.create_issue({
+            'project': {'key': test_project['key']},
+            'summary': f'Original Issue {uuid.uuid4().hex[:8]}',
+            'issuetype': {'name': 'Task'},
+            'description': {
+                'type': 'doc',
+                'version': 1,
+                'content': [{'type': 'paragraph', 'content': [{'type': 'text', 'text': 'Original description'}]}]
+            },
+            'priority': {'name': 'High'}
+        })
+
+        try:
+            # Clone the issue
+            clone = jira_client.clone_issue(
+                original['key'],
+                summary=f'Clone of {original["key"]} {uuid.uuid4().hex[:8]}'
+            )
+
+            # Verify clone was created
+            assert clone['key'] != original['key']
+            assert clone['key'].startswith(test_project['key'])
+
+            # Verify clone has cloner link to original
+            clone_links = jira_client.get_issue_links(clone['key'])
+            linked_keys = []
+            for link in clone_links:
+                if link['type']['name'] == 'Cloners':
+                    if 'inwardIssue' in link:
+                        linked_keys.append(link['inwardIssue']['key'])
+                    if 'outwardIssue' in link:
+                        linked_keys.append(link['outwardIssue']['key'])
+
+            assert original['key'] in linked_keys, "Clone should have Cloners link to original"
+
+            # Cleanup
+            jira_client.delete_issue(clone['key'])
+
+        finally:
+            jira_client.delete_issue(original['key'])
+
+    def test_clone_issue_with_subtasks(self, jira_client, test_project):
+        """Test cloning an issue including its subtasks."""
+        # Create parent issue
+        parent = jira_client.create_issue({
+            'project': {'key': test_project['key']},
+            'summary': f'Parent Issue {uuid.uuid4().hex[:8]}',
+            'issuetype': {'name': 'Task'}
+        })
+
+        # Create subtasks
+        subtask1 = jira_client.create_issue({
+            'project': {'key': test_project['key']},
+            'summary': f'Subtask 1 {uuid.uuid4().hex[:8]}',
+            'issuetype': {'name': 'Subtask'},
+            'parent': {'key': parent['key']}
+        })
+        subtask2 = jira_client.create_issue({
+            'project': {'key': test_project['key']},
+            'summary': f'Subtask 2 {uuid.uuid4().hex[:8]}',
+            'issuetype': {'name': 'Subtask'},
+            'parent': {'key': parent['key']}
+        })
+
+        try:
+            # Clone with subtasks
+            clone = jira_client.clone_issue(
+                parent['key'],
+                summary=f'Clone with Subtasks {uuid.uuid4().hex[:8]}',
+                clone_subtasks=True
+            )
+
+            # Verify clone exists
+            assert clone['key'] != parent['key']
+
+            # Get clone details to check for subtasks
+            clone_data = jira_client.get_issue(clone['key'])
+            cloned_subtasks = clone_data['fields'].get('subtasks', [])
+
+            # Should have 2 cloned subtasks
+            assert len(cloned_subtasks) == 2, f"Expected 2 cloned subtasks, found {len(cloned_subtasks)}"
+
+            # Cleanup cloned subtasks
+            for subtask in cloned_subtasks:
+                jira_client.delete_issue(subtask['key'])
+
+            # Cleanup clone
+            jira_client.delete_issue(clone['key'])
+
+        finally:
+            # Cleanup original (parent deletes cascade to subtasks)
+            jira_client.delete_issue(parent['key'])
+
+    def test_clone_preserves_links(self, jira_client, test_project):
+        """Test that cloning preserves issue links.
+
+        Note: JIRA's clone behavior for links varies by configuration.
+        Some instances preserve all links, others only certain types.
+        This test verifies that at minimum the clone has a Cloners link.
+        """
+        # Create original issue
+        original = jira_client.create_issue({
+            'project': {'key': test_project['key']},
+            'summary': f'Original with Links {uuid.uuid4().hex[:8]}',
+            'issuetype': {'name': 'Story'}
+        })
+
+        # Create related issue
+        related = jira_client.create_issue({
+            'project': {'key': test_project['key']},
+            'summary': f'Related Issue {uuid.uuid4().hex[:8]}',
+            'issuetype': {'name': 'Story'}
+        })
+
+        try:
+            # Link original to related issue
+            jira_client.create_link('Relates', related['key'], original['key'])
+
+            # Verify original has link
+            original_links = jira_client.get_issue_links(original['key'])
+            assert len(original_links) >= 1
+
+            # Clone the original
+            clone = jira_client.clone_issue(
+                original['key'],
+                summary=f'Clone Preserves Links {uuid.uuid4().hex[:8]}',
+                clone_links=True
+            )
+
+            # Get clone's links
+            clone_links = jira_client.get_issue_links(clone['key'])
+
+            # At minimum, clone should have Cloners link to original
+            assert len(clone_links) >= 1
+
+            # Verify Cloners link exists
+            has_cloners_link = False
+            for link in clone_links:
+                if link['type']['name'] == 'Cloners':
+                    has_cloners_link = True
+                    break
+
+            assert has_cloners_link, "Clone should have Cloners link to original"
+
+            # Optionally verify other links were preserved (behavior varies by instance)
+            # Some JIRA instances preserve 'Relates' links, others don't
+            # We just verify the Cloners link is always created
+
+            # Cleanup
+            jira_client.delete_issue(clone['key'])
+
+        finally:
+            jira_client.delete_issue(original['key'])
+            jira_client.delete_issue(related['key'])

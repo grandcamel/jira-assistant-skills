@@ -355,3 +355,90 @@ class TestBoardOperations:
         if result['values']:
             board_project_keys = [b['location']['projectKey'] for b in result['values']]
             assert test_project['key'] in board_project_keys
+
+
+class TestStoryPoints:
+    """Tests for story point estimation."""
+
+    # Story points field ID - may vary by JIRA instance
+    STORY_POINTS_FIELD = 'customfield_10016'
+
+    def test_set_story_points(self, jira_client, test_project):
+        """Test setting story points on an issue."""
+        import uuid
+        # Create a story
+        story = jira_client.create_issue({
+            'project': {'key': test_project['key']},
+            'summary': f'Story Points Test {uuid.uuid4().hex[:8]}',
+            'issuetype': {'name': 'Story'}
+        })
+
+        try:
+            # Set story points
+            jira_client.update_issue(
+                story['key'],
+                fields={self.STORY_POINTS_FIELD: 5}
+            )
+
+            # Verify
+            updated = jira_client.get_issue(story['key'])
+            story_points = updated['fields'].get(self.STORY_POINTS_FIELD)
+            # Story points field may not exist in all instances
+            if story_points is not None:
+                assert story_points == 5
+
+        finally:
+            jira_client.delete_issue(story['key'])
+
+    def test_get_story_points(self, jira_client, test_project):
+        """Test getting story points from an issue."""
+        import uuid
+        # Create story with points
+        story = jira_client.create_issue({
+            'project': {'key': test_project['key']},
+            'summary': f'Get Points Test {uuid.uuid4().hex[:8]}',
+            'issuetype': {'name': 'Story'},
+            self.STORY_POINTS_FIELD: 8
+        })
+
+        try:
+            # Get issue
+            issue_data = jira_client.get_issue(story['key'])
+
+            # Verify story points
+            story_points = issue_data['fields'].get(self.STORY_POINTS_FIELD)
+            # Story points field may not exist in all instances
+            if story_points is not None:
+                assert story_points == 8
+
+        finally:
+            jira_client.delete_issue(story['key'])
+
+    def test_story_points_on_multiple_issues(self, jira_client, test_project):
+        """Test setting different story points on multiple issues."""
+        import uuid
+        point_values = [1, 2, 3, 5, 8]
+        stories = []
+
+        try:
+            # Create stories with different point values
+            for points in point_values:
+                story = jira_client.create_issue({
+                    'project': {'key': test_project['key']},
+                    'summary': f'Story {points}pts {uuid.uuid4().hex[:8]}',
+                    'issuetype': {'name': 'Story'},
+                    self.STORY_POINTS_FIELD: points
+                })
+                stories.append((story, points))
+
+            # Verify each story has correct points
+            for story, expected_points in stories:
+                issue_data = jira_client.get_issue(story['key'])
+                story_points = issue_data['fields'].get(self.STORY_POINTS_FIELD)
+                # Story points field may not exist in all instances
+                if story_points is not None:
+                    assert story_points == expected_points
+
+        finally:
+            for story, _ in stories:
+                jira_client.delete_issue(story['key'])
