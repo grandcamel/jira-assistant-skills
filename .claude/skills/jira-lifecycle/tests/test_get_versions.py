@@ -52,9 +52,9 @@ class TestGetVersions:
         versions = get_versions('PROJ', profile=None)
         released = filter_versions(versions, released=True)
 
-        # Only 1 released version in sample_versions_list
-        assert len(released) == 1
-        assert released[0]['released'] is True
+        # 2 released versions in sample_versions_list (v0.9.0, v0.5.0)
+        assert len(released) == 2
+        assert all(v['released'] is True for v in released)
 
     @patch('get_versions.get_jira_client')
     def test_filter_unreleased_versions(self, mock_get_client, mock_jira_client, sample_versions_list):
@@ -67,8 +67,8 @@ class TestGetVersions:
         versions = get_versions('PROJ', profile=None)
         unreleased = filter_versions(versions, released=False)
 
-        # 3 unreleased versions in sample_versions_list
-        assert len(unreleased) == 3
+        # 2 unreleased versions in sample_versions_list (v1.2.0, v1.0.0)
+        assert len(unreleased) == 2
         assert all(not v['released'] for v in unreleased)
 
     @patch('get_versions.get_jira_client')
