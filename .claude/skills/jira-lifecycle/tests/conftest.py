@@ -77,6 +77,34 @@ def sample_issue_response():
 
 
 @pytest.fixture
+def sample_issue_list():
+    """Sample list of issues (search result format)."""
+    return {
+        'startAt': 0,
+        'maxResults': 50,
+        'total': 2,
+        'issues': [
+            {
+                'id': '10101',
+                'key': 'PROJ-123',
+                'fields': {
+                    'summary': 'First test issue',
+                    'status': {'name': 'To Do'}
+                }
+            },
+            {
+                'id': '10102',
+                'key': 'PROJ-124',
+                'fields': {
+                    'summary': 'Second test issue',
+                    'status': {'name': 'In Progress'}
+                }
+            }
+        ]
+    }
+
+
+@pytest.fixture
 def mock_config_manager(mock_jira_client):
     """Mock config_manager.get_jira_client() to return mock client."""
     def _get_jira_client(profile=None):
