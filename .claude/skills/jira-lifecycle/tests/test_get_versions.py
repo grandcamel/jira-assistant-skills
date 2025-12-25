@@ -1,0 +1,128 @@
+"""
+Tests for get_versions.py - Get project versions.
+"""
+
+import pytest
+from unittest.mock import MagicMock, patch
+import sys
+from pathlib import Path
+
+# Add script path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent / 'scripts'))
+
+
+class TestGetVersions:
+    """Tests for getting project versions."""
+
+    @patch('get_versions.get_jira_client')
+    def test_get_all_versions(self, mock_get_client, mock_jira_client, sample_versions_list):
+        """Test getting all versions for a project."""
+        mock_get_client.return_value = mock_jira_client
+        mock_jira_client.get_versions.return_value = sample_versions_list
+
+        from get_versions import get_versions
+
+        result = get_versions('PROJ', profile=None)
+
+        assert len(result) == 4
+        mock_jira_client.get_versions.assert_called_once_with('PROJ')
+
+    @patch('get_versions.get_jira_client')
+    def test_get_version_by_id(self, mock_get_client, mock_jira_client, sample_version):
+        """Test getting a specific version by ID."""
+        mock_get_client.return_value = mock_jira_client
+        mock_jira_client.get_version.return_value = sample_version
+
+        from get_versions import get_version_by_id
+
+        result = get_version_by_id('10000', profile=None)
+
+        assert result['id'] == '10000'
+        assert result['name'] == 'v1.0.0'
+        mock_jira_client.get_version.assert_called_once_with('10000')
+
+    @patch('get_versions.get_jira_client')
+    def test_filter_released_versions(self, mock_get_client, mock_jira_client, sample_versions_list):
+        """Test filtering for released versions."""
+        mock_get_client.return_value = mock_jira_client
+        mock_jira_client.get_versions.return_value = sample_versions_list
+
+        from get_versions import get_versions, filter_versions
+
+        versions = get_versions('PROJ', profile=None)
+        released = filter_versions(versions, released=True)
+
+        # Only 1 released version in sample_versions_list
+        assert len(released) == 1
+        assert released[0]['released'] is True
+
+    @patch('get_versions.get_jira_client')
+    def test_filter_unreleased_versions(self, mock_get_client, mock_jira_client, sample_versions_list):
+        """Test filtering for unreleased versions."""
+        mock_get_client.return_value = mock_jira_client
+        mock_jira_client.get_versions.return_value = sample_versions_list
+
+        from get_versions import get_versions, filter_versions
+
+        versions = get_versions('PROJ', profile=None)
+        unreleased = filter_versions(versions, released=False)
+
+        # 3 unreleased versions in sample_versions_list
+        assert len(unreleased) == 3
+        assert all(not v['released'] for v in unreleased)
+
+    @patch('get_versions.get_jira_client')
+    def test_filter_archived_versions(self, mock_get_client, mock_jira_client, sample_versions_list):
+        """Test filtering for archived versions."""
+        mock_get_client.return_value = mock_jira_client
+        mock_jira_client.get_versions.return_value = sample_versions_list
+
+        from get_versions import get_versions, filter_versions
+
+        versions = get_versions('PROJ', profile=None)
+        archived = filter_versions(versions, archived=True)
+
+        # 1 archived version in sample_versions_list
+        assert len(archived) == 1
+        assert archived[0]['archived'] is True
+
+    @patch('get_versions.get_jira_client')
+    def test_get_version_issue_counts(self, mock_get_client, mock_jira_client, sample_version_issue_counts):
+        """Test getting issue counts for a version."""
+        mock_get_client.return_value = mock_jira_client
+        mock_jira_client.get_version_issue_counts.return_value = sample_version_issue_counts
+
+        from get_versions import get_version_issue_counts
+
+        result = get_version_issue_counts('10000', profile=None)
+
+        assert result['issuesFixedCount'] == 45
+        assert result['issuesAffectedCount'] == 12
+
+    @patch('get_versions.get_jira_client')
+    def test_get_version_unresolved_count(self, mock_get_client, mock_jira_client, sample_version_unresolved_count):
+        """Test getting unresolved issue count for a version."""
+        mock_get_client.return_value = mock_jira_client
+        mock_jira_client.get_version_unresolved_count.return_value = sample_version_unresolved_count
+
+        from get_versions import get_version_unresolved_count
+
+        result = get_version_unresolved_count('10000', profile=None)
+
+        assert result['issuesUnresolvedCount'] == 3
+        assert result['issuesCount'] == 48
+
+    @patch('get_versions.get_jira_client')
+    def test_versions_table_output(self, mock_get_client, mock_jira_client, sample_versions_list, capsys):
+        """Test table output format for versions."""
+        mock_get_client.return_value = mock_jira_client
+        mock_jira_client.get_versions.return_value = sample_versions_list
+
+        from get_versions import display_versions_table
+
+        display_versions_table(sample_versions_list)
+
+        captured = capsys.readouterr()
+        assert 'v1.2.0' in captured.out
+        assert 'v1.0.0' in captured.out
+        assert 'v0.9.0' in captured.out
