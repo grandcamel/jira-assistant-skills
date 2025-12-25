@@ -269,7 +269,7 @@ class JiraClient:
         if fields:
             params['fields'] = ','.join(fields)
 
-        return self.get('/rest/api/3/search', params=params, operation="search issues")
+        return self.get('/rest/api/3/search/jql', params=params, operation="search issues")
 
     def get_issue(self, issue_key: str, fields: Optional[list] = None) -> Dict[str, Any]:
         """
@@ -381,6 +381,30 @@ class JiraClient:
 
         self.post(f'/rest/api/3/issue/{issue_key}/transitions', data=data,
                  operation=f"transition issue {issue_key}")
+
+    def assign_issue(self, issue_key: str, account_id: Optional[str] = None) -> None:
+        """
+        Assign an issue to a user.
+
+        Args:
+            issue_key: Issue key (e.g., PROJ-123)
+            account_id: User account ID (None to unassign, "-1" for current user)
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        if account_id == "-1":
+            # Get current user's account ID
+            current_user = self.get('/rest/api/3/myself', operation='get current user')
+            account_id = current_user.get('accountId')
+            data = {"accountId": account_id}
+        elif account_id is None:
+            data = None
+        else:
+            data = {"accountId": account_id}
+
+        self.put(f'/rest/api/3/issue/{issue_key}/assignee', data=data,
+                operation=f"assign issue {issue_key}")
 
     def add_comment(self, issue_key: str, body: Dict[str, Any]) -> Dict[str, Any]:
         """

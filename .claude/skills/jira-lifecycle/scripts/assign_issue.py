@@ -40,19 +40,17 @@ def assign_issue(issue_key: str, user: str = None, assign_to_self: bool = False,
 
     client = get_jira_client(profile)
 
-    fields = {}
-
     if unassign:
-        fields['assignee'] = None
+        account_id = None
     elif assign_to_self:
-        fields['assignee'] = {'accountId': '-1'}
+        account_id = '-1'
     else:
-        if '@' in user:
-            fields['assignee'] = {'emailAddress': user}
-        else:
-            fields['assignee'] = {'accountId': user}
+        # If user provided an email, we need to look up their account ID
+        # For now, assume it's an account ID
+        # TODO: Add email to account ID lookup if needed
+        account_id = user
 
-    client.update_issue(issue_key, fields, notify_users=True)
+    client.assign_issue(issue_key, account_id)
     client.close()
 
 
