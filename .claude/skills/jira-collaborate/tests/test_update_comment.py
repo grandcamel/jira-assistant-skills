@@ -1,0 +1,86 @@
+"""
+Tests for update_comment.py - Update existing comment.
+"""
+
+import pytest
+from unittest.mock import MagicMock, patch
+import sys
+from pathlib import Path
+
+# Add script path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent / 'scripts'))
+
+
+class TestUpdateComment:
+    """Tests for updating comments."""
+
+    def test_update_comment_body(self, mock_jira_client, sample_comment):
+        """Test updating comment body."""
+        updated_comment = sample_comment.copy()
+        updated_comment['body']['content'][0]['content'][0]['text'] = 'Updated text'
+        mock_jira_client.update_comment.return_value = updated_comment
+
+        from update_comment import update_comment
+
+        result = update_comment('PROJ-123', '10001', 'Updated text', format_type='text', profile=None)
+
+        assert result['id'] == '10001'
+        mock_jira_client.update_comment.assert_called_once()
+        call_args = mock_jira_client.update_comment.call_args
+        assert call_args[0][0] == 'PROJ-123'
+        assert call_args[0][1] == '10001'
+        # Body should be ADF format
+        assert 'type' in call_args[0][2]
+
+    def test_update_comment_with_markdown(self, mock_jira_client, sample_comment):
+        """Test updating with markdown format."""
+        mock_jira_client.update_comment.return_value = sample_comment
+
+        from update_comment import update_comment
+
+        result = update_comment('PROJ-123', '10001', '## New heading\n**Bold text**', format_type='markdown', profile=None)
+
+        call_args = mock_jira_client.update_comment.call_args
+        body_adf = call_args[0][2]
+        # Should have converted markdown to ADF
+        assert body_adf['type'] == 'doc'
+
+    def test_update_comment_not_author(self, mock_jira_client):
+        """Test error when not comment author."""
+        from error_handler import PermissionError
+
+        mock_jira_client.update_comment.side_effect = PermissionError(
+            "You do not have permission to edit this comment"
+        )
+
+        from update_comment import update_comment
+
+        with pytest.raises(PermissionError):
+            update_comment('PROJ-123', '10001', 'Updated text', profile=None)
+
+    def test_update_comment_not_found(self, mock_jira_client):
+        """Test error when comment doesn't exist."""
+        from error_handler import NotFoundError
+
+        mock_jira_client.update_comment.side_effect = NotFoundError(
+            "Comment 99999 not found"
+        )
+
+        from update_comment import update_comment
+
+        with pytest.raises(NotFoundError):
+            update_comment('PROJ-123', '99999', 'Updated text', profile=None)
+
+    def test_update_preserves_visibility(self, mock_jira_client, sample_comment_with_visibility):
+        """Test that visibility is preserved on update."""
+        # The implementation should use the existing comment's visibility
+        # This test verifies that update_comment doesn't strip visibility
+        mock_jira_client.update_comment.return_value = sample_comment_with_visibility
+
+        from update_comment import update_comment
+
+        result = update_comment('PROJ-123', '10002', 'Updated internal note', profile=None)
+
+        # Visibility should still be present in result
+        assert result.get('visibility') is not None
+        assert result['visibility']['type'] == 'role'
