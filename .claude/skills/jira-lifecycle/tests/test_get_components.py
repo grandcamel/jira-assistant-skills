@@ -24,7 +24,7 @@ class TestGetComponents:
 
         result = get_components('PROJ', profile=None)
 
-        assert len(result) == 3
+        assert len(result) == 4
         mock_jira_client.get_components.assert_called_once_with('PROJ')
 
     @patch('get_components.get_jira_client')
@@ -52,8 +52,8 @@ class TestGetComponents:
         components = get_components('PROJ', profile=None)
         filtered = filter_by_lead(components, 'Alice Smith')
 
-        # Alice Smith leads 2 components in sample data
-        assert len(filtered) == 2
+        # Alice Smith leads 1 component in sample data (Backend API)
+        assert len(filtered) == 1
         assert all(c['lead']['displayName'] == 'Alice Smith' for c in filtered)
 
     @patch('get_components.get_jira_client')
@@ -66,7 +66,7 @@ class TestGetComponents:
 
         result = get_component_issue_counts('10000', profile=None)
 
-        assert result['issueCount'] == 42
+        assert result['issueCount'] == 78
         mock_jira_client.get_component_issue_counts.assert_called_once()
 
     @patch('get_components.get_jira_client')
@@ -81,7 +81,7 @@ class TestGetComponents:
 
         captured = capsys.readouterr()
         assert 'Backend API' in captured.out
-        assert 'Frontend UI' in captured.out
+        assert 'UI/Frontend' in captured.out
         assert 'Database' in captured.out
 
     @patch('get_components.get_jira_client')
@@ -96,7 +96,8 @@ class TestGetComponents:
         components = get_components('PROJ', profile=None)
         json_output = json.dumps(components, indent=2)
 
-        # Should be valid JSON
+        # Should be valid JSON with 4 components
         parsed_json = json.loads(json_output)
-        assert len(parsed_json) == 3
-        assert parsed_json[0]['name'] == 'Backend API'
+        assert len(parsed_json) == 4
+        # Components are ordered: UI/Frontend, Backend API, Database, Infrastructure
+        assert parsed_json[0]['name'] == 'UI/Frontend'
