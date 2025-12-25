@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 This is a Claude Code Skills project providing JIRA automation through seven modular skills:
 - **jira-issue**: Core CRUD operations on issues
 - **jira-lifecycle**: Workflow/transition management
-- **jira-search**: JQL queries and bulk operations
+- **jira-search**: JQL queries, saved filters, JQL builder/validator, and bulk operations
 - **jira-collaborate**: Comments, attachments, watchers
 - **jira-agile**: Agile/Scrum workflows (epics, sprints, backlog, story points)
 - **jira-relationships**: Issue linking, dependencies, blocker chains, cloning
@@ -181,6 +181,35 @@ def main():
 - Estimate adjustment: Use `adjustEstimate` parameter (auto, leave, new, manual)
 - Known bug JRACLOUD-67539: Always set both originalEstimate and remainingEstimate together
 - Integration: `create_issue.py --estimate`, `get_issue.py --show-time`, `jql_search.py --show-time`
+
+**JQL and Advanced Search**: Use the JQL APIs for query building and validation:
+- JQL Autocomplete: `/rest/api/3/jql/autocompletedata` for fields, operators, functions
+- JQL Parse: `/rest/api/3/jql/parse` for validation with error suggestions
+- JQL Suggestions: `/rest/api/3/jql/autocompletedata/suggestions` for field value completion
+- Filter CRUD: `/rest/api/3/filter` for create, read, update, delete filters
+- Filter Sharing: `/rest/api/3/filter/{id}/permission` for sharing with projects, groups, users
+- Integration: `jql_search.py --filter 10042` to run saved filter, `jql_search.py "query" --save-as "Name"`
+
+**JQL Query Patterns**:
+```jql
+# User-based
+assignee = currentUser()
+assignee in membersOf("developers")
+reporter != currentUser() AND watcher = currentUser()
+
+# Time-based
+created >= startOfDay(-7d)
+updated >= startOfWeek() AND updated <= endOfWeek()
+resolved >= -30d
+
+# Status-based
+status = "In Progress"
+status in (Open, "To Do", Backlog)
+status changed FROM "In Progress" TO Done DURING (startOfDay(-1d), now())
+
+# Combined with ordering
+project = PROJ AND type = Bug AND priority in (High, Highest) ORDER BY created DESC
+```
 
 ## Git Commit Guidelines
 

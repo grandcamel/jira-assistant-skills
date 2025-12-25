@@ -1311,3 +1311,318 @@ class JiraClient:
         self.put(f'/rest/api/3/issue/{issue_key}',
                 data={'fields': {'timetracking': timetracking}},
                 operation=f"set time tracking for {issue_key}")
+
+    # ========== JQL API Methods (/rest/api/3/jql/) ==========
+
+    def get_jql_autocomplete(self, include_collapsed_fields: bool = False) -> Dict[str, Any]:
+        """
+        Get JQL reference data (fields, functions, reserved words).
+
+        Args:
+            include_collapsed_fields: Include collapsed fields in response
+
+        Returns:
+            dict with visibleFieldNames, visibleFunctionNames, jqlReservedWords
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        params = {}
+        if include_collapsed_fields:
+            params['includeCollapsedFields'] = 'true'
+        return self.get('/rest/api/3/jql/autocompletedata',
+                       params=params if params else None,
+                       operation="get JQL autocomplete data")
+
+    def get_jql_suggestions(self, field_name: str, field_value: str = '') -> Dict[str, Any]:
+        """
+        Get autocomplete suggestions for a JQL field value.
+
+        Args:
+            field_name: Field to get suggestions for (e.g., 'project', 'status')
+            field_value: Partial value to filter suggestions
+
+        Returns:
+            dict with results array of suggestion objects
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        params = {'fieldName': field_name}
+        if field_value:
+            params['fieldValue'] = field_value
+        return self.get('/rest/api/3/jql/autocompletedata/suggestions',
+                       params=params,
+                       operation=f"get JQL suggestions for {field_name}")
+
+    def parse_jql(self, queries: list, validation: str = 'strict') -> Dict[str, Any]:
+        """
+        Parse and validate JQL queries.
+
+        Args:
+            queries: List of JQL query strings to parse
+            validation: Validation level: 'strict', 'warn', or 'none'
+
+        Returns:
+            dict with queries array containing structure and errors
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        params = {'validation': validation}
+        return self.post('/rest/api/3/jql/parse',
+                        data={'queries': queries},
+                        operation="parse JQL queries")
+
+    # ========== Filter API Methods (/rest/api/3/filter/) ==========
+
+    def create_filter(self, name: str, jql: str, description: str = None,
+                      favourite: bool = False,
+                      share_permissions: list = None) -> Dict[str, Any]:
+        """
+        Create a new filter.
+
+        Args:
+            name: Filter name
+            jql: JQL query string
+            description: Optional description
+            favourite: Whether to mark as favourite
+            share_permissions: List of share permission objects
+
+        Returns:
+            Created filter object
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        payload = {
+            'name': name,
+            'jql': jql,
+            'favourite': favourite
+        }
+        if description:
+            payload['description'] = description
+        if share_permissions:
+            payload['sharePermissions'] = share_permissions
+        return self.post('/rest/api/3/filter', data=payload,
+                        operation=f"create filter '{name}'")
+
+    def get_filter(self, filter_id: str, expand: str = None) -> Dict[str, Any]:
+        """
+        Get a filter by ID.
+
+        Args:
+            filter_id: Filter ID
+            expand: Optional expansions (e.g., 'sharedUsers,subscriptions')
+
+        Returns:
+            Filter object
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        params = {}
+        if expand:
+            params['expand'] = expand
+        return self.get(f'/rest/api/3/filter/{filter_id}',
+                       params=params if params else None,
+                       operation=f"get filter {filter_id}")
+
+    def update_filter(self, filter_id: str, name: str = None, jql: str = None,
+                      description: str = None, favourite: bool = None) -> Dict[str, Any]:
+        """
+        Update a filter.
+
+        Args:
+            filter_id: Filter ID
+            name: New name (optional)
+            jql: New JQL (optional)
+            description: New description (optional)
+            favourite: New favourite status (optional)
+
+        Returns:
+            Updated filter object
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        payload = {}
+        if name is not None:
+            payload['name'] = name
+        if jql is not None:
+            payload['jql'] = jql
+        if description is not None:
+            payload['description'] = description
+        if favourite is not None:
+            payload['favourite'] = favourite
+        return self.put(f'/rest/api/3/filter/{filter_id}', data=payload,
+                       operation=f"update filter {filter_id}")
+
+    def delete_filter(self, filter_id: str) -> None:
+        """
+        Delete a filter.
+
+        Args:
+            filter_id: Filter ID
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        self.delete(f'/rest/api/3/filter/{filter_id}',
+                   operation=f"delete filter {filter_id}")
+
+    def get_my_filters(self, expand: str = None) -> list:
+        """
+        Get current user's filters.
+
+        Args:
+            expand: Optional expansions
+
+        Returns:
+            List of filter objects
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        params = {}
+        if expand:
+            params['expand'] = expand
+        result = self.get('/rest/api/3/filter/my',
+                         params=params if params else None,
+                         operation="get my filters")
+        return result if isinstance(result, list) else []
+
+    def get_favourite_filters(self, expand: str = None) -> list:
+        """
+        Get current user's favourite filters.
+
+        Args:
+            expand: Optional expansions
+
+        Returns:
+            List of filter objects
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        params = {}
+        if expand:
+            params['expand'] = expand
+        result = self.get('/rest/api/3/filter/favourite',
+                         params=params if params else None,
+                         operation="get favourite filters")
+        return result if isinstance(result, list) else []
+
+    def search_filters(self, filter_name: str = None, account_id: str = None,
+                       project_key: str = None, expand: str = None,
+                       start_at: int = 0, max_results: int = 50) -> Dict[str, Any]:
+        """
+        Search for filters.
+
+        Args:
+            filter_name: Filter name to search for
+            account_id: Filter by owner account ID
+            project_key: Filter by project
+            expand: Expansions
+            start_at: Pagination offset
+            max_results: Max results per page
+
+        Returns:
+            dict with values array and pagination info
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        params = {'startAt': start_at, 'maxResults': max_results}
+        if filter_name:
+            params['filterName'] = filter_name
+        if account_id:
+            params['accountId'] = account_id
+        if project_key:
+            params['projectKeyOrId'] = project_key
+        if expand:
+            params['expand'] = expand
+        return self.get('/rest/api/3/filter/search', params=params,
+                       operation="search filters")
+
+    def add_filter_favourite(self, filter_id: str) -> Dict[str, Any]:
+        """
+        Add filter to favourites.
+
+        Args:
+            filter_id: Filter ID
+
+        Returns:
+            Updated filter object
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        return self.put(f'/rest/api/3/filter/{filter_id}/favourite',
+                       operation=f"add filter {filter_id} to favourites")
+
+    def remove_filter_favourite(self, filter_id: str) -> None:
+        """
+        Remove filter from favourites.
+
+        Args:
+            filter_id: Filter ID
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        self.delete(f'/rest/api/3/filter/{filter_id}/favourite',
+                   operation=f"remove filter {filter_id} from favourites")
+
+    def get_filter_permissions(self, filter_id: str) -> list:
+        """
+        Get filter share permissions.
+
+        Args:
+            filter_id: Filter ID
+
+        Returns:
+            List of share permission objects
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        return self.get(f'/rest/api/3/filter/{filter_id}/permission',
+                       operation=f"get permissions for filter {filter_id}")
+
+    def add_filter_permission(self, filter_id: str, permission: dict) -> Dict[str, Any]:
+        """
+        Add share permission to filter.
+
+        Args:
+            filter_id: Filter ID
+            permission: Permission object with type and relevant fields:
+                       - type: 'global', 'loggedin', 'project', 'project-role', 'group', 'user'
+                       - project: {id: '10000'} (for project/project-role)
+                       - role: {id: '10001'} (for project-role)
+                       - group: {name: 'developers'} or {groupId: 'abc123'}
+                       - user: {accountId: '...'} (for user)
+
+        Returns:
+            Created permission object
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        return self.post(f'/rest/api/3/filter/{filter_id}/permission',
+                        data=permission,
+                        operation=f"add permission to filter {filter_id}")
+
+    def delete_filter_permission(self, filter_id: str, permission_id: str) -> None:
+        """
+        Delete a filter share permission.
+
+        Args:
+            filter_id: Filter ID
+            permission_id: Permission ID
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        self.delete(f'/rest/api/3/filter/{filter_id}/permission/{permission_id}',
+                   operation=f"delete permission {permission_id} from filter {filter_id}")
