@@ -247,10 +247,12 @@ def test_epic(jira_client, test_project) -> Generator[Dict[str, Any], None, None
     """
     Create a test epic for individual tests.
 
+    Note: Simplified project templates don't require Epic Name field
+    (customfield_10011). Just use summary and issuetype.
+
     Yields:
         Epic issue data with 'key', 'id', 'self'
     """
-    # Epic requires Epic Name custom field (customfield_10011)
     issue = jira_client.create_issue({
         'project': {'key': test_project['key']},
         'summary': f'Test Epic {uuid.uuid4().hex[:8]}',
@@ -259,8 +261,7 @@ def test_epic(jira_client, test_project) -> Generator[Dict[str, Any], None, None
             'version': 1,
             'content': [{'type': 'paragraph', 'content': [{'type': 'text', 'text': 'Test epic for integration tests'}]}]
         },
-        'issuetype': {'name': 'Epic'},
-        'customfield_10011': f'Epic-{uuid.uuid4().hex[:6]}'  # Epic Name
+        'issuetype': {'name': 'Epic'}
     })
 
     yield issue
