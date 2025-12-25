@@ -329,18 +329,25 @@ class JiraClient:
         response = self.session.put(url, json=data, params=params, timeout=self.timeout)
         handle_jira_error(response, f"update issue {issue_key}")
 
-    def delete_issue(self, issue_key: str) -> None:
+    def delete_issue(self, issue_key: str, delete_subtasks: bool = True) -> None:
         """
         Delete an issue.
 
         Args:
             issue_key: Issue key (e.g., PROJ-123)
+            delete_subtasks: If True, also delete subtasks (default: True)
 
         Raises:
             JiraError or subclass on failure
         """
-        self.delete(f'/rest/api/3/issue/{issue_key}',
-                   operation=f"delete issue {issue_key}")
+        params = {}
+        if delete_subtasks:
+            params['deleteSubtasks'] = 'true'
+
+        endpoint = f'/rest/api/3/issue/{issue_key}'
+        url = f"{self.base_url}{endpoint}"
+        response = self.session.delete(url, params=params, timeout=self.timeout)
+        handle_jira_error(response, f"delete issue {issue_key}")
 
     def get_transitions(self, issue_key: str) -> list:
         """
@@ -797,3 +804,289 @@ class JiraClient:
                         params={'fields': 'issuelinks'},
                         operation=f"get links for {issue_key}")
         return issue.get('fields', {}).get('issuelinks', [])
+
+    # ========== Project Management API Methods (/rest/api/3/project) ==========
+
+    def create_project(self, key: str, name: str,
+                       project_type_key: str = 'software',
+                       template_key: str = 'com.pyxis.greenhopper.jira:gh-simplified-agility-scrum',
+                       lead_account_id: Optional[str] = None,
+                       description: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Create a new project.
+
+        Args:
+            key: Project key (e.g., 'TEST', 'INTG') - must be uppercase, 2-10 chars
+            name: Project name
+            project_type_key: 'software', 'business', or 'service_desk'
+            template_key: Project template (determines board type)
+            lead_account_id: Account ID of project lead (defaults to current user)
+            description: Project description
+
+        Returns:
+            Created project data with 'id', 'key', 'self'
+
+        Raises:
+            JiraError or subclass on failure
+
+        Common template_keys:
+            Scrum: 'com.pyxis.greenhopper.jira:gh-simplified-agility-scrum'
+            Kanban: 'com.pyxis.greenhopper.jira:gh-simplified-agility-kanban'
+            Basic: 'com.pyxis.greenhopper.jira:gh-simplified-basic'
+        """
+        data = {
+            'key': key.upper(),
+            'name': name,
+            'projectTypeKey': project_type_key,
+            'projectTemplateKey': template_key,
+        }
+
+        if lead_account_id:
+            data['leadAccountId'] = lead_account_id
+        else:
+            # Default to current user as project lead
+            data['leadAccountId'] = self.get_current_user_id()
+
+        if description:
+            data['description'] = description
+
+        return self.post('/rest/api/3/project', data=data,
+                        operation=f"create project {key}")
+
+    def get_project(self, project_key: str,
+                    expand: Optional[list] = None) -> Dict[str, Any]:
+        """
+        Get project details.
+
+        Args:
+            project_key: Project key (e.g., 'PROJ')
+            expand: Optional list of fields to expand (e.g., ['description', 'lead'])
+
+        Returns:
+            Project data
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        params = {}
+        if expand:
+            params['expand'] = ','.join(expand)
+
+        return self.get(f'/rest/api/3/project/{project_key}',
+                       params=params if params else None,
+                       operation=f"get project {project_key}")
+
+    def delete_project(self, project_key: str, enable_undo: bool = True) -> None:
+        """
+        Delete a project.
+
+        Args:
+            project_key: Project key to delete
+            enable_undo: If True, project goes to trash (recoverable for 60 days)
+
+        Raises:
+            JiraError or subclass on failure
+
+        Note:
+            Deleting a project also deletes all issues, boards, and sprints.
+            Requires JIRA administrator permissions.
+        """
+        params = {'enableUndo': 'true' if enable_undo else 'false'}
+        endpoint = f'/rest/api/3/project/{project_key}'
+        url = f"{self.base_url}{endpoint}"
+        response = self.session.delete(url, params=params, timeout=self.timeout)
+        handle_jira_error(response, f"delete project {project_key}")
+
+    def get_project_statuses(self, project_key: str) -> list:
+        """
+        Get all statuses available in a project, grouped by issue type.
+
+        Args:
+            project_key: Project key
+
+        Returns:
+            List of issue types with their available statuses
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        return self.get(f'/rest/api/3/project/{project_key}/statuses',
+                       operation=f"get statuses for project {project_key}")
+
+    # ========== Sprint Deletion ==========
+
+    def delete_sprint(self, sprint_id: int) -> None:
+        """
+        Delete a sprint.
+
+        Args:
+            sprint_id: Sprint ID to delete
+
+        Raises:
+            JiraError or subclass on failure
+
+        Note:
+            Only future (not started) sprints can be deleted.
+            Active or closed sprints cannot be deleted via API.
+        """
+        self.delete(f'/rest/agile/1.0/sprint/{sprint_id}',
+                   operation=f"delete sprint {sprint_id}")
+
+    # ========== Board Deletion ==========
+
+    def delete_board(self, board_id: int) -> None:
+        """
+        Delete a board.
+
+        Args:
+            board_id: Board ID to delete
+
+        Raises:
+            JiraError or subclass on failure
+
+        Note:
+            Deleting a project typically deletes associated boards automatically.
+            Use this for explicit board cleanup if needed.
+        """
+        self.delete(f'/rest/agile/1.0/board/{board_id}',
+                   operation=f"delete board {board_id}")
+
+    # ========== Comment Operations ==========
+
+    def get_comments(self, issue_key: str, max_results: int = 50,
+                     start_at: int = 0, order_by: str = '-created') -> Dict[str, Any]:
+        """
+        Get comments on an issue.
+
+        Args:
+            issue_key: Issue key (e.g., PROJ-123)
+            max_results: Maximum number of comments to return
+            start_at: Starting index for pagination
+            order_by: Order by field (prefix with - for descending)
+
+        Returns:
+            Comments data with 'comments', 'total', 'startAt', 'maxResults'
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        params = {
+            'maxResults': max_results,
+            'startAt': start_at,
+            'orderBy': order_by
+        }
+        return self.get(f'/rest/api/3/issue/{issue_key}/comment',
+                       params=params,
+                       operation=f"get comments for {issue_key}")
+
+    def get_comment(self, issue_key: str, comment_id: str) -> Dict[str, Any]:
+        """
+        Get a specific comment.
+
+        Args:
+            issue_key: Issue key (e.g., PROJ-123)
+            comment_id: Comment ID
+
+        Returns:
+            Comment data
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        return self.get(f'/rest/api/3/issue/{issue_key}/comment/{comment_id}',
+                       operation=f"get comment {comment_id}")
+
+    def update_comment(self, issue_key: str, comment_id: str,
+                       body: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Update a comment on an issue.
+
+        Args:
+            issue_key: Issue key (e.g., PROJ-123)
+            comment_id: Comment ID
+            body: New comment body in ADF format
+
+        Returns:
+            Updated comment data
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        data = {'body': body}
+        return self.put(f'/rest/api/3/issue/{issue_key}/comment/{comment_id}',
+                       data=data,
+                       operation=f"update comment {comment_id}")
+
+    def delete_comment(self, issue_key: str, comment_id: str) -> None:
+        """
+        Delete a comment from an issue.
+
+        Args:
+            issue_key: Issue key (e.g., PROJ-123)
+            comment_id: Comment ID
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        self.delete(f'/rest/api/3/issue/{issue_key}/comment/{comment_id}',
+                   operation=f"delete comment {comment_id}")
+
+    # ========== Attachment Operations ==========
+
+    def get_attachments(self, issue_key: str) -> list:
+        """
+        Get attachments for an issue.
+
+        Args:
+            issue_key: Issue key (e.g., PROJ-123)
+
+        Returns:
+            List of attachment objects
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        issue = self.get(f'/rest/api/3/issue/{issue_key}',
+                        params={'fields': 'attachment'},
+                        operation=f"get attachments for {issue_key}")
+        return issue.get('fields', {}).get('attachment', [])
+
+    def delete_attachment(self, attachment_id: str) -> None:
+        """
+        Delete an attachment.
+
+        Args:
+            attachment_id: Attachment ID
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        self.delete(f'/rest/api/3/attachment/{attachment_id}',
+                   operation=f"delete attachment {attachment_id}")
+
+    # ========== User Search ==========
+
+    def search_users(self, query: str, max_results: int = 50,
+                     start_at: int = 0) -> list:
+        """
+        Search for users by email or display name.
+
+        Args:
+            query: Search query (email or name)
+            max_results: Maximum results to return
+            start_at: Starting index for pagination
+
+        Returns:
+            List of matching users
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        params = {
+            'query': query,
+            'maxResults': max_results,
+            'startAt': start_at
+        }
+        return self.get('/rest/api/3/user/search',
+                       params=params,
+                       operation="search users")
