@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import List, Optional, Dict
 
 # Add shared lib to path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent / 'shared' / 'scripts' / 'lib'))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'shared' / 'scripts' / 'lib'))
 
 # Imports from shared library
 from config_manager import get_jira_client

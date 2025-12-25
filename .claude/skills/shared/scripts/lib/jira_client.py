@@ -448,3 +448,257 @@ class JiraClient:
     def __exit__(self, exc_type, exc_val, exc_tb):
         """Context manager exit."""
         self.close()
+
+    # ========== Agile API Methods (/rest/agile/1.0/) ==========
+
+    def get_sprint(self, sprint_id: int) -> Dict[str, Any]:
+        """
+        Get sprint details.
+
+        Args:
+            sprint_id: Sprint ID
+
+        Returns:
+            Sprint data
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        return self.get(f'/rest/agile/1.0/sprint/{sprint_id}',
+                       operation=f"get sprint {sprint_id}")
+
+    def get_sprint_issues(self, sprint_id: int, fields: Optional[list] = None,
+                          max_results: int = 50, start_at: int = 0) -> Dict[str, Any]:
+        """
+        Get issues in a sprint.
+
+        Args:
+            sprint_id: Sprint ID
+            fields: List of fields to return
+            max_results: Maximum results per page
+            start_at: Starting index for pagination
+
+        Returns:
+            Issues in the sprint
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        params = {
+            'maxResults': max_results,
+            'startAt': start_at,
+        }
+        if fields:
+            params['fields'] = ','.join(fields)
+
+        return self.get(f'/rest/agile/1.0/sprint/{sprint_id}/issue',
+                       params=params,
+                       operation=f"get issues for sprint {sprint_id}")
+
+    def create_sprint(self, board_id: int, name: str, goal: Optional[str] = None,
+                      start_date: Optional[str] = None,
+                      end_date: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Create a new sprint.
+
+        Args:
+            board_id: Board ID to create sprint on
+            name: Sprint name
+            goal: Sprint goal (optional)
+            start_date: Start date in ISO format (optional)
+            end_date: End date in ISO format (optional)
+
+        Returns:
+            Created sprint data
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        data = {
+            'originBoardId': board_id,
+            'name': name,
+        }
+        if goal:
+            data['goal'] = goal
+        if start_date:
+            data['startDate'] = start_date
+        if end_date:
+            data['endDate'] = end_date
+
+        return self.post('/rest/agile/1.0/sprint', data=data,
+                        operation="create sprint")
+
+    def update_sprint(self, sprint_id: int, **kwargs) -> Dict[str, Any]:
+        """
+        Update a sprint.
+
+        Args:
+            sprint_id: Sprint ID
+            **kwargs: Fields to update (name, goal, state, startDate, endDate)
+
+        Returns:
+            Updated sprint data
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        data = {}
+        field_mapping = {
+            'name': 'name',
+            'goal': 'goal',
+            'state': 'state',
+            'start_date': 'startDate',
+            'end_date': 'endDate',
+        }
+        for key, api_key in field_mapping.items():
+            if key in kwargs and kwargs[key] is not None:
+                data[api_key] = kwargs[key]
+
+        return self.post(f'/rest/agile/1.0/sprint/{sprint_id}',
+                        data=data,
+                        operation=f"update sprint {sprint_id}")
+
+    def move_issues_to_sprint(self, sprint_id: int, issue_keys: list) -> None:
+        """
+        Move issues to a sprint.
+
+        Args:
+            sprint_id: Sprint ID
+            issue_keys: List of issue keys to move
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        data = {'issues': issue_keys}
+        self.post(f'/rest/agile/1.0/sprint/{sprint_id}/issue',
+                 data=data,
+                 operation=f"move issues to sprint {sprint_id}")
+
+    def get_board_backlog(self, board_id: int, jql: Optional[str] = None,
+                          fields: Optional[list] = None,
+                          max_results: int = 50, start_at: int = 0) -> Dict[str, Any]:
+        """
+        Get backlog issues for a board.
+
+        Args:
+            board_id: Board ID
+            jql: Additional JQL filter
+            fields: List of fields to return
+            max_results: Maximum results per page
+            start_at: Starting index for pagination
+
+        Returns:
+            Backlog issues
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        params = {
+            'maxResults': max_results,
+            'startAt': start_at,
+        }
+        if jql:
+            params['jql'] = jql
+        if fields:
+            params['fields'] = ','.join(fields)
+
+        return self.get(f'/rest/agile/1.0/board/{board_id}/backlog',
+                       params=params,
+                       operation=f"get backlog for board {board_id}")
+
+    def rank_issues(self, issue_keys: list, rank_before: Optional[str] = None,
+                    rank_after: Optional[str] = None) -> None:
+        """
+        Rank issues in the backlog.
+
+        Args:
+            issue_keys: List of issue keys to rank
+            rank_before: Issue key to rank before
+            rank_after: Issue key to rank after
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        data = {'issues': issue_keys}
+        if rank_before:
+            data['rankBeforeIssue'] = rank_before
+        if rank_after:
+            data['rankAfterIssue'] = rank_after
+
+        self.put('/rest/agile/1.0/issue/rank', data=data,
+                operation="rank issues")
+
+    def get_board(self, board_id: int) -> Dict[str, Any]:
+        """
+        Get board details.
+
+        Args:
+            board_id: Board ID
+
+        Returns:
+            Board data
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        return self.get(f'/rest/agile/1.0/board/{board_id}',
+                       operation=f"get board {board_id}")
+
+    def get_all_boards(self, project_key: Optional[str] = None,
+                       board_type: Optional[str] = None,
+                       max_results: int = 50, start_at: int = 0) -> Dict[str, Any]:
+        """
+        Get all boards.
+
+        Args:
+            project_key: Filter by project
+            board_type: Filter by type (scrum, kanban)
+            max_results: Maximum results per page
+            start_at: Starting index for pagination
+
+        Returns:
+            Boards list
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        params = {
+            'maxResults': max_results,
+            'startAt': start_at,
+        }
+        if project_key:
+            params['projectKeyOrId'] = project_key
+        if board_type:
+            params['type'] = board_type
+
+        return self.get('/rest/agile/1.0/board',
+                       params=params,
+                       operation="get boards")
+
+    def get_board_sprints(self, board_id: int, state: Optional[str] = None,
+                          max_results: int = 50, start_at: int = 0) -> Dict[str, Any]:
+        """
+        Get sprints for a board.
+
+        Args:
+            board_id: Board ID
+            state: Filter by state (future, active, closed)
+            max_results: Maximum results per page
+            start_at: Starting index for pagination
+
+        Returns:
+            Sprints list
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        params = {
+            'maxResults': max_results,
+            'startAt': start_at,
+        }
+        if state:
+            params['state'] = state
+
+        return self.get(f'/rest/agile/1.0/board/{board_id}/sprint',
+                       params=params,
+                       operation=f"get sprints for board {board_id}")

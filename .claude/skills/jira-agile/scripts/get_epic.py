@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Optional, Dict, List
 
 # Add shared lib to path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent / 'shared' / 'scripts' / 'lib'))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'shared' / 'scripts' / 'lib'))
 
 # Imports from shared library
 from config_manager import get_jira_client
@@ -77,7 +77,11 @@ def get_epic(epic_key: str,
             # Search for issues with this epic link
             # Note: Epic Link field may vary per instance
             jql = f'\"Epic Link\" = {epic_key} OR parent = {epic_key}'
-            search_results = client.search_issues(jql, max_results=1000)
+            search_results = client.search_issues(
+                jql,
+                fields=['key', 'summary', 'status', 'issuetype', STORY_POINTS_FIELD],
+                max_results=1000
+            )
 
             children = search_results.get('issues', [])
             result['children'] = children

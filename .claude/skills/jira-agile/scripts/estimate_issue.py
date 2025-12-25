@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Optional, List
 
 # Add shared lib to path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent / 'shared' / 'scripts' / 'lib'))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'shared' / 'scripts' / 'lib'))
 
 from config_manager import get_jira_client
 from error_handler import print_error, JiraError, ValidationError
@@ -90,9 +90,7 @@ def estimate_issue(issue_keys: List[str] = None,
         updated = 0
         for key in issue_keys:
             client.update_issue(key, {
-                'fields': {
-                    STORY_POINTS_FIELD: points_value
-                }
+                STORY_POINTS_FIELD: points_value
             })
             updated += 1
 

@@ -14,7 +14,7 @@ import json
 from pathlib import Path
 
 # Add shared lib to path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent / 'shared' / 'scripts' / 'lib'))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'shared' / 'scripts' / 'lib'))
 
 # Imports from shared library
 from config_manager import get_jira_client
@@ -80,11 +80,22 @@ def create_subtask(parent_key: str, summary: str, description: str = None,
         # Get project from parent
         project_key = parent['fields']['project']['key']
 
+        # Find the subtask issue type
+        issue_types = client.get('/rest/api/3/issuetype')
+        subtask_type = None
+        for itype in issue_types:
+            if itype.get('subtask', False):
+                subtask_type = itype['name']
+                break
+
+        if not subtask_type:
+            raise ValidationError("No subtask issue type found in JIRA instance")
+
         # Build fields dictionary
         fields = {
             'project': {'key': project_key},
             'parent': {'key': parent_key},
-            'issuetype': {'name': 'Sub-task'},
+            'issuetype': {'name': subtask_type},
             'summary': summary
         }
 

@@ -28,6 +28,19 @@ def mock_jira_client():
     client.base_url = "https://test.atlassian.net"
     client.email = "test@example.com"
     client.close = Mock()
+
+    # Mock issue types for subtask creation
+    def mock_get(endpoint, *args, **kwargs):
+        if endpoint == '/rest/api/3/issuetype':
+            return [
+                {'id': '10000', 'name': 'Epic', 'subtask': False},
+                {'id': '10001', 'name': 'Story', 'subtask': False},
+                {'id': '10002', 'name': 'Task', 'subtask': False},
+                {'id': '10003', 'name': 'Sub-task', 'subtask': True},
+            ]
+        return {}
+
+    client.get.side_effect = mock_get
     return client
 
 
