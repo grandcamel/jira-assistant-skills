@@ -106,7 +106,7 @@ class JiraClient:
 
         Args:
             endpoint: API endpoint
-            data: Request body (will be JSON-encoded)
+            data: Request body (dict will be JSON-encoded, string used as-is)
             operation: Description of operation for error messages
 
         Returns:
@@ -116,7 +116,14 @@ class JiraClient:
             JiraError or subclass on failure
         """
         url = f"{self.base_url}{endpoint}"
-        response = self.session.post(url, json=data, timeout=self.timeout)
+
+        # If data is already a string, send it as raw body
+        # (e.g., for watcher API which expects just "accountId")
+        if isinstance(data, str):
+            response = self.session.post(url, data=data, timeout=self.timeout)
+        else:
+            response = self.session.post(url, json=data, timeout=self.timeout)
+
         handle_jira_error(response, operation)
 
         if response.status_code == 204:
