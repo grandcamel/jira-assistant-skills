@@ -4,12 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Claude Code Skills project providing JIRA automation through five modular skills:
+This is a Claude Code Skills project providing JIRA automation through six modular skills:
 - **jira-issue**: Core CRUD operations on issues
 - **jira-lifecycle**: Workflow/transition management
 - **jira-search**: JQL queries and bulk operations
 - **jira-collaborate**: Comments, attachments, watchers
 - **jira-agile**: Agile/Scrum workflows (epics, sprints, backlog, story points)
+- **jira-relationships**: Issue linking, dependencies, blocker chains, cloning
 
 Each skill is designed for autonomous discovery and use by Claude Code.
 
@@ -166,6 +167,12 @@ def main():
 - Epic Color: `customfield_10012`
 
 **Sprint operations**: Use the Agile API (`/rest/agile/1.0/`) for sprint and board operations. Sprints require board context for creation.
+
+**Issue linking**: Use the Issue Link API (`/rest/api/3/issueLink`) for creating relationships:
+- Link types: Blocks, Cloners, Duplicate, Relates (names may vary by instance)
+- Direction: inward (is blocked by) vs outward (blocks)
+- Blocker chains: Traverse recursively with visited set to detect cycles
+- Integration: `create_issue.py --blocks`, `get_issue.py --show-links`, `jql_search.py --show-links`
 
 ## Git Commit Guidelines
 

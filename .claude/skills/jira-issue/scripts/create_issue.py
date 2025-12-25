@@ -7,6 +7,8 @@ Usage:
     python create_issue.py --project PROJ --type Task --summary "Task" --description "Details" --priority High
     python create_issue.py --template bug --project PROJ --summary "Bug title"
     python create_issue.py --project PROJ --type Story --summary "Story" --epic PROJ-100 --story-points 5
+    python create_issue.py --project PROJ --type Task --summary "Task" --blocks PROJ-123
+    python create_issue.py --project PROJ --type Task --summary "Task" --relates-to PROJ-456
 """
 
 import sys
@@ -45,7 +47,8 @@ def create_issue(project: str, issue_type: str, summary: str,
                 components: list = None, template: str = None,
                 custom_fields: dict = None, profile: str = None,
                 epic: str = None, sprint: int = None,
-                story_points: float = None) -> dict:
+                story_points: float = None,
+                blocks: list = None, relates_to: list = None) -> dict:
     """
     Create a new JIRA issue.
 
@@ -64,6 +67,8 @@ def create_issue(project: str, issue_type: str, summary: str,
         epic: Epic key to link this issue to
         sprint: Sprint ID to add this issue to
         story_points: Story point estimate
+        blocks: List of issue keys this issue blocks
+        relates_to: List of issue keys this issue relates to
 
     Returns:
         Created issue data
@@ -124,9 +129,32 @@ def create_issue(project: str, issue_type: str, summary: str,
     result = client.create_issue(fields)
 
     # Add to sprint after creation (sprint assignment requires issue to exist)
+    issue_key = result.get('key')
     if sprint:
-        issue_key = result.get('key')
         client.move_issues_to_sprint(sprint, [issue_key])
+
+    # Create issue links after creation
+    links_created = []
+    if blocks:
+        for target_key in blocks:
+            target_key = validate_issue_key(target_key)
+            try:
+                client.create_link('Blocks', issue_key, target_key)
+                links_created.append(f"blocks {target_key}")
+            except Exception:
+                pass  # Continue even if link fails
+
+    if relates_to:
+        for target_key in relates_to:
+            target_key = validate_issue_key(target_key)
+            try:
+                client.create_link('Relates', issue_key, target_key)
+                links_created.append(f"relates to {target_key}")
+            except Exception:
+                pass  # Continue even if link fails
+
+    if links_created:
+        result['links_created'] = links_created
 
     client.close()
 
@@ -168,6 +196,10 @@ def main():
     parser.add_argument('--story-points', '--points',
                        type=float,
                        help='Story point estimate')
+    parser.add_argument('--blocks',
+                       help='Comma-separated issue keys this issue blocks')
+    parser.add_argument('--relates-to',
+                       help='Comma-separated issue keys this issue relates to')
     parser.add_argument('--profile',
                        help='JIRA profile to use (default: from config)')
     parser.add_argument('--output', '-o',
@@ -181,6 +213,8 @@ def main():
         labels = [l.strip() for l in args.labels.split(',')] if args.labels else None
         components = [c.strip() for c in args.components.split(',')] if args.components else None
         custom_fields = json.loads(args.custom_fields) if args.custom_fields else None
+        blocks = [k.strip() for k in args.blocks.split(',')] if args.blocks else None
+        relates_to = [k.strip() for k in args.relates_to.split(',')] if args.relates_to else None
 
         result = create_issue(
             project=args.project,
@@ -196,7 +230,9 @@ def main():
             profile=args.profile,
             epic=args.epic,
             sprint=args.sprint,
-            story_points=args.story_points
+            story_points=args.story_points,
+            blocks=blocks,
+            relates_to=relates_to
         )
 
         issue_key = result.get('key')
@@ -206,6 +242,9 @@ def main():
         else:
             print_success(f"Created issue: {issue_key}")
             print(f"URL: {result.get('self', '').replace('/rest/api/3/issue/', '/browse/')}")
+            links_created = result.get('links_created', [])
+            if links_created:
+                print(f"Links: {', '.join(links_created)}")
 
     except JiraError as e:
         print_error(e)

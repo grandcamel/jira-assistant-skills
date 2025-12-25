@@ -5,6 +5,7 @@ Get and display a JIRA issue.
 Usage:
     python get_issue.py PROJ-123
     python get_issue.py PROJ-123 --detailed
+    python get_issue.py PROJ-123 --show-links
     python get_issue.py PROJ-123 --output json
 """
 
@@ -56,6 +57,9 @@ def main():
     parser.add_argument('--detailed', '-d',
                        action='store_true',
                        help='Show detailed information including description')
+    parser.add_argument('--show-links', '-l',
+                       action='store_true',
+                       help='Show issue links (blocks, relates to, etc.)')
     parser.add_argument('--output', '-o',
                        choices=['text', 'json'],
                        default='text',
@@ -68,6 +72,13 @@ def main():
     try:
         fields = [f.strip() for f in args.fields.split(',')] if args.fields else None
 
+        # If --show-links, ensure issuelinks is included and show detailed
+        show_detailed = args.detailed or args.show_links
+        if args.show_links and fields is None:
+            fields = None  # Get all fields including issuelinks
+        elif args.show_links and fields is not None and 'issuelinks' not in fields:
+            fields.append('issuelinks')
+
         issue = get_issue(
             issue_key=args.issue_key,
             fields=fields,
@@ -77,7 +88,7 @@ def main():
         if args.output == 'json':
             print(format_json(issue))
         else:
-            print(format_issue(issue, detailed=args.detailed))
+            print(format_issue(issue, detailed=show_detailed))
 
     except JiraError as e:
         print_error(e)

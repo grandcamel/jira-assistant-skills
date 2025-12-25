@@ -696,35 +696,36 @@ python clone_issue.py PROJ-123 --to-project OTHER
 
 ### Integration Tasks
 
-- [ ] **Integration 1:** Update jira-issue scripts
-  - [ ] `create_issue.py`: Add `--blocks`, `--relates-to` flags
-  - [ ] `get_issue.py`: Show issue links in output
-  - **Commit:** `feat(jira-issue): add issue link support to create/get`
+- [x] **Integration 1:** Update jira-issue scripts ✅
+  - [x] `create_issue.py`: Add `--blocks`, `--relates-to` flags ✅
+  - [x] `get_issue.py`: Show issue links in output with `--show-links` ✅
+  - **Commit:** `feat(jira-issue): add issue link support to create/get` ✅
 
-- [ ] **Integration 2:** Update jira-search scripts
-  - [ ] `jql_search.py`: Add `--show-links` option
-  - **Commit:** `feat(jira-search): show links in search results`
+- [x] **Integration 2:** Update jira-search scripts ✅
+  - [x] `jql_search.py`: Add `--show-links` option ✅
+  - [x] `formatters.py`: Add `show_links` parameter to search results ✅
+  - **Commit:** `feat(jira-search): show links in search results` ✅
 
 ### Documentation Updates
 
-- [ ] **Docs 1:** Create comprehensive SKILL.md
-  - [ ] "When to use this skill" section
-  - [ ] "What this skill does" section
-  - [ ] "Available scripts" with descriptions
-  - [ ] "Examples" with realistic workflows
-  - [ ] Configuration notes
-  - [ ] Related skills section
-  - **Commit:** `docs(jira-relationships): create comprehensive SKILL.md`
+- [x] **Docs 1:** Create comprehensive SKILL.md ✅
+  - [x] "When to use this skill" section ✅
+  - [x] "What this skill does" section ✅
+  - [x] "Available scripts" with descriptions ✅
+  - [x] "Examples" with realistic workflows ✅
+  - [x] Configuration notes ✅
+  - [x] Related skills section ✅
+  - **Commit:** `docs(jira-relationships): create comprehensive SKILL.md` ✅
 
-- [ ] **Docs 2:** Update CLAUDE.md
-  - [ ] Add jira-relationships to project overview
-  - [ ] Add linking patterns section
-  - **Commit:** `docs: update CLAUDE.md with jira-relationships skill`
+- [x] **Docs 2:** Update CLAUDE.md ✅
+  - [x] Add jira-relationships to project overview ✅
+  - [x] Add linking patterns section ✅
+  - **Commit:** `docs: update CLAUDE.md with jira-relationships skill` ✅
 
-- [ ] **Docs 3:** Update GAP_ANALYSIS.md
-  - [ ] Mark Issue Relationships gap as completed
-  - [ ] Update coverage metrics
-  - **Commit:** `docs: update GAP_ANALYSIS.md - Issue Relationships complete`
+- [x] **Docs 3:** Update GAP_ANALYSIS.md ✅
+  - [x] Mark Issue Relationships gap as completed ✅
+  - [x] Update coverage metrics ✅
+  - **Commit:** `docs: update GAP_ANALYSIS.md - Issue Relationships complete` ✅
 
 ### Testing & Quality
 

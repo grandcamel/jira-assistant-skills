@@ -118,6 +118,23 @@ def format_issue(issue: Dict[str, Any], detailed: bool = False) -> str:
                 st_status = st.get('fields', {}).get('status', {}).get('name', '')
                 output.append(f"  [{st_status}] {st_key} - {st_summary}")
 
+        # Issue links
+        issue_links = fields.get('issuelinks', [])
+        if issue_links:
+            output.append(f"\nLinks ({len(issue_links)}):")
+            for link in issue_links:
+                link_type = link.get('type', {}).get('name', 'Unknown')
+                if 'outwardIssue' in link:
+                    direction = link.get('type', {}).get('outward', 'links to')
+                    linked = link['outwardIssue']
+                else:
+                    direction = link.get('type', {}).get('inward', 'linked from')
+                    linked = link.get('inwardIssue', {})
+                linked_key = linked.get('key', '')
+                linked_summary = linked.get('fields', {}).get('summary', '')[:40]
+                linked_status = linked.get('fields', {}).get('status', {}).get('name', '')
+                output.append(f"  {direction} {linked_key} [{linked_status}] {linked_summary}")
+
     return '\n'.join(output)
 
 
@@ -361,13 +378,15 @@ def format_comments(comments: List[Dict[str, Any]], limit: Optional[int] = None)
     return '\n'.join(output)
 
 
-def format_search_results(issues: List[Dict[str, Any]], show_agile: bool = False) -> str:
+def format_search_results(issues: List[Dict[str, Any]], show_agile: bool = False,
+                          show_links: bool = False) -> str:
     """
     Format search results as a table.
 
     Args:
         issues: List of issue objects from JIRA API
         show_agile: If True, include epic and story points columns
+        show_links: If True, include links summary column
 
     Returns:
         Formatted table string
@@ -392,10 +411,23 @@ def format_search_results(issues: List[Dict[str, Any]], show_agile: bool = False
             row['Epic'] = epic if epic else ''
             row['Pts'] = str(points) if points else ''
 
+        if show_links:
+            links = fields.get('issuelinks', [])
+            link_count = len(links)
+            if link_count > 0:
+                link_types = set()
+                for link in links:
+                    link_types.add(link.get('type', {}).get('name', ''))
+                row['Links'] = f"{link_count} ({', '.join(link_types)})"
+            else:
+                row['Links'] = ''
+
         data.append(row)
 
     if show_agile:
         columns = ['Key', 'Type', 'Status', 'Pts', 'Epic', 'Summary']
+    elif show_links:
+        columns = ['Key', 'Type', 'Status', 'Links', 'Summary']
     else:
         columns = ['Key', 'Type', 'Status', 'Priority', 'Summary']
 
