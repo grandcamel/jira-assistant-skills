@@ -244,7 +244,7 @@ Children:
 
 ---
 
-### Feature 1.4: Create Sub-task
+### Feature 1.4: Create Sub-task ✅ COMPLETED
 
 **Script:** `create_subtask.py`
 
@@ -285,10 +285,10 @@ python create_subtask.py --parent PROJ-101 --summary "Task" --estimate 4h
 ```
 
 **Acceptance Criteria:**
-- [ ] All 7 tests pass
-- [ ] Subtask linked to parent
-- [ ] Inherits project from parent
-- [ ] Supports all standard issue fields
+- [x] All 7 tests pass
+- [x] Subtask linked to parent
+- [x] Inherits project from parent
+- [x] Supports all standard issue fields
 
 **Integration Points:**
 - [ ] Update `get_issue.py` to show subtasks
@@ -300,12 +300,12 @@ python create_subtask.py --parent PROJ-101 --summary "Task" --estimate 4h
 
 ---
 
-### Phase 1 Completion
+### Phase 1 Completion ✅ COMPLETED
 
-- [ ] **Phase 1 Summary:**
-  - [ ] 4 scripts implemented (create_epic, add_to_epic, get_epic, create_subtask)
-  - [ ] 28 tests passing
-  - [ ] Coverage ≥ 85% for all epic-related code
+- [x] **Phase 1 Summary:**
+  - [x] 4 scripts implemented (create_epic, add_to_epic, get_epic, create_subtask)
+  - [x] 28 tests passing
+  - [x] Coverage ≥ 85% for all epic-related code
   - [ ] SKILL.md updated with epic examples
   - **Commit:** `docs(jira-agile): complete Phase 1 - Epic Management`
 
