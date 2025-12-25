@@ -205,17 +205,21 @@ class JiraClient:
 
         url = f"{self.base_url}{endpoint}"
 
-        headers = {
-            'X-Atlassian-Token': 'no-check',
-            'Accept': 'application/json',
-        }
-
+        # For file uploads, we need to NOT include the session's default
+        # Content-Type header (application/json). The requests library will
+        # automatically set the proper multipart/form-data Content-Type.
+        # We make a direct request instead of using the session to avoid
+        # the default Content-Type header interfering.
         with open(file_path, 'rb') as f:
             files = {'file': (file_name, f)}
-            response = self.session.post(
+            response = requests.post(
                 url,
                 files=files,
-                headers=headers,
+                auth=(self.email, self.api_token),
+                headers={
+                    'X-Atlassian-Token': 'no-check',
+                    'Accept': 'application/json',
+                },
                 timeout=self.timeout
             )
 
