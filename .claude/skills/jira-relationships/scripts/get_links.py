@@ -44,9 +44,13 @@ def get_links(issue_key: str, direction: str = None, link_type: str = None,
         client.close()
 
     # Filter by direction
-    if direction == 'inward':
+    # When 'inwardIssue' is in the response, the queried issue is the OUTWARD one
+    # When 'outwardIssue' is in the response, the queried issue is the INWARD one
+    if direction == 'outward':
+        # Keep links where queried issue is outward (other issue is inward)
         links = [l for l in links if 'inwardIssue' in l]
-    elif direction == 'outward':
+    elif direction == 'inward':
+        # Keep links where queried issue is inward (other issue is outward)
         links = [l for l in links if 'outwardIssue' in l]
 
     # Filter by link type
@@ -79,15 +83,18 @@ def format_links(links: list, issue_key: str, output_format: str = 'text') -> st
     lines.append(f"Links for {issue_key}:")
     lines.append("")
 
-    # Separate into outward and inward
-    outward_links = [l for l in links if 'outwardIssue' in l]
-    inward_links = [l for l in links if 'inwardIssue' in l]
+    # Separate into outward and inward based on queried issue's role
+    # When 'inwardIssue' is present, the queried issue is the OUTWARD one (blocks, duplicates, etc.)
+    # When 'outwardIssue' is present, the queried issue is the INWARD one (is blocked by, etc.)
+    outward_links = [l for l in links if 'inwardIssue' in l]
+    inward_links = [l for l in links if 'outwardIssue' in l]
 
     if outward_links:
         lines.append("Outward (this issue...):")
         for link in outward_links:
             link_type = link['type']
-            target = link['outwardIssue']
+            # For outward links, the OTHER issue is the inwardIssue (the one being affected)
+            target = link['inwardIssue']
             status = target.get('fields', {}).get('status', {}).get('name', 'Unknown')
             summary = target.get('fields', {}).get('summary', '')
             # Truncate summary
@@ -100,7 +107,8 @@ def format_links(links: list, issue_key: str, output_format: str = 'text') -> st
         lines.append("Inward (...this issue):")
         for link in inward_links:
             link_type = link['type']
-            source = link['inwardIssue']
+            # For inward links, the OTHER issue is the outwardIssue (the one doing the action)
+            source = link['outwardIssue']
             status = source.get('fields', {}).get('status', {}).get('name', 'Unknown')
             summary = source.get('fields', {}).get('summary', '')
             # Truncate summary

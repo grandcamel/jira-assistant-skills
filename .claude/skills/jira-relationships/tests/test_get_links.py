@@ -24,30 +24,32 @@ class TestGetLinks:
         mock_jira_client.get_issue_links.assert_called_once_with("PROJ-123")
 
     def test_get_outward_links(self, mock_jira_client, sample_issue_links):
-        """Test filtering to only outward links."""
+        """Test filtering to only outward links (where queried issue is the actor)."""
         mock_jira_client.get_issue_links.return_value = sample_issue_links
 
         import get_links
         with patch.object(get_links, 'get_jira_client', return_value=mock_jira_client):
             result = get_links.get_links("PROJ-123", direction="outward")
 
-        # sample_issue_links has 2 outward links
-        assert len(result) == 2
+        # sample_issue_links has 1 link where queried issue is outward (inwardIssue present)
+        # PROJ-123 blocks PROJ-100
+        assert len(result) == 1
         for link in result:
-            assert 'outwardIssue' in link
+            assert 'inwardIssue' in link  # When queried issue is outward, other is inward
 
     def test_get_inward_links(self, mock_jira_client, sample_issue_links):
-        """Test filtering to only inward links."""
+        """Test filtering to only inward links (where queried issue receives action)."""
         mock_jira_client.get_issue_links.return_value = sample_issue_links
 
         import get_links
         with patch.object(get_links, 'get_jira_client', return_value=mock_jira_client):
             result = get_links.get_links("PROJ-123", direction="inward")
 
-        # sample_issue_links has 1 inward link
-        assert len(result) == 1
+        # sample_issue_links has 2 links where queried issue is inward (outwardIssue present)
+        # PROJ-456 blocks PROJ-123, PROJ-789 relates to PROJ-123
+        assert len(result) == 2
         for link in result:
-            assert 'inwardIssue' in link
+            assert 'outwardIssue' in link  # When queried issue is inward, other is outward
 
     def test_filter_by_link_type(self, mock_jira_client, sample_issue_links):
         """Test filtering by specific link type (e.g., blocks)."""
