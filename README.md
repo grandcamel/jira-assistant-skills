@@ -4,12 +4,15 @@ A comprehensive set of Claude Code Skills for automating JIRA and JIRA Service M
 
 ## Overview
 
-This project provides four modular skills that enable Claude Code to interact with JIRA:
+This project provides seven modular skills that enable Claude Code to interact with JIRA:
 
 - **jira-issue** - Core CRUD operations (create, read, update, delete issues)
 - **jira-lifecycle** - Workflow management (transitions, assignments, resolve/reopen)
-- **jira-search** - Query operations (JQL search, filters, bulk operations)
+- **jira-search** - Query operations (JQL search, JQL builder/validator, saved filters, bulk operations)
 - **jira-collaborate** - Collaboration features (comments, attachments, watchers, custom fields)
+- **jira-agile** - Agile/Scrum workflows (epics, sprints, backlog, story points)
+- **jira-relationships** - Issue linking (dependencies, blocker chains, cloning)
+- **jira-time** - Time tracking (worklogs, estimates, time reports)
 
 ## Features
 
@@ -70,7 +73,7 @@ python .claude/skills/jira-search/scripts/jql_search.py "project = PROJ AND stat
 
 ## Skills Overview
 
-### jira-issue
+### jira-issue (4 scripts)
 
 Core issue operations:
 
@@ -90,7 +93,7 @@ python .claude/skills/jira-issue/scripts/update_issue.py PROJ-123 \
 python .claude/skills/jira-issue/scripts/delete_issue.py PROJ-456
 ```
 
-### jira-lifecycle
+### jira-lifecycle (5 scripts)
 
 Workflow and status management:
 
@@ -114,9 +117,9 @@ python .claude/skills/jira-lifecycle/scripts/resolve_issue.py PROJ-123 \
 python .claude/skills/jira-lifecycle/scripts/reopen_issue.py PROJ-123
 ```
 
-### jira-search
+### jira-search (17 scripts)
 
-Query and discovery:
+Query, filter management, and JQL assistance:
 
 ```bash
 # JQL search
@@ -138,7 +141,7 @@ python .claude/skills/jira-search/scripts/bulk_update.py \
   "project = PROJ AND labels = old" --add-labels "new"
 ```
 
-### jira-collaborate
+### jira-collaborate (4 scripts)
 
 Collaboration features:
 
@@ -162,6 +165,79 @@ python .claude/skills/jira-collaborate/scripts/manage_watchers.py PROJ-123 \
 # Update custom fields
 python .claude/skills/jira-collaborate/scripts/update_custom_fields.py PROJ-123 \
   --field customfield_10001 --value "Production"
+```
+
+### jira-agile (12 scripts)
+
+Agile and Scrum workflow management:
+
+```bash
+# Create an epic
+python .claude/skills/jira-agile/scripts/create_epic.py \
+  --project PROJ --summary "Mobile App v2.0" --epic-name "MVP"
+
+# Create a sprint
+python .claude/skills/jira-agile/scripts/create_sprint.py \
+  --board 123 --name "Sprint 42" --start 2025-01-01 --end 2025-01-14
+
+# Move issues to sprint
+python .claude/skills/jira-agile/scripts/move_to_sprint.py \
+  --sprint 456 --issues PROJ-1,PROJ-2,PROJ-3
+
+# Set story points
+python .claude/skills/jira-agile/scripts/estimate_issue.py PROJ-1 --points 5
+
+# View backlog
+python .claude/skills/jira-agile/scripts/get_backlog.py --board 123 --group-by epic
+
+# Rank issues
+python .claude/skills/jira-agile/scripts/rank_issue.py PROJ-1 --before PROJ-2
+```
+
+### jira-relationships (8 scripts)
+
+Issue linking and dependency management:
+
+```bash
+# Create issue links
+python .claude/skills/jira-relationships/scripts/link_issue.py PROJ-1 --blocks PROJ-2
+python .claude/skills/jira-relationships/scripts/link_issue.py PROJ-1 --relates-to PROJ-3
+
+# View links and blockers
+python .claude/skills/jira-relationships/scripts/get_links.py PROJ-1
+python .claude/skills/jira-relationships/scripts/get_blockers.py PROJ-1 --recursive
+
+# Export dependency graph
+python .claude/skills/jira-relationships/scripts/get_dependencies.py PROJ-1 --output mermaid
+
+# Clone an issue
+python .claude/skills/jira-relationships/scripts/clone_issue.py PROJ-123 \
+  --include-subtasks --include-links
+```
+
+### jira-time (9 scripts)
+
+Time tracking and worklog management:
+
+```bash
+# Log work time
+python .claude/skills/jira-time/scripts/add_worklog.py PROJ-1 \
+  --time 2h --comment "Debugging auth issue"
+
+# Set estimates
+python .claude/skills/jira-time/scripts/set_estimate.py PROJ-1 \
+  --original 8h --remaining 6h
+
+# View time tracking
+python .claude/skills/jira-time/scripts/get_worklogs.py PROJ-1
+
+# Generate time report
+python .claude/skills/jira-time/scripts/time_report.py \
+  --user currentUser() --period last-week
+
+# Export timesheet
+python .claude/skills/jira-time/scripts/export_timesheets.py \
+  --project PROJ --period 2025-01 --output timesheets.csv
 ```
 
 ## Configuration
@@ -212,30 +288,16 @@ Settings are merged in order (later overrides earlier):
 ├── settings.json                    # Team defaults (committed)
 ├── settings.local.json             # Personal credentials (gitignored)
 └── skills/
-    ├── jira-issue/
-    │   ├── SKILL.md                # Skill description
-    │   ├── scripts/                # Python scripts
-    │   ├── references/             # API documentation
-    │   └── assets/templates/       # Issue templates
-    │
-    ├── jira-lifecycle/
-    │   ├── SKILL.md
-    │   ├── scripts/
-    │   └── references/
-    │
-    ├── jira-search/
-    │   ├── SKILL.md
-    │   ├── scripts/
-    │   ├── references/
-    │   └── assets/templates/       # JQL templates
-    │
-    ├── jira-collaborate/
-    │   ├── SKILL.md
-    │   ├── scripts/
-    │   └── references/
-    │
+    ├── jira-issue/                 # Core CRUD operations
+    ├── jira-lifecycle/             # Workflow management
+    ├── jira-search/                # JQL, filters, bulk ops
+    ├── jira-collaborate/           # Comments, attachments
+    ├── jira-agile/                 # Epics, sprints, backlog
+    ├── jira-relationships/         # Issue linking, cloning
+    ├── jira-time/                  # Time tracking, worklogs
     └── shared/
         ├── scripts/lib/            # Shared Python modules
+        ├── tests/                  # Unit and live integration tests
         ├── references/             # Setup & troubleshooting
         └── config/                 # Configuration schemas
 ```
@@ -260,6 +322,15 @@ Claude: [Uses jira-search skill with JQL query]
 
 User: "Move PROJ-123 to In Progress and assign it to me"
 Claude: [Uses jira-lifecycle skill to transition and assign]
+
+User: "Create a sprint for next week and move the top 5 backlog items to it"
+Claude: [Uses jira-agile skill to create sprint and move issues]
+
+User: "What's blocking PROJ-123?"
+Claude: [Uses jira-relationships skill to show blocker chain]
+
+User: "Log 2 hours on PROJ-123 for debugging"
+Claude: [Uses jira-time skill to add worklog]
 ```
 
 ## Security
@@ -287,6 +358,8 @@ Minimum JIRA permissions required:
 - Add Comments
 - Transition Issues
 - Assign Issues
+- Manage Sprints (for jira-agile)
+- Log Work (for jira-time)
 
 ## Troubleshooting
 

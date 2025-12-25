@@ -548,7 +548,7 @@ Features:
 - User workflow coverage: Currently 60%, Target 95%
 
 **Quality metrics:**
-- Test coverage: 337 tests (228 unit + 109 live integration), Target 300+ ✅
+- Test coverage: 381 tests (228 unit + 153 live integration), Target 300+ ✅
 - Error handling: Currently 75%, Target 95%
 - Documentation completeness: Currently 80%, Target 90%
 
@@ -613,7 +613,7 @@ Features:
 3. **Bulk operations** → Enterprise-scale management
 
 **Strategic Advantage:**
-The architectural foundation (shared libraries, multi-profile, ADF support, TDD test suite with 228 unit tests, live integration test framework with 109 tests) is excellent. With jira-agile, jira-relationships, jira-time, and enhanced jira-search skills complete, plus a comprehensive live integration test framework validating all 14 major JIRA Cloud APIs (including JQL and Filter APIs), this toolkit now covers the vast majority of daily Agile, project management, time tracking, and search workflows that JIRA users need.
+The architectural foundation (shared libraries, multi-profile, ADF support, TDD test suite with 228 unit tests, live integration test framework with 153 tests) is excellent. With jira-agile, jira-relationships, jira-time, and enhanced jira-search skills complete, plus a comprehensive live integration test framework validating all 14 major JIRA Cloud APIs (including JQL and Filter APIs), this toolkit now covers the vast majority of daily Agile, project management, time tracking, and search workflows that JIRA users need.
 
 **Unique positioning:** Claude Code + JIRA Skills = AI-powered issue management that understands context, learns from patterns, and automates entire workflows—not just individual commands.
 

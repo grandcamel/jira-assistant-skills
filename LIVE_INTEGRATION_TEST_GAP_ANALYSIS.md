@@ -9,7 +9,7 @@ This document analyzes the API gaps that must be addressed to implement a comple
 3. Cleans up by deleting all created objects
 4. Deletes the project itself
 
-**Status: ✅ COMPLETE** - All APIs implemented and 62 live integration tests passing.
+**Status: ✅ COMPLETE** - All APIs implemented and 153 live integration tests passing (4 skipped as expected).
 
 ## Test Lifecycle Requirements
 
@@ -427,7 +427,11 @@ To run live integration tests, the API user needs:
 | `test_relationships.py` | 8 | Issue linking |
 | `test_collaboration.py` | 14 | Comments, attachments, watchers, users |
 | `test_project_lifecycle.py` | 8 | Project create/delete, complete workflow |
-| **Total** | **62** | All passing |
+| `test_version_management.py` | 16 | Version CRUD, release, archive |
+| `test_component_management.py` | 14 | Component CRUD, issue assignment |
+| `test_search_filters.py` | 26 | JQL validation, filter CRUD, sharing |
+| `test_time_tracking.py` | 21 | Worklogs, estimates, time reports |
+| **Total** | **153** | All passing (4 skipped - expected) |
 
 ---
 
