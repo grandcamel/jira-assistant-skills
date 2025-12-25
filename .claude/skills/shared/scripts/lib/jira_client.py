@@ -2023,3 +2023,117 @@ class JiraClient:
         """
         return self.get(f'/rest/api/3/component/{component_id}/relatedIssueCounts',
                        operation=f"get issue counts for component {component_id}")
+
+    # ========== Issue Cloning ==========
+
+    def clone_issue(self, issue_key: str, summary: Optional[str] = None,
+                    clone_subtasks: bool = False,
+                    clone_links: bool = False) -> Dict[str, Any]:
+        """
+        Clone an issue by copying its fields to a new issue.
+
+        Args:
+            issue_key: Issue key to clone (e.g., 'PROJ-123')
+            summary: Summary for the clone (default: original summary)
+            clone_subtasks: If True, also clone subtasks
+            clone_links: If True, also clone issue links (except Cloners)
+
+        Returns:
+            Created clone issue data (key, id, self)
+
+        Raises:
+            JiraError or subclass on failure
+
+        Note:
+            A 'Cloners' link is automatically created between the clone
+            and the original issue.
+        """
+        # Get original issue details
+        original = self.get_issue(issue_key)
+        original_fields = original.get('fields', {})
+
+        # Build clone fields
+        clone_fields = {
+            'project': {'key': original_fields['project']['key']},
+            'issuetype': {'name': original_fields['issuetype']['name']},
+            'summary': summary or original_fields.get('summary', 'Clone'),
+        }
+
+        # Copy description if present
+        if original_fields.get('description'):
+            clone_fields['description'] = original_fields['description']
+
+        # Copy priority if present
+        if original_fields.get('priority'):
+            clone_fields['priority'] = {'name': original_fields['priority']['name']}
+
+        # Copy labels if present
+        if original_fields.get('labels'):
+            clone_fields['labels'] = original_fields['labels']
+
+        # Copy components if present
+        if original_fields.get('components'):
+            clone_fields['components'] = [
+                {'name': c['name']} for c in original_fields['components']
+            ]
+
+        # Copy fix versions if present
+        if original_fields.get('fixVersions'):
+            clone_fields['fixVersions'] = [
+                {'name': v['name']} for v in original_fields['fixVersions']
+            ]
+
+        # Create the clone
+        clone = self.create_issue(clone_fields)
+
+        # Create Cloners link (clone -> original)
+        try:
+            self.create_link(
+                link_type='Cloners',
+                inward_key=issue_key,    # is cloned by
+                outward_key=clone['key']  # clones
+            )
+        except Exception:
+            # Some JIRA instances may not have Cloners link type
+            pass
+
+        # Clone subtasks if requested
+        if clone_subtasks:
+            subtasks = original_fields.get('subtasks', [])
+            for subtask_ref in subtasks:
+                subtask = self.get_issue(subtask_ref['key'])
+                subtask_fields = subtask.get('fields', {})
+
+                self.create_issue({
+                    'project': {'key': original_fields['project']['key']},
+                    'parent': {'key': clone['key']},
+                    'issuetype': {'name': 'Subtask'},
+                    'summary': subtask_fields.get('summary', 'Cloned subtask'),
+                    'description': subtask_fields.get('description'),
+                })
+
+        # Clone links if requested (except Cloners links)
+        if clone_links:
+            links = original_fields.get('issuelinks', [])
+            for link in links:
+                link_type = link['type']['name']
+                if link_type == 'Cloners':
+                    continue  # Skip cloner links
+
+                try:
+                    if 'inwardIssue' in link:
+                        self.create_link(
+                            link_type=link_type,
+                            inward_key=link['inwardIssue']['key'],
+                            outward_key=clone['key']
+                        )
+                    elif 'outwardIssue' in link:
+                        self.create_link(
+                            link_type=link_type,
+                            inward_key=clone['key'],
+                            outward_key=link['outwardIssue']['key']
+                        )
+                except Exception:
+                    pass  # Some links may fail due to permissions
+
+        return clone

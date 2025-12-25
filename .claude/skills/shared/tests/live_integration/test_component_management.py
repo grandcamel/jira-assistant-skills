@@ -16,7 +16,7 @@ class TestComponentCRUD:
         component_name = f"Component-{uuid.uuid4().hex[:8]}"
 
         component = jira_client.create_component(
-            project_id=test_project['id'],
+            project=test_project['key'],
             name=component_name,
             description="Test component"
         )
@@ -34,7 +34,7 @@ class TestComponentCRUD:
         current_user_id = jira_client.get_current_user_id()
 
         component = jira_client.create_component(
-            project_id=test_project['id'],
+            project=test_project['key'],
             name=component_name,
             lead_account_id=current_user_id
         )
@@ -51,7 +51,7 @@ class TestComponentCRUD:
         component_name = f"Component-{uuid.uuid4().hex[:8]}"
 
         component = jira_client.create_component(
-            project_id=test_project['id'],
+            project=test_project['key'],
             name=component_name,
             assignee_type='PROJECT_LEAD'
         )
@@ -67,13 +67,13 @@ class TestComponentCRUD:
         # Create a test component
         component_name = f"Component-{uuid.uuid4().hex[:8]}"
         created = jira_client.create_component(
-            project_id=test_project['id'],
+            project=test_project['key'],
             name=component_name
         )
 
         try:
             # Get all components
-            components = jira_client.get_components(test_project['key'])
+            components = jira_client.get_project_components(test_project['key'])
 
             assert isinstance(components, list)
             assert len(components) >= 1
@@ -89,7 +89,7 @@ class TestComponentCRUD:
         """Test getting a specific component by ID."""
         component_name = f"Component-{uuid.uuid4().hex[:8]}"
         created = jira_client.create_component(
-            project_id=test_project['id'],
+            project=test_project['key'],
             name=component_name,
             description="Specific component test"
         )
@@ -109,7 +109,7 @@ class TestComponentCRUD:
         """Test updating a component's name."""
         component_name = f"Component-{uuid.uuid4().hex[:8]}"
         created = jira_client.create_component(
-            project_id=test_project['id'],
+            project=test_project['key'],
             name=component_name
         )
 
@@ -131,7 +131,7 @@ class TestComponentCRUD:
         """Test updating a component's description."""
         component_name = f"Component-{uuid.uuid4().hex[:8]}"
         created = jira_client.create_component(
-            project_id=test_project['id'],
+            project=test_project['key'],
             name=component_name
         )
 
@@ -155,7 +155,7 @@ class TestComponentCRUD:
         current_user_id = jira_client.get_current_user_id()
 
         created = jira_client.create_component(
-            project_id=test_project['id'],
+            project=test_project['key'],
             name=component_name
         )
 
@@ -176,7 +176,7 @@ class TestComponentCRUD:
         """Test deleting a component."""
         component_name = f"Component-{uuid.uuid4().hex[:8]}"
         created = jira_client.create_component(
-            project_id=test_project['id'],
+            project=test_project['key'],
             name=component_name
         )
 
@@ -197,7 +197,7 @@ class TestComponentIssueManagement:
         # Create component
         component_name = f"Component-{uuid.uuid4().hex[:8]}"
         component = jira_client.create_component(
-            project_id=test_project['id'],
+            project=test_project['key'],
             name=component_name
         )
 
@@ -232,11 +232,11 @@ class TestComponentIssueManagement:
         component2_name = f"Comp2-{uuid.uuid4().hex[:8]}"
 
         component1 = jira_client.create_component(
-            project_id=test_project['id'],
+            project=test_project['key'],
             name=component1_name
         )
         component2 = jira_client.create_component(
-            project_id=test_project['id'],
+            project=test_project['key'],
             name=component2_name
         )
 
@@ -274,7 +274,7 @@ class TestComponentIssueManagement:
         """Test removing a component from an issue."""
         component_name = f"Component-{uuid.uuid4().hex[:8]}"
         component = jira_client.create_component(
-            project_id=test_project['id'],
+            project=test_project['key'],
             name=component_name
         )
 
@@ -309,11 +309,11 @@ class TestComponentIssueManagement:
         component2_name = f"Comp2-{uuid.uuid4().hex[:8]}"
 
         component1 = jira_client.create_component(
-            project_id=test_project['id'],
+            project=test_project['key'],
             name=component1_name
         )
         component2 = jira_client.create_component(
-            project_id=test_project['id'],
+            project=test_project['key'],
             name=component2_name
         )
 
@@ -362,7 +362,7 @@ class TestComponentWorkflow:
             # Step 1: Create component
             print(f"\n  Creating component {component_name}...")
             component = jira_client.create_component(
-                project_id=test_project['id'],
+                project=test_project['key'],
                 name=component_name,
                 description="Lifecycle test component"
             )

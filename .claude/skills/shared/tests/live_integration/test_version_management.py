@@ -138,10 +138,11 @@ class TestVersionCRUD:
             released = jira_client.update_version(
                 created['id'],
                 released=True,
-                releaseDate=release_date
+                release_date=release_date
             )
 
             assert released['released'] == True
+            assert 'releaseDate' in released
             assert release_date in released['releaseDate']
 
         finally:
@@ -382,7 +383,7 @@ class TestVersionWorkflow:
             released = jira_client.update_version(
                 version['id'],
                 released=True,
-                releaseDate=release_date
+                release_date=release_date
             )
             assert released['released'] == True
 
