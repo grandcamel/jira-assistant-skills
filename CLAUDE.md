@@ -287,6 +287,39 @@ BREAKING CHANGE: settings.json is now settings.yaml and uses YAML syntax
 - Separate body from description with blank line
 - Wrap body at 72 characters
 
+### TDD Commit Best Practices
+
+When developing features using Test-Driven Development (TDD), follow this commit pattern:
+
+1. **Commit after all tests pass**: Always create a commit immediately after a feature's tests are passing. This ensures:
+   - Working code is captured in version control
+   - Easy rollback if future changes break functionality
+   - Clear history of feature completion milestones
+
+2. **Two-commit pattern per feature**:
+   ```bash
+   # First: Add failing tests
+   test(jira-search): add failing tests for jql_validate
+
+   # Second: Implement feature to pass tests
+   feat(jira-search): implement jql_validate.py (7/7 tests passing)
+   ```
+
+3. **Include test counts in commit messages**: When implementing a feature, include the test pass count:
+   - `feat(jira-agile): implement create_sprint.py (6/6 tests passing)`
+   - `feat(shared): add worklog API methods (12/12 tests passing)`
+
+4. **Run tests before committing**: Always verify all tests pass before creating a commit:
+   ```bash
+   # Run specific skill tests
+   pytest .claude/skills/jira-search/tests/ -v
+
+   # Run all tests
+   pytest .claude/skills/*/tests/ -v
+   ```
+
+5. **Never commit failing tests**: If tests are failing, either fix the implementation or fix the tests before committing. The main branch should always have passing tests.
+
 ## Key Constraints
 
 - **Python 3.8+**: Minimum version for type hints and pathlib

@@ -14,8 +14,10 @@ sys.path.insert(0, str(Path(__file__).parent.parent / 'scripts'))
 class TestGetComments:
     """Tests for getting comments on issues."""
 
-    def test_get_all_comments(self, mock_jira_client, sample_comments_list):
+    @patch('get_comments.get_jira_client')
+    def test_get_all_comments(self, mock_get_client, mock_jira_client, sample_comments_list):
         """Test fetching all comments on an issue."""
+        mock_get_client.return_value = mock_jira_client
         mock_jira_client.get_comments.return_value = sample_comments_list
 
         from get_comments import get_comments
@@ -27,8 +29,10 @@ class TestGetComments:
         assert result['comments'][0]['author']['displayName'] == 'Alice Smith'
         mock_jira_client.get_comments.assert_called_once_with('PROJ-123', max_results=50, start_at=0, order_by='-created')
 
-    def test_get_comments_with_pagination(self, mock_jira_client, sample_comments_list):
+    @patch('get_comments.get_jira_client')
+    def test_get_comments_with_pagination(self, mock_get_client, mock_jira_client, sample_comments_list):
         """Test paginated comment retrieval."""
+        mock_get_client.return_value = mock_jira_client
         mock_jira_client.get_comments.return_value = sample_comments_list
 
         from get_comments import get_comments
@@ -37,8 +41,10 @@ class TestGetComments:
 
         mock_jira_client.get_comments.assert_called_once_with('PROJ-123', max_results=10, start_at=5, order_by='-created')
 
-    def test_get_comments_order_by_created(self, mock_jira_client, sample_comments_list):
+    @patch('get_comments.get_jira_client')
+    def test_get_comments_order_by_created(self, mock_get_client, mock_jira_client, sample_comments_list):
         """Test ordering comments by creation date."""
+        mock_get_client.return_value = mock_jira_client
         mock_jira_client.get_comments.return_value = sample_comments_list
 
         from get_comments import get_comments
@@ -51,8 +57,10 @@ class TestGetComments:
         result = get_comments('PROJ-123', order='asc', profile=None)
         assert mock_jira_client.get_comments.call_args[1]['order_by'] == '+created'
 
-    def test_get_comments_empty(self, mock_jira_client):
+    @patch('get_comments.get_jira_client')
+    def test_get_comments_empty(self, mock_get_client, mock_jira_client):
         """Test handling issue with no comments."""
+        mock_get_client.return_value = mock_jira_client
         mock_jira_client.get_comments.return_value = {
             'startAt': 0,
             'maxResults': 50,
@@ -67,8 +75,10 @@ class TestGetComments:
         assert result['total'] == 0
         assert len(result['comments']) == 0
 
-    def test_get_single_comment(self, mock_jira_client, sample_comment):
+    @patch('get_comments.get_jira_client')
+    def test_get_single_comment(self, mock_get_client, mock_jira_client, sample_comment):
         """Test fetching a specific comment by ID."""
+        mock_get_client.return_value = mock_jira_client
         mock_jira_client.get_comment.return_value = sample_comment
 
         from get_comments import get_comment_by_id
@@ -92,9 +102,11 @@ class TestGetComments:
         assert 'Bob Jones' in table
         assert '10003' in table  # Comment ID
 
-    def test_format_json_output(self, mock_jira_client, sample_comments_list):
+    @patch('get_comments.get_jira_client')
+    def test_format_json_output(self, mock_get_client, mock_jira_client, sample_comments_list):
         """Test JSON output format."""
         import json
+        mock_get_client.return_value = mock_jira_client
         mock_jira_client.get_comments.return_value = sample_comments_list
 
         from get_comments import get_comments
