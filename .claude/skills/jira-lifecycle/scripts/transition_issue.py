@@ -19,54 +19,16 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'shared' / 'scripts
 from config_manager import get_jira_client
 from error_handler import print_error, JiraError, ValidationError
 from validators import validate_issue_key, validate_transition_id
-from formatters import print_success, format_transitions
+from formatters import print_success, print_info, format_transitions
 from adf_helper import text_to_adf
-
-
-def find_transition_by_name(transitions: list, name: str) -> dict:
-    """
-    Find a transition by name (case-insensitive, partial match).
-
-    Args:
-        transitions: List of transition objects
-        name: Transition name to find
-
-    Returns:
-        Transition object
-
-    Raises:
-        ValidationError: If transition not found or ambiguous
-    """
-    name_lower = name.lower()
-
-    exact_matches = [t for t in transitions if t['name'].lower() == name_lower]
-    if len(exact_matches) == 1:
-        return exact_matches[0]
-    elif len(exact_matches) > 1:
-        raise ValidationError(
-            f"Multiple exact matches for transition '{name}': " +
-            ', '.join(t['name'] for t in exact_matches)
-        )
-
-    partial_matches = [t for t in transitions if name_lower in t['name'].lower()]
-    if len(partial_matches) == 1:
-        return partial_matches[0]
-    elif len(partial_matches) > 1:
-        raise ValidationError(
-            f"Ambiguous transition name '{name}'. Matches: " +
-            ', '.join(t['name'] for t in partial_matches)
-        )
-
-    raise ValidationError(
-        f"Transition '{name}' not found. Available: " +
-        ', '.join(t['name'] for t in transitions)
-    )
+from transition_helpers import find_transition_by_name
 
 
 def transition_issue(issue_key: str, transition_id: str = None,
                     transition_name: str = None, resolution: str = None,
                     comment: str = None, fields: dict = None,
-                    sprint_id: int = None, profile: str = None) -> None:
+                    sprint_id: int = None, profile: str = None,
+                    dry_run: bool = False) -> dict:
     """
     Transition an issue to a new status.
 
@@ -79,6 +41,10 @@ def transition_issue(issue_key: str, transition_id: str = None,
         fields: Additional fields to set
         sprint_id: Sprint ID to move issue to after transition
         profile: JIRA profile to use
+        dry_run: If True, preview changes without making them
+
+    Returns:
+        Dictionary with transition details
     """
     issue_key = validate_issue_key(issue_key)
 
@@ -113,6 +79,37 @@ def transition_issue(issue_key: str, transition_id: str = None,
     if comment:
         transition_fields['comment'] = text_to_adf(comment)
 
+    # Get current status for dry-run display
+    issue = client.get_issue(issue_key, fields=['status'])
+    current_status = issue.get('fields', {}).get('status', {}).get('name', 'Unknown')
+    target_status = transition.get('to', {}).get('name', transition.get('name', 'Unknown'))
+
+    result = {
+        'issue_key': issue_key,
+        'transition': transition.get('name'),
+        'transition_id': transition_id,
+        'current_status': current_status,
+        'target_status': target_status,
+        'resolution': resolution,
+        'comment': comment is not None,
+        'sprint_id': sprint_id,
+        'dry_run': dry_run
+    }
+
+    if dry_run:
+        print_info(f"[DRY RUN] Would transition {issue_key}:")
+        print(f"  Current status: {current_status}")
+        print(f"  Target status: {target_status}")
+        print(f"  Transition: {transition.get('name')}")
+        if resolution:
+            print(f"  Resolution: {resolution}")
+        if comment:
+            print(f"  Comment: (would add comment)")
+        if sprint_id:
+            print(f"  Sprint: Would move to sprint {sprint_id}")
+        client.close()
+        return result
+
     client.transition_issue(issue_key, transition_id, fields=transition_fields if transition_fields else None)
 
     # Move to sprint if specified
@@ -120,6 +117,7 @@ def transition_issue(issue_key: str, transition_id: str = None,
         client.move_issues_to_sprint(sprint_id, [issue_key])
 
     client.close()
+    return result
 
 
 def main():
@@ -145,6 +143,9 @@ def main():
                        help='Sprint ID to move issue to after transition')
     parser.add_argument('--fields',
                        help='Additional fields as JSON string')
+    parser.add_argument('--dry-run',
+                       action='store_true',
+                       help='Preview changes without making them')
     parser.add_argument('--profile',
                        help='JIRA profile to use (default: from config)')
 
@@ -153,7 +154,7 @@ def main():
     try:
         fields = json.loads(args.fields) if args.fields else None
 
-        transition_issue(
+        result = transition_issue(
             issue_key=args.issue_key,
             transition_id=args.id,
             transition_name=args.name,
@@ -161,14 +162,19 @@ def main():
             comment=args.comment,
             fields=fields,
             sprint_id=args.sprint,
-            profile=args.profile
+            profile=args.profile,
+            dry_run=args.dry_run
         )
 
-        target = args.name or f"transition {args.id}"
-        msg = f"Transitioned {args.issue_key} to {target}"
-        if args.sprint:
-            msg += f" and moved to sprint {args.sprint}"
-        print_success(msg)
+        if args.dry_run:
+            # Dry-run output handled in function
+            pass
+        else:
+            target = args.name or f"transition {args.id}"
+            msg = f"Transitioned {args.issue_key} to {target}"
+            if args.sprint:
+                msg += f" and moved to sprint {args.sprint}"
+            print_success(msg)
 
     except JiraError as e:
         print_error(e)

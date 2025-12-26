@@ -153,7 +153,7 @@ class TestMoveIssuesVersionErrorHandling:
 
     @patch('move_issues_version.get_jira_client')
     def test_permission_error(self, mock_get_client, mock_jira_client, sample_issue_list):
-        """Test handling of 403 forbidden."""
+        """Test handling of 403 forbidden during bulk update."""
         from error_handler import PermissionError
         mock_get_client.return_value = mock_jira_client
         mock_jira_client.search_issues.return_value = copy.deepcopy(sample_issue_list)
@@ -161,8 +161,19 @@ class TestMoveIssuesVersionErrorHandling:
 
         from move_issues_version import move_issues_to_version
 
-        with pytest.raises(PermissionError):
-            move_issues_to_version(jql='project = PROJ', target_version='v2.0.0', profile=None)
+        # Bulk operations capture errors per-issue rather than raising
+        result = move_issues_to_version(
+            jql='project = PROJ',
+            target_version='v2.0.0',
+            profile=None,
+            show_progress=False
+        )
+
+        assert result['moved'] == 0
+        assert result['failed'] == 2
+        assert 'PROJ-123' in result['errors']
+        assert 'PROJ-124' in result['errors']
+        assert 'Cannot update issue' in result['errors']['PROJ-123']
 
     @patch('move_issues_version.get_jira_client')
     def test_not_found_error(self, mock_get_client, mock_jira_client):

@@ -18,6 +18,11 @@ from error_handler import print_error, JiraError, ValidationError
 from validators import validate_issue_key
 from formatters import print_success, format_transitions
 from adf_helper import text_to_adf
+from transition_helpers import find_transition_by_keywords
+
+
+# Keywords that indicate a resolution/completion transition
+RESOLVE_KEYWORDS = ['done', 'resolve', 'close', 'complete']
 
 
 def resolve_issue(issue_key: str, resolution: str = "Fixed",
@@ -42,26 +47,18 @@ def resolve_issue(issue_key: str, resolution: str = "Fixed",
     if not transitions:
         raise ValidationError(f"No transitions available for {issue_key}")
 
-    resolve_transitions = [
-        t for t in transitions
-        if any(keyword in t['name'].lower() for keyword in ['done', 'resolve', 'close', 'complete'])
-    ]
+    transition = find_transition_by_keywords(
+        transitions,
+        RESOLVE_KEYWORDS,
+        prefer_exact='done'
+    )
 
-    if not resolve_transitions:
+    if not transition:
         available = format_transitions(transitions)
         raise ValidationError(
             f"No resolution transition found for {issue_key}.\n"
             f"Available transitions:\n{available}"
         )
-
-    if len(resolve_transitions) > 1:
-        done_trans = [t for t in resolve_transitions if t['name'].lower() == 'done']
-        if done_trans:
-            transition = done_trans[0]
-        else:
-            transition = resolve_transitions[0]
-    else:
-        transition = resolve_transitions[0]
 
     fields = {
         'resolution': {'name': resolution}

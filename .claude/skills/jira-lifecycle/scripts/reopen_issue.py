@@ -18,6 +18,11 @@ from error_handler import print_error, JiraError, ValidationError
 from validators import validate_issue_key
 from formatters import print_success, format_transitions
 from adf_helper import text_to_adf
+from transition_helpers import find_transition_by_keywords
+
+
+# Keywords that indicate a reopen/backlog transition
+REOPEN_KEYWORDS = ['reopen', 'to do', 'todo', 'open', 'backlog']
 
 
 def reopen_issue(issue_key: str, comment: str = None, profile: str = None) -> None:
@@ -40,29 +45,29 @@ def reopen_issue(issue_key: str, comment: str = None, profile: str = None) -> No
     if not transitions:
         raise ValidationError(f"No transitions available for {issue_key}")
 
-    reopen_transitions = [
-        t for t in transitions
-        if any(keyword in t['name'].lower() for keyword in ['reopen', 'to do', 'todo', 'open', 'backlog'])
-    ]
+    # Try to find reopen transition, preferring 'reopen' exact match, then 'to do'
+    transition = find_transition_by_keywords(
+        transitions,
+        REOPEN_KEYWORDS,
+        prefer_exact='reopen'
+    )
 
-    if not reopen_transitions:
+    # If no exact 'reopen', try 'to do' as secondary preference
+    if transition and 'reopen' not in transition['name'].lower():
+        todo_trans = find_transition_by_keywords(
+            transitions,
+            ['to do', 'todo'],
+            prefer_exact='to do'
+        )
+        if todo_trans:
+            transition = todo_trans
+
+    if not transition:
         available = format_transitions(transitions)
         raise ValidationError(
             f"No reopen transition found for {issue_key}.\n"
             f"Available transitions:\n{available}"
         )
-
-    reopen_exact = [t for t in reopen_transitions if 'reopen' in t['name'].lower()]
-    if reopen_exact:
-        transition = reopen_exact[0]
-    elif len(reopen_transitions) == 1:
-        transition = reopen_transitions[0]
-    else:
-        todo_trans = [t for t in reopen_transitions if 'to do' in t['name'].lower() or 'todo' in t['name'].lower()]
-        if todo_trans:
-            transition = todo_trans[0]
-        else:
-            transition = reopen_transitions[0]
 
     fields = None
     if comment:

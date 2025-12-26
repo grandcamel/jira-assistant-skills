@@ -16,13 +16,19 @@ from typing import List, Dict, Any
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'shared' / 'scripts' / 'lib'))
 
+try:
+    from tqdm import tqdm
+    TQDM_AVAILABLE = True
+except ImportError:
+    TQDM_AVAILABLE = False
+
 from config_manager import get_jira_client
 from error_handler import print_error, JiraError, ValidationError
-from formatters import print_success
+from formatters import print_success, print_warning
 
 
 def move_issues_to_version(jql: str, target_version: str, field: str = 'fixVersions',
-                           profile: str = None) -> Dict[str, Any]:
+                           profile: str = None, show_progress: bool = True) -> Dict[str, Any]:
     """
     Move issues found by JQL to a target version.
 
@@ -31,33 +37,73 @@ def move_issues_to_version(jql: str, target_version: str, field: str = 'fixVersi
         target_version: Target version name
         field: Version field to update (fixVersions or affectedVersions)
         profile: JIRA profile to use
+        show_progress: If True, show progress bar (default: True)
 
     Returns:
-        Dictionary with moved count
+        Dictionary with moved count, failed count, and errors
     """
     client = get_jira_client(profile)
 
     # Search for issues
     result = client.search_issues(jql, max_results=1000)
     issues = result.get('issues', [])
+    total = len(issues)
 
-    # Update each issue
+    if total == 0:
+        client.close()
+        return {'moved': 0, 'failed': 0, 'total': 0, 'errors': {}}
+
+    # Update each issue with progress reporting
     moved = 0
-    for issue in issues:
-        client.update_issue(
-            issue['key'],
-            fields={field: [{'name': target_version}]}
+    failed = 0
+    errors = {}
+
+    use_tqdm = TQDM_AVAILABLE and show_progress
+    if use_tqdm:
+        issue_iterator = tqdm(
+            enumerate(issues, 1),
+            total=total,
+            desc=f"Moving to '{target_version}'",
+            unit="issue"
         )
-        moved += 1
+    else:
+        issue_iterator = enumerate(issues, 1)
+
+    for i, issue in issue_iterator:
+        issue_key = issue['key']
+        try:
+            client.update_issue(
+                issue_key,
+                fields={field: [{'name': target_version}]}
+            )
+            moved += 1
+
+            if use_tqdm:
+                issue_iterator.set_postfix(moved=moved, failed=failed)
+            elif not show_progress:
+                pass  # Silent mode
+            else:
+                print_success(f"[{i}/{total}] Moved {issue_key}")
+
+        except Exception as e:
+            failed += 1
+            errors[issue_key] = str(e)
+
+            if use_tqdm:
+                issue_iterator.set_postfix(moved=moved, failed=failed)
+            elif not show_progress:
+                pass
+            else:
+                print_warning(f"[{i}/{total}] Failed {issue_key}: {e}")
 
     client.close()
 
-    return {'moved': moved}
+    return {'moved': moved, 'failed': failed, 'total': total, 'errors': errors}
 
 
 def move_issues_between_versions(project: str, source_version: str,
                                  target_version: str, field: str = 'fixVersions',
-                                 profile: str = None) -> Dict[str, Any]:
+                                 profile: str = None, show_progress: bool = True) -> Dict[str, Any]:
     """
     Move issues from one version to another in a project.
 
@@ -67,18 +113,20 @@ def move_issues_between_versions(project: str, source_version: str,
         target_version: Target version name
         field: Version field to update
         profile: JIRA profile to use
+        show_progress: If True, show progress bar (default: True)
 
     Returns:
-        Dictionary with moved count
+        Dictionary with moved count, failed count, and errors
     """
     # Build JQL to find issues in source version
     jql = f'project = {project} AND {field} = "{source_version}"'
 
-    return move_issues_to_version(jql, target_version, field, profile)
+    return move_issues_to_version(jql, target_version, field, profile, show_progress)
 
 
 def move_specific_issues(issue_keys: List[str], target_version: str,
-                        field: str = 'fixVersions', profile: str = None) -> Dict[str, Any]:
+                        field: str = 'fixVersions', profile: str = None,
+                        show_progress: bool = True) -> Dict[str, Any]:
     """
     Move specific issues to a target version.
 
@@ -87,24 +135,63 @@ def move_specific_issues(issue_keys: List[str], target_version: str,
         target_version: Target version name
         field: Version field to update
         profile: JIRA profile to use
+        show_progress: If True, show progress bar (default: True)
 
     Returns:
-        Dictionary with moved count
+        Dictionary with moved count, failed count, and errors
     """
     client = get_jira_client(profile)
+    total = len(issue_keys)
 
-    # Update each issue
+    if total == 0:
+        client.close()
+        return {'moved': 0, 'failed': 0, 'total': 0, 'errors': {}}
+
+    # Update each issue with progress reporting
     moved = 0
-    for key in issue_keys:
-        client.update_issue(
-            key,
-            fields={field: [{'name': target_version}]}
+    failed = 0
+    errors = {}
+
+    use_tqdm = TQDM_AVAILABLE and show_progress
+    if use_tqdm:
+        issue_iterator = tqdm(
+            enumerate(issue_keys, 1),
+            total=total,
+            desc=f"Moving to '{target_version}'",
+            unit="issue"
         )
-        moved += 1
+    else:
+        issue_iterator = enumerate(issue_keys, 1)
+
+    for i, key in issue_iterator:
+        try:
+            client.update_issue(
+                key,
+                fields={field: [{'name': target_version}]}
+            )
+            moved += 1
+
+            if use_tqdm:
+                issue_iterator.set_postfix(moved=moved, failed=failed)
+            elif not show_progress:
+                pass
+            else:
+                print_success(f"[{i}/{total}] Moved {key}")
+
+        except Exception as e:
+            failed += 1
+            errors[key] = str(e)
+
+            if use_tqdm:
+                issue_iterator.set_postfix(moved=moved, failed=failed)
+            elif not show_progress:
+                pass
+            else:
+                print_warning(f"[{i}/{total}] Failed {key}: {e}")
 
     client.close()
 
-    return {'moved': moved}
+    return {'moved': moved, 'failed': failed, 'total': total, 'errors': errors}
 
 
 def move_issues_dry_run(jql: str, target_version: str, profile: str = None) -> Dict[str, Any]:
@@ -131,7 +218,8 @@ def move_issues_dry_run(jql: str, target_version: str, profile: str = None) -> D
 
 
 def move_issues_with_confirmation(jql: str, target_version: str,
-                                  field: str = 'fixVersions', profile: str = None) -> Dict[str, Any]:
+                                  field: str = 'fixVersions', profile: str = None,
+                                  show_progress: bool = True) -> Dict[str, Any]:
     """
     Move issues with confirmation prompt.
 
@@ -140,9 +228,10 @@ def move_issues_with_confirmation(jql: str, target_version: str,
         target_version: Target version name
         field: Version field to update
         profile: JIRA profile to use
+        show_progress: If True, show progress bar (default: True)
 
     Returns:
-        Dictionary with moved count
+        Dictionary with moved count, failed count, and errors
     """
     # First, do a dry run to show what would be moved
     dry_run = move_issues_dry_run(jql, target_version, profile)
@@ -157,9 +246,9 @@ def move_issues_with_confirmation(jql: str, target_version: str,
     confirmation = input(f"Move these {dry_run['would_move']} issue(s) to version '{target_version}'? (yes/no): ")
 
     if confirmation.lower() == 'yes':
-        return move_issues_to_version(jql, target_version, field, profile)
+        return move_issues_to_version(jql, target_version, field, profile, show_progress)
     else:
-        return {'moved': 0}
+        return {'moved': 0, 'failed': 0, 'total': 0, 'errors': {}, 'cancelled': True}
 
 
 def main():
@@ -196,6 +285,8 @@ Examples:
                        help='Skip confirmation prompt')
     parser.add_argument('--dry-run', action='store_true',
                        help='Show what would be moved without moving')
+    parser.add_argument('--no-progress', action='store_true',
+                       help='Disable progress bar')
     parser.add_argument('--profile', '-p',
                        help='JIRA profile to use')
 
@@ -255,18 +346,20 @@ Examples:
 
         else:
             # Move issues
+            show_progress = not args.no_progress
+
             if args.jql:
                 jql = args.jql
                 target = args.target
 
                 if args.yes:
-                    result = move_issues_to_version(jql, target, args.field, args.profile)
+                    result = move_issues_to_version(jql, target, args.field, args.profile, show_progress)
                 else:
-                    result = move_issues_with_confirmation(jql, target, args.field, args.profile)
+                    result = move_issues_with_confirmation(jql, target, args.field, args.profile, show_progress)
 
             elif args.issues:
                 issue_keys = [k.strip() for k in args.issues.split(',')]
-                result = move_specific_issues(issue_keys, args.target, args.field, args.profile)
+                result = move_specific_issues(issue_keys, args.target, args.field, args.profile, show_progress)
 
             elif args.source_version:
                 result = move_issues_between_versions(
@@ -274,12 +367,19 @@ Examples:
                     args.source_version,
                     args.target_version,
                     args.field,
-                    args.profile
+                    args.profile,
+                    show_progress
                 )
 
-            if result['moved'] > 0:
+            if result.get('cancelled'):
+                print("\nOperation cancelled by user.")
+            elif result['moved'] > 0:
                 target = args.target or args.target_version
-                print_success(f"Moved {result['moved']} issue(s) to version '{target}'")
+                failed = result.get('failed', 0)
+                if failed > 0:
+                    print(f"\nSummary: {result['moved']} moved, {failed} failed")
+                else:
+                    print_success(f"Moved {result['moved']} issue(s) to version '{target}'")
             else:
                 print("No issues moved.")
 
