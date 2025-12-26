@@ -137,9 +137,11 @@ class TestCreatePRDescription:
         with patch('create_pr_description.get_jira_client', return_value=mock_jira_client):
             result = create_pr_description('PROJ-123')
 
+        # Result is now a dict with 'markdown' key
+        markdown = result['markdown']
         # Should contain key elements
-        assert 'PROJ-123' in result
-        assert 'Fix login button not responding' in result
+        assert 'PROJ-123' in markdown
+        assert 'Fix login button not responding' in markdown
         mock_jira_client.close.assert_called_once()
 
     def test_create_pr_description_includes_jira_link(self, mock_jira_client, sample_issue):
@@ -153,7 +155,7 @@ class TestCreatePRDescription:
                 result = create_pr_description('PROJ-123')
 
         # Should have link to JIRA
-        assert 'PROJ-123' in result
+        assert 'PROJ-123' in result['markdown']
 
     def test_create_pr_description_includes_checklist(self, mock_jira_client, sample_issue):
         """Test including checklist items."""
@@ -165,7 +167,7 @@ class TestCreatePRDescription:
             result = create_pr_description('PROJ-123', include_checklist=True)
 
         # Should have checklist markers with standard markdown format
-        assert '- [ ]' in result, "Checklist should use '- [ ]' format"
+        assert '- [ ]' in result['markdown'], "Checklist should use '- [ ]' format"
 
     def test_create_pr_description_markdown_format(self, mock_jira_client, sample_issue):
         """Test Markdown output format."""
@@ -177,7 +179,7 @@ class TestCreatePRDescription:
             result = create_pr_description('PROJ-123')
 
         # Should be valid markdown with h2 headers
-        assert '## ' in result, "PR description should have markdown h2 headers (## )"
+        assert '## ' in result['markdown'], "PR description should have markdown h2 headers (## )"
 
     def test_create_pr_description_with_labels(self, mock_jira_client, sample_issue):
         """Test including labels from issue."""
@@ -189,7 +191,7 @@ class TestCreatePRDescription:
             result = create_pr_description('PROJ-123', include_labels=True)
 
         # Labels from sample_issue: ['mobile', 'ui'] - should have Labels section
-        result_lower = result.lower()
+        result_lower = result['markdown'].lower()
         assert 'mobile' in result_lower, "Label 'mobile' should be in output"
         assert 'ui' in result_lower, "Label 'ui' should be in output"
 
@@ -200,8 +202,9 @@ class TestCreatePRDescription:
         mock_jira_client.get_issue.return_value = sample_issue
 
         with patch('create_pr_description.get_jira_client', return_value=mock_jira_client):
-            description = create_pr_description('PROJ-123')
-            output = format_output(description, 'PROJ-123', sample_issue, output_format='json')
+            result = create_pr_description('PROJ-123')
+            # format_output now expects the result dict directly
+            output = format_output(result, output_format='json')
 
         data = json.loads(output)
         assert 'description' in data

@@ -36,11 +36,13 @@ class TestCreateBranchName:
         with patch('create_branch_name.get_jira_client', return_value=mock_jira_client):
             result = create_branch_name('PROJ-123')
 
+        # Result is now a dict with 'branch_name' key
+        branch_name = result['branch_name']
         # Should produce: feature/proj-123-fix-login-button-not-responding
-        assert result.startswith('feature/')
-        assert 'proj-123' in result  # Lowercase
-        assert 'fix-login' in result
-        assert result == result.lower()  # Should be lowercase
+        assert branch_name.startswith('feature/')
+        assert 'proj-123' in branch_name  # Lowercase
+        assert 'fix-login' in branch_name
+        assert branch_name == branch_name.lower()  # Should be lowercase
         mock_jira_client.close.assert_called_once()
 
     def test_create_branch_name_with_custom_prefix(self, mock_jira_client, sample_issue):
@@ -52,8 +54,9 @@ class TestCreateBranchName:
         with patch('create_branch_name.get_jira_client', return_value=mock_jira_client):
             result = create_branch_name('PROJ-123', prefix='bugfix')
 
-        assert result.startswith('bugfix/')
-        assert 'proj-123' in result  # Already lowercase
+        branch_name = result['branch_name']
+        assert branch_name.startswith('bugfix/')
+        assert 'proj-123' in branch_name  # Already lowercase
 
     def test_create_branch_name_sanitizes_special_chars(self):
         """Test removing special characters from summary."""
@@ -84,8 +87,9 @@ class TestCreateBranchName:
         with patch('create_branch_name.get_jira_client', return_value=mock_jira_client):
             result = create_branch_name('PROJ-123')
 
+        branch_name = result['branch_name']
         # Total branch name should respect max length
-        assert len(result) <= MAX_BRANCH_LENGTH
+        assert len(branch_name) <= MAX_BRANCH_LENGTH
 
     def test_create_branch_name_lowercase(self, mock_jira_client):
         """Test converting to lowercase."""
@@ -103,8 +107,9 @@ class TestCreateBranchName:
         with patch('create_branch_name.get_jira_client', return_value=mock_jira_client):
             result = create_branch_name('PROJ-123')
 
-        assert result == result.lower()
-        assert 'proj-123' in result
+        branch_name = result['branch_name']
+        assert branch_name == branch_name.lower()
+        assert 'proj-123' in branch_name
 
     def test_create_branch_name_auto_prefix_bug(self, mock_jira_client, sample_issue):
         """Test auto-prefix based on Bug issue type."""
@@ -116,7 +121,7 @@ class TestCreateBranchName:
         with patch('create_branch_name.get_jira_client', return_value=mock_jira_client):
             result = create_branch_name('PROJ-123', auto_prefix=True)
 
-        assert result.startswith('bugfix/')
+        assert result['branch_name'].startswith('bugfix/')
 
     def test_create_branch_name_auto_prefix_story(self, mock_jira_client, sample_story_issue):
         """Test auto-prefix based on Story issue type."""
@@ -127,7 +132,7 @@ class TestCreateBranchName:
         with patch('create_branch_name.get_jira_client', return_value=mock_jira_client):
             result = create_branch_name('PROJ-456', auto_prefix=True)
 
-        assert result.startswith('feature/')
+        assert result['branch_name'].startswith('feature/')
 
     def test_create_branch_name_auto_prefix_task(self, mock_jira_client, sample_task_issue):
         """Test auto-prefix based on Task issue type."""
@@ -138,7 +143,7 @@ class TestCreateBranchName:
         with patch('create_branch_name.get_jira_client', return_value=mock_jira_client):
             result = create_branch_name('PROJ-789', auto_prefix=True)
 
-        assert result.startswith('task/')
+        assert result['branch_name'].startswith('task/')
 
     def test_create_branch_name_output_json(self, mock_jira_client, sample_issue):
         """Test JSON output format."""
@@ -147,8 +152,9 @@ class TestCreateBranchName:
         mock_jira_client.get_issue.return_value = sample_issue
 
         with patch('create_branch_name.get_jira_client', return_value=mock_jira_client):
-            branch_name = create_branch_name('PROJ-123')
-            output = format_output(branch_name, 'PROJ-123', sample_issue, output_format='json')
+            result = create_branch_name('PROJ-123')
+            # format_output expects a string branch_name, not the result dict
+            output = format_output(result['branch_name'], 'PROJ-123', sample_issue, output_format='json')
 
         data = json.loads(output)
         assert 'branch_name' in data
@@ -162,7 +168,9 @@ class TestCreateBranchName:
         mock_jira_client.get_issue.return_value = sample_issue
 
         with patch('create_branch_name.get_jira_client', return_value=mock_jira_client):
-            branch_name = create_branch_name('PROJ-123')
+            result = create_branch_name('PROJ-123')
+            branch_name = result['branch_name']
+            # format_output expects a string branch_name, not the result dict
             output = format_output(branch_name, 'PROJ-123', sample_issue, output_format='git')
 
         assert output.startswith('git checkout -b ')

@@ -26,6 +26,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'shared' / 'scripts
 from config_manager import get_jira_client
 from error_handler import print_error, JiraError, ValidationError
 from validators import validate_issue_key
+from adf_helper import wiki_markup_to_adf
 
 
 def parse_pr_url(pr_url: str) -> Dict[str, Any]:
@@ -187,55 +188,9 @@ def link_pr(
         client = get_jira_client(profile)
         close_client = True
     try:
-        # Build ADF content
-        lines = comment_body.split('\n')
-        content_blocks = []
-
-        for line in lines:
-            if line.strip():
-                text_content = []
-
-                # Handle wiki-style formatting
-                if '*:*' in line:
-                    parts = line.split('*:*', 1)
-                    field_name = parts[0].strip('* ')
-                    field_value = parts[1].strip() if len(parts) > 1 else ''
-
-                    text_content.append({
-                        "type": "text",
-                        "text": f"{field_name}: ",
-                        "marks": [{"type": "strong"}]
-                    })
-
-                    # Check for link [text|url]
-                    if '[' in field_value and '|' in field_value:
-                        match = field_value.strip()
-                        if match.startswith('[') and match.endswith(']'):
-                            inner = match[1:-1]
-                            text_part, url_part = inner.split('|', 1)
-                            text_content.append({
-                                "type": "text",
-                                "text": text_part,
-                                "marks": [{"type": "link", "attrs": {"href": url_part}}]
-                            })
-                        else:
-                            text_content.append({"type": "text", "text": field_value})
-                    else:
-                        text_content.append({"type": "text", "text": field_value})
-                else:
-                    text_content.append({"type": "text", "text": line})
-
-                content_blocks.append({
-                    "type": "paragraph",
-                    "content": text_content
-                })
-
+        # Convert wiki markup to ADF using shared helper
         comment_data = {
-            "body": {
-                "type": "doc",
-                "version": 1,
-                "content": content_blocks if content_blocks else [{"type": "paragraph", "content": [{"type": "text", "text": comment_body}]}]
-            }
+            "body": wiki_markup_to_adf(comment_body)
         }
 
         result = client.post(

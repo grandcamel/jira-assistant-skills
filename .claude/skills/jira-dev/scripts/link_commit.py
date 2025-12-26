@@ -25,6 +25,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'shared' / 'scripts
 from config_manager import get_jira_client
 from error_handler import print_error, JiraError
 from validators import validate_issue_key
+from adf_helper import wiki_markup_to_adf
 
 # Import parse_commit_issues for --from-message functionality
 from parse_commit_issues import parse_issue_keys
@@ -193,67 +194,10 @@ def link_commit(
         client = get_jira_client(profile)
         close_client = True
     try:
-        # Use ADF (Atlassian Document Format) for comment
+        # Convert wiki markup to ADF using shared helper
         comment_data = {
-            "body": {
-                "type": "doc",
-                "version": 1,
-                "content": [
-                    {
-                        "type": "paragraph",
-                        "content": []
-                    }
-                ]
-            }
+            "body": wiki_markup_to_adf(comment_body)
         }
-
-        # Build ADF content from lines
-        lines = comment_body.split('\n')
-        for i, line in enumerate(lines):
-            if line.strip():
-                # Handle wiki-style formatting to ADF
-                # *text* -> bold
-                content = []
-
-                # Simple text for now (proper wiki parsing would be more complex)
-                if line.startswith('*') and '*:*' in line:
-                    # Field line like "*Commit:* value"
-                    parts = line.split('*:*', 1)
-                    field_name = parts[0].strip('* ')
-                    field_value = parts[1].strip() if len(parts) > 1 else ''
-
-                    content.append({
-                        "type": "text",
-                        "text": f"{field_name}: ",
-                        "marks": [{"type": "strong"}]
-                    })
-
-                    # Check if value is a link [text|url]
-                    if '[' in field_value and '|' in field_value:
-                        match = field_value.strip()
-                        if match.startswith('[') and match.endswith(']'):
-                            inner = match[1:-1]
-                            text_part, url_part = inner.split('|', 1)
-                            content.append({
-                                "type": "text",
-                                "text": text_part,
-                                "marks": [{"type": "link", "attrs": {"href": url_part}}]
-                            })
-                        else:
-                            content.append({"type": "text", "text": field_value})
-                    else:
-                        content.append({"type": "text", "text": field_value})
-                else:
-                    content.append({"type": "text", "text": line})
-
-                if i > 0:
-                    # Add new paragraph for each non-empty line after the first
-                    comment_data["body"]["content"].append({
-                        "type": "paragraph",
-                        "content": content
-                    })
-                else:
-                    comment_data["body"]["content"][0]["content"] = content
 
         result = client.post(
             f'/rest/api/3/issue/{issue_key}/comment',

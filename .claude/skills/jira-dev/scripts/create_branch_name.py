@@ -161,22 +161,28 @@ def create_branch_name(
     # Build branch name: prefix/issue-key-summary
     issue_key_lower = issue_key.lower()
 
-    # Calculate max summary length
-    # prefix/ + issue-key + - + summary
-    prefix_part_len = len(branch_prefix) + 1  # +1 for /
-    key_part_len = len(issue_key_lower) + 1    # +1 for -
-    max_summary_len = MAX_BRANCH_LENGTH - prefix_part_len - key_part_len
+    # Handle edge case: empty sanitized summary
+    # This can happen if the summary contains only special characters
+    if not sanitized_summary:
+        # Fall back to just the issue key without a summary
+        branch_name = f"{branch_prefix}/{issue_key_lower}"
+    else:
+        # Calculate max summary length
+        # prefix/ + issue-key + - + summary
+        prefix_part_len = len(branch_prefix) + 1  # +1 for /
+        key_part_len = len(issue_key_lower) + 1    # +1 for -
+        max_summary_len = MAX_BRANCH_LENGTH - prefix_part_len - key_part_len
 
-    if len(sanitized_summary) > max_summary_len:
-        # Truncate at word boundary if possible
-        truncated = sanitized_summary[:max_summary_len]
-        # Try to end at a word boundary (hyphen)
-        last_hyphen = truncated.rfind('-')
-        if last_hyphen > max_summary_len // 2:  # Only if we keep more than half
-            truncated = truncated[:last_hyphen]
-        sanitized_summary = truncated.rstrip('-')
+        if len(sanitized_summary) > max_summary_len:
+            # Truncate at word boundary if possible
+            truncated = sanitized_summary[:max_summary_len]
+            # Try to end at a word boundary (hyphen)
+            last_hyphen = truncated.rfind('-')
+            if last_hyphen > max_summary_len // 2:  # Only if we keep more than half
+                truncated = truncated[:last_hyphen]
+            sanitized_summary = truncated.rstrip('-')
 
-    branch_name = f"{branch_prefix}/{issue_key_lower}-{sanitized_summary}"
+        branch_name = f"{branch_prefix}/{issue_key_lower}-{sanitized_summary}"
 
     return {
         'branch_name': branch_name,
@@ -268,18 +274,23 @@ def main():
         sanitized = sanitize_for_branch(summary)
 
         issue_key_lower = issue_key.lower()
-        prefix_part_len = len(prefix) + 1
-        key_part_len = len(issue_key_lower) + 1
-        max_summary_len = MAX_BRANCH_LENGTH - prefix_part_len - key_part_len
 
-        if len(sanitized) > max_summary_len:
-            truncated = sanitized[:max_summary_len]
-            last_hyphen = truncated.rfind('-')
-            if last_hyphen > max_summary_len // 2:
-                truncated = truncated[:last_hyphen]
-            sanitized = truncated.rstrip('-')
+        # Handle edge case: empty sanitized summary
+        if not sanitized:
+            branch_name = f"{prefix}/{issue_key_lower}"
+        else:
+            prefix_part_len = len(prefix) + 1
+            key_part_len = len(issue_key_lower) + 1
+            max_summary_len = MAX_BRANCH_LENGTH - prefix_part_len - key_part_len
 
-        branch_name = f"{prefix}/{issue_key_lower}-{sanitized}"
+            if len(sanitized) > max_summary_len:
+                truncated = sanitized[:max_summary_len]
+                last_hyphen = truncated.rfind('-')
+                if last_hyphen > max_summary_len // 2:
+                    truncated = truncated[:last_hyphen]
+                sanitized = truncated.rstrip('-')
+
+            branch_name = f"{prefix}/{issue_key_lower}-{sanitized}"
 
         # Format and print output
         output = format_output(branch_name, issue_key, issue, args.output)
