@@ -490,7 +490,7 @@ The project includes comprehensive test coverage with both unit tests and live i
 - **Total Tests:** 560+ tests
 - **Core Live Integration:** 157 tests (8 skills)
 - **JSM Live Integration:** 94 tests
-- **New Skills Live Integration:** 85 tests (jira-bulk, jira-dev, jira-fields, jira-ops)
+- **New Skills Live Integration:** 87 tests (jira-bulk, jira-dev, jira-fields, jira-ops)
 - **Unit Tests:** 224+ tests
 
 ```bash
