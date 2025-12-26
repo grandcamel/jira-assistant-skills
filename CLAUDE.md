@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Claude Code Skills project providing JIRA automation through eight modular skills:
+This is a Claude Code Skills project providing JIRA automation through twelve modular skills:
 - **jira-issue**: Core CRUD operations on issues
 - **jira-lifecycle**: Workflow/transition management
 - **jira-search**: JQL queries, saved filters, JQL builder/validator, and bulk operations
@@ -13,6 +13,10 @@ This is a Claude Code Skills project providing JIRA automation through eight mod
 - **jira-relationships**: Issue linking, dependencies, blocker chains, cloning
 - **jira-time**: Time tracking, worklogs, estimates, and time reports
 - **jira-jsm**: Jira Service Management (service desks, requests, SLAs, queues, customers, approvals, knowledge base)
+- **jira-bulk**: Bulk operations (transitions, assignments, priorities, cloning) at scale with dry-run support
+- **jira-dev**: Developer workflow integration (Git branch names, commit parsing, PR descriptions)
+- **jira-fields**: Custom field management, Agile field configuration, project field discovery
+- **jira-ops**: Cache management, request batching, and operational utilities
 
 Each skill is designed for autonomous discovery and use by Claude Code.
 
@@ -257,6 +261,10 @@ Use scopes to identify which part of the codebase changed. Suggested scopes for 
 - **jira-relationships**: Changes to the jira-relationships skill
 - **jira-time**: Changes to the jira-time skill
 - **jira-jsm**: Changes to the jira-jsm skill
+- **jira-bulk**: Changes to the jira-bulk skill
+- **jira-dev**: Changes to the jira-dev skill
+- **jira-fields**: Changes to the jira-fields skill
+- **jira-ops**: Changes to the jira-ops skill
 - **shared**: Changes to shared library code
 - **config**: Configuration changes
 - **docs**: Documentation updates (CLAUDE.md, README.md, etc.)
@@ -339,6 +347,12 @@ pytest .claude/skills/shared/tests/live_integration/ --profile development -v
 # Run JSM live integration tests
 pytest .claude/skills/jira-jsm/tests/live_integration/ --profile development --skip-premium -v
 
+# Run new skill live integration tests
+pytest .claude/skills/jira-bulk/tests/live_integration/ --profile development -v
+pytest .claude/skills/jira-dev/tests/live_integration/ --profile development -v
+pytest .claude/skills/jira-fields/tests/live_integration/ --profile development -v
+pytest .claude/skills/jira-ops/tests/live_integration/ --profile development -v
+
 # Run specific test modules
 pytest .claude/skills/shared/tests/live_integration/test_issue_lifecycle.py -v
 pytest .claude/skills/jira-jsm/tests/live_integration/test_request_lifecycle.py -v
@@ -349,7 +363,7 @@ pytest .claude/skills/jira-jsm/tests/live_integration/test_request_lifecycle.py 
 **Profile requirement**: Live tests require `--profile development` to specify which JIRA instance to test against.
 
 **Current coverage**:
-- **Core skills**: 153 live integration tests covering 7 skills across 3 phases
+- **Core skills**: 157 live integration tests covering 8 skills across 3 phases
   - Phase 1: Core operations (issue CRUD, lifecycle, collaboration)
   - Phase 2: Agile, relationships, time tracking
   - Phase 3: Search, filters, bulk operations
@@ -360,6 +374,11 @@ pytest .claude/skills/jira-jsm/tests/live_integration/test_request_lifecycle.py 
   - SLAs, queues, approvals
   - Knowledge base integration
   - Assets/CMDB (requires JSM Premium)
+- **New skills**: 85 live integration tests + 84 unit tests
+  - jira-bulk: 21 live + 42 unit tests (bulk transitions, assignments, priorities, cloning)
+  - jira-dev: 25 live + 42 unit tests (Git integration, PR management)
+  - jira-fields: 18 live tests (field discovery, Agile fields)
+  - jira-ops: 21 live tests (cache warming, cache operations)
 
 **JSM test options**:
 - `--skip-premium`: Skip tests requiring JSM Premium license (Assets/CMDB)

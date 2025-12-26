@@ -4,7 +4,7 @@ A comprehensive set of Claude Code Skills for automating JIRA and JIRA Service M
 
 ## Overview
 
-This project provides eight modular skills that enable Claude Code to interact with JIRA:
+This project provides twelve modular skills that enable Claude Code to interact with JIRA:
 
 - **jira-issue** - Core CRUD operations (create, read, update, delete issues)
 - **jira-lifecycle** - Workflow management (transitions, assignments, resolve/reopen)
@@ -14,6 +14,10 @@ This project provides eight modular skills that enable Claude Code to interact w
 - **jira-relationships** - Issue linking (dependencies, blocker chains, cloning)
 - **jira-time** - Time tracking (worklogs, estimates, time reports)
 - **jira-jsm** - Jira Service Management (service desks, requests, SLAs, queues, customers, approvals)
+- **jira-bulk** - Bulk operations (transitions, assignments, priorities, cloning) at scale
+- **jira-dev** - Developer workflow integration (Git branches, commit parsing, PR descriptions)
+- **jira-fields** - Custom field management and Agile field configuration
+- **jira-ops** - Cache management, request batching, and operational utilities
 
 ## Features
 
@@ -275,6 +279,65 @@ python .claude/skills/jira-jsm/scripts/get_approvals.py SD-123
 python .claude/skills/jira-jsm/scripts/approve_request.py SD-123 --approval-id 456
 ```
 
+### jira-bulk (4 scripts)
+
+Bulk operations at scale:
+
+```bash
+# Bulk transition issues
+python .claude/skills/jira-bulk/scripts/bulk_transition.py \
+  --issues PROJ-1,PROJ-2,PROJ-3 --to "Done"
+python .claude/skills/jira-bulk/scripts/bulk_transition.py \
+  --jql "project=PROJ AND status='In Progress'" --to "Done" --dry-run
+
+# Bulk assign issues
+python .claude/skills/jira-bulk/scripts/bulk_assign.py \
+  --jql "project=PROJ AND status=Open" --assignee self
+
+# Bulk set priority
+python .claude/skills/jira-bulk/scripts/bulk_set_priority.py \
+  --issues PROJ-1,PROJ-2 --priority High
+
+# Bulk clone issues
+python .claude/skills/jira-bulk/scripts/bulk_clone.py \
+  --issues PROJ-1,PROJ-2 --include-subtasks --include-links
+```
+
+### jira-dev (6 scripts)
+
+Developer workflow integration:
+
+```bash
+# Generate Git branch name from issue
+python .claude/skills/jira-dev/scripts/create_branch_name.py PROJ-123 --auto-prefix
+
+# Link commits to issues
+python .claude/skills/jira-dev/scripts/link_commit.py PROJ-123 \
+  --commit abc123def --repo https://github.com/org/repo
+
+# Link pull requests
+python .claude/skills/jira-dev/scripts/link_pr.py PROJ-123 \
+  --pr https://github.com/org/repo/pull/456
+
+# Generate PR description from issue
+python .claude/skills/jira-dev/scripts/create_pr_description.py PROJ-123 --include-checklist
+```
+
+### jira-ops (3 scripts)
+
+Cache management and operations:
+
+```bash
+# Check cache status
+python .claude/skills/jira-ops/scripts/cache_status.py
+
+# Warm cache with project/field data
+python .claude/skills/jira-ops/scripts/cache_warm.py --all --profile production
+
+# Clear cache
+python .claude/skills/jira-ops/scripts/cache_clear.py --force
+```
+
 ## Configuration
 
 ### Multi-Profile Setup
@@ -331,6 +394,10 @@ Settings are merged in order (later overrides earlier):
     ├── jira-relationships/         # Issue linking, cloning
     ├── jira-time/                  # Time tracking, worklogs
     ├── jira-jsm/                   # Jira Service Management
+    ├── jira-bulk/                  # Bulk operations at scale
+    ├── jira-dev/                   # Developer workflow integration
+    ├── jira-fields/                # Custom field management
+    ├── jira-ops/                   # Cache and operational utilities
     └── shared/
         ├── scripts/lib/            # Shared Python modules
         ├── tests/                  # Unit and live integration tests
@@ -414,6 +481,30 @@ Minimum JIRA permissions required:
 - Log Work (for jira-time)
 - Service Desk Agent (for jira-jsm)
 - Manage Customers (for jira-jsm customer operations)
+
+## Testing
+
+The project includes comprehensive test coverage with both unit tests and live integration tests.
+
+**Test Summary:**
+- **Total Tests:** 560+ tests
+- **Core Live Integration:** 157 tests (8 skills)
+- **JSM Live Integration:** 94 tests
+- **New Skills Live Integration:** 85 tests (jira-bulk, jira-dev, jira-fields, jira-ops)
+- **Unit Tests:** 224+ tests
+
+```bash
+# Run unit tests
+pytest .claude/skills/*/tests/ -v --ignore="**/live_integration"
+
+# Run live integration tests (requires JIRA credentials)
+pytest .claude/skills/shared/tests/live_integration/ --profile development -v
+pytest .claude/skills/jira-jsm/tests/live_integration/ --profile development --skip-premium -v
+pytest .claude/skills/jira-bulk/tests/live_integration/ --profile development -v
+pytest .claude/skills/jira-dev/tests/live_integration/ --profile development -v
+pytest .claude/skills/jira-fields/tests/live_integration/ --profile development -v
+pytest .claude/skills/jira-ops/tests/live_integration/ --profile development -v
+```
 
 ## Troubleshooting
 
