@@ -91,6 +91,14 @@ Examples:
         account_ids = parse_account_ids(args.account_id) if args.account_id else None
         usernames = parse_account_ids(args.username) if args.username else None
 
+        # Validate parsed lists are non-empty
+        if account_ids is not None and len(account_ids) == 0:
+            print_error("Account ID list is empty after parsing. Provide valid comma-separated IDs.")
+            return 1
+        if usernames is not None and len(usernames) == 0:
+            print_error("Username list is empty after parsing. Provide valid comma-separated usernames.")
+            return 1
+
         if args.dry_run:
             print("DRY RUN MODE - No changes will be made\n")
             print(f"Would add participants to request {args.issue_key}:")

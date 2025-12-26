@@ -15,7 +15,7 @@ from datetime import datetime
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent / 'shared' / 'scripts' / 'lib'))
 
 from config_manager import get_jira_client
-from error_handler import handle_errors, JiraError, NotFoundError, PermissionError
+from error_handler import handle_errors, print_error, JiraError, NotFoundError, PermissionError
 
 
 def get_jira_client(profile=None):
@@ -65,7 +65,7 @@ Examples:
         try:
             approval = jira.get_request_approval(parsed_args.issue_key, approval_id)
         except (JiraError, NotFoundError, PermissionError) as e:
-            print(f"\nError: Could not get approval {approval_id}: {e}")
+            print_error(f"Could not get approval {approval_id}: {e}")
             continue
 
         approval_name = approval.get('name', 'Unknown')

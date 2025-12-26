@@ -18,6 +18,7 @@ from config_manager import get_jira_client
 from error_handler import print_error, JiraError, ValidationError
 from validators import validate_issue_key
 from formatters import print_success, format_table
+from user_helpers import resolve_user_to_account_id, UserNotFoundError
 
 
 def list_watchers(issue_key: str, profile: str = None) -> list:
@@ -35,14 +36,11 @@ def add_watcher(issue_key: str, user: str, profile: str = None) -> None:
     issue_key = validate_issue_key(issue_key)
     client = get_jira_client(profile)
 
-    if '@' in user:
-        user_response = client.get(f'/rest/api/3/user/search?query={user}',
-                                   operation="search for user")
-        if not user_response:
-            raise ValidationError(f"User not found: {user}")
-        account_id = user_response[0]['accountId']
-    else:
-        account_id = user
+    try:
+        account_id = resolve_user_to_account_id(client, user)
+    except UserNotFoundError as e:
+        client.close()
+        raise ValidationError(str(e))
 
     client.post(f'/rest/api/3/issue/{issue_key}/watchers',
                data=f'"{account_id}"',
@@ -55,14 +53,11 @@ def remove_watcher(issue_key: str, user: str, profile: str = None) -> None:
     issue_key = validate_issue_key(issue_key)
     client = get_jira_client(profile)
 
-    if '@' in user:
-        user_response = client.get(f'/rest/api/3/user/search?query={user}',
-                                   operation="search for user")
-        if not user_response:
-            raise ValidationError(f"User not found: {user}")
-        account_id = user_response[0]['accountId']
-    else:
-        account_id = user
+    try:
+        account_id = resolve_user_to_account_id(client, user)
+    except UserNotFoundError as e:
+        client.close()
+        raise ValidationError(str(e))
 
     client.delete(f'/rest/api/3/issue/{issue_key}/watchers?accountId={account_id}',
                  operation=f"remove watcher from {issue_key}")

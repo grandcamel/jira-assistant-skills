@@ -90,14 +90,14 @@ class TestAddWatcher:
     def test_add_watcher_by_email(self, mock_get_client, mock_jira_client):
         """Test adding watcher by email (lookup required)."""
         mock_get_client.return_value = mock_jira_client
-        mock_jira_client.get.return_value = [{'accountId': '5b10a2844c20165700ede21g'}]
+        mock_jira_client.search_users.return_value = [{'accountId': '5b10a2844c20165700ede21g'}]
         mock_jira_client.post.return_value = None
 
         from manage_watchers import add_watcher
 
         add_watcher('PROJ-123', 'alice@company.com', profile=None)
 
-        mock_jira_client.get.assert_called_once()
+        mock_jira_client.search_users.assert_called_once()
         mock_jira_client.post.assert_called_once()
 
     @patch('manage_watchers.get_jira_client')
@@ -106,7 +106,7 @@ class TestAddWatcher:
         from error_handler import ValidationError
 
         mock_get_client.return_value = mock_jira_client
-        mock_jira_client.get.return_value = []
+        mock_jira_client.search_users.return_value = []
 
         from manage_watchers import add_watcher
 
@@ -135,14 +135,14 @@ class TestRemoveWatcher:
     def test_remove_watcher_by_email(self, mock_get_client, mock_jira_client):
         """Test removing watcher by email (lookup required)."""
         mock_get_client.return_value = mock_jira_client
-        mock_jira_client.get.return_value = [{'accountId': '5b10a2844c20165700ede21g'}]
+        mock_jira_client.search_users.return_value = [{'accountId': '5b10a2844c20165700ede21g'}]
         mock_jira_client.delete.return_value = None
 
         from manage_watchers import remove_watcher
 
         remove_watcher('PROJ-123', 'alice@company.com', profile=None)
 
-        mock_jira_client.get.assert_called_once()
+        mock_jira_client.search_users.assert_called_once()
         mock_jira_client.delete.assert_called_once()
 
 

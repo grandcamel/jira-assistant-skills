@@ -78,6 +78,11 @@ def main():
     args = parser.parse_args()
 
     try:
+        # Validate object_type_id is positive
+        if args.type_id <= 0:
+            print(f"Error: --type-id must be a positive integer, got {args.type_id}", file=sys.stderr)
+            sys.exit(1)
+
         attributes = parse_attributes(args.attr)
         asset = create_asset(args.type_id, attributes, args.dry_run)
 

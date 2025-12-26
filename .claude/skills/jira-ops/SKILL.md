@@ -98,6 +98,32 @@ Cache is stored in `~/.jira-skills/cache/` with the following TTL defaults:
 | `field` | 1 day | Field definitions |
 | `search` | 1 minute | Search results |
 
+## Security Considerations
+
+**IMPORTANT: The cache directory contains sensitive data and should be protected.**
+
+### Cached Sensitive Data
+
+The cache may contain:
+- **Issue details**: Confidential project information, bug descriptions, internal discussions
+- **User information**: Account IDs, email addresses, display names
+- **Project metadata**: Internal project names, configurations, custom fields
+- **Search results**: Query responses that may reveal organizational structure
+
+### Protection Measures
+
+1. **Restrictive permissions**: The cache directory is created with `0700` permissions (owner read/write/execute only)
+2. **Local storage only**: Cache is stored in user's home directory, not shared locations
+3. **No credential storage**: API tokens and passwords are never cached (only used in-memory)
+4. **TTL expiration**: Data automatically expires based on category TTL settings
+
+### Best Practices
+
+- Do not share the cache directory with other users
+- Clear cache before sharing a machine: `python cache_clear.py --force`
+- Use separate profiles for development/production to avoid data mixing
+- Consider clearing cache after working with highly sensitive projects
+
 ## Shared Libraries
 
 This skill uses shared infrastructure from `.claude/skills/shared/scripts/lib/`:
@@ -149,6 +175,177 @@ for request_id, result in results.items():
         print(f"Got: {result.data['key']}")
     else:
         print(f"Error: {result.error}")
+```
+
+## Troubleshooting
+
+### Common Issues and Solutions
+
+#### Cache Database Cannot Be Opened
+
+```bash
+$ python cache_status.py
+Error: Cannot open cache database
+```
+
+**Causes and Solutions:**
+
+1. **Cache directory doesn't exist**
+   ```bash
+   # Create the cache directory
+   mkdir -p ~/.jira-skills/cache/
+   ```
+
+2. **Insufficient permissions**
+   ```bash
+   # Fix permissions on cache directory
+   chmod 755 ~/.jira-skills/cache/
+   chmod 644 ~/.jira-skills/cache/*.db 2>/dev/null || true
+   ```
+
+3. **Corrupted database file**
+   ```bash
+   # Remove and recreate the cache
+   rm -f ~/.jira-skills/cache/jira_cache.db
+   python cache_warm.py --all  # Recreate with fresh data
+   ```
+
+4. **Disk full**
+   ```bash
+   # Check disk space
+   df -h ~/.jira-skills/cache/
+
+   # Clear old cache if needed
+   python cache_clear.py --force
+   ```
+
+#### Cannot Connect to JIRA
+
+```bash
+$ python cache_warm.py --all
+Error: config_manager not available. Cannot connect to JIRA.
+```
+
+**Causes and Solutions:**
+
+1. **Missing JIRA credentials**
+   ```bash
+   # Verify environment variables are set
+   echo $JIRA_API_TOKEN  # Should not be empty
+   echo $JIRA_EMAIL
+   echo $JIRA_SITE_URL
+   ```
+
+2. **Invalid profile specified**
+   ```bash
+   # List available profiles
+   cat .claude/settings.json | jq '.profiles | keys'
+
+   # Use correct profile
+   python cache_warm.py --all --profile development
+   ```
+
+3. **Network connectivity issues**
+   ```bash
+   # Test JIRA connectivity
+   curl -s -o /dev/null -w "%{http_code}" https://your-company.atlassian.net
+   ```
+
+4. **Expired API token**
+   - Generate a new API token at https://id.atlassian.com/manage/api-tokens
+   - Update JIRA_API_TOKEN environment variable
+
+#### Cache Warm Takes Too Long
+
+**Causes and Solutions:**
+
+1. **Too many projects/fields to cache**
+   ```bash
+   # Warm only specific categories
+   python cache_warm.py --projects  # Just projects
+   python cache_warm.py --fields    # Just fields
+   ```
+
+2. **Rate limiting from JIRA**
+   - Add `--verbose` flag to see request timing
+   - Wait a few minutes and retry
+   - Use `--profile` to target a specific JIRA instance
+
+3. **Large JIRA instance**
+   - Consider caching only frequently used projects
+   - Run cache warming during off-peak hours
+
+#### Cache Not Improving Performance
+
+**Causes and Solutions:**
+
+1. **Cache TTL too short**
+   - Default TTL values may be too aggressive
+   - Frequently updated data (issues) has short TTL by design
+
+2. **Wrong category being cached**
+   ```bash
+   # Check what's in the cache
+   python cache_status.py
+
+   # Verify the category you need is cached
+   # issues: 5 min TTL
+   # projects: 1 hour TTL
+   # fields: 1 day TTL
+   ```
+
+3. **Cache invalidation happening too often**
+   - Review any automation that might be clearing cache
+   - Check for scripts calling `cache.invalidate()` unnecessarily
+
+#### Permission Denied Errors
+
+```bash
+$ python cache_clear.py --force
+PermissionError: [Errno 13] Permission denied: '/home/user/.jira-skills/cache/jira_cache.db'
+```
+
+**Solutions:**
+
+1. **Fix file ownership**
+   ```bash
+   sudo chown -R $(whoami) ~/.jira-skills/
+   ```
+
+2. **Fix file permissions**
+   ```bash
+   chmod -R u+rw ~/.jira-skills/
+   ```
+
+3. **Running as different user**
+   - Ensure you're running as the same user who created the cache
+
+### Debug Mode
+
+For detailed debugging, set the DEBUG environment variable:
+
+```bash
+# Enable debug logging
+export DEBUG=1
+python cache_warm.py --all --verbose
+
+# Or for a single command
+DEBUG=1 python cache_status.py
+```
+
+### Reset Everything
+
+If all else fails, reset the cache completely:
+
+```bash
+# Remove all cache data
+rm -rf ~/.jira-skills/cache/
+
+# Recreate directory
+mkdir -p ~/.jira-skills/cache/
+
+# Warm with fresh data
+python cache_warm.py --all --profile development
 ```
 
 ## Error Handling

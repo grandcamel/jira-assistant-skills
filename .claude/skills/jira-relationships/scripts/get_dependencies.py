@@ -7,6 +7,8 @@ Usage:
     python get_dependencies.py PROJ-123 --type blocks,relates
     python get_dependencies.py PROJ-123 --output mermaid
     python get_dependencies.py PROJ-123 --output dot > deps.dot
+    python get_dependencies.py PROJ-123 --output plantuml > deps.puml
+    python get_dependencies.py PROJ-123 --output d2 > deps.d2
 """
 
 import sys
@@ -91,7 +93,7 @@ def format_dependencies(result: Dict[str, Any], output_format: str = 'text') -> 
 
     Args:
         result: Dependencies result dict
-        output_format: 'text', 'json', 'mermaid', or 'dot'
+        output_format: 'text', 'json', 'mermaid', 'dot', 'plantuml', or 'd2'
 
     Returns:
         Formatted string
@@ -106,6 +108,10 @@ def format_dependencies(result: Dict[str, Any], output_format: str = 'text') -> 
         return format_mermaid(issue_key, dependencies)
     elif output_format == 'dot':
         return format_dot(issue_key, dependencies)
+    elif output_format == 'plantuml':
+        return format_plantuml(issue_key, dependencies)
+    elif output_format == 'd2':
+        return format_d2(issue_key, dependencies)
 
     # Text format
     if not dependencies:
@@ -206,10 +212,137 @@ def sanitize_key(key: str) -> str:
     return key.replace('-', '_')
 
 
+def format_plantuml(issue_key: str, dependencies: list) -> str:
+    """Format as PlantUML diagram."""
+    lines = []
+    lines.append("@startuml")
+    lines.append("")
+    lines.append("' Dependency diagram for " + issue_key)
+    lines.append("skinparam rectangle {")
+    lines.append("    BackgroundColor<<done>> LightGreen")
+    lines.append("    BackgroundColor<<inprogress>> LightYellow")
+    lines.append("    BackgroundColor<<open>> White")
+    lines.append("    BackgroundColor<<main>> LightBlue")
+    lines.append("}")
+    lines.append("")
+
+    # Main issue
+    lines.append(f'rectangle "{issue_key}" as {sanitize_key(issue_key)} <<main>>')
+    lines.append("")
+
+    # Dependency nodes
+    seen_nodes = {issue_key}
+    for dep in dependencies:
+        dep_key = dep['key']
+        if dep_key not in seen_nodes:
+            seen_nodes.add(dep_key)
+            status = dep['status'].lower().replace(' ', '')
+            summary = dep['summary'][:40].replace('"', "'") if dep['summary'] else dep_key
+
+            # Determine stereotype based on status
+            if 'done' in status or 'closed' in status or 'resolved' in status:
+                stereotype = "<<done>>"
+            elif 'progress' in status:
+                stereotype = "<<inprogress>>"
+            else:
+                stereotype = "<<open>>"
+
+            lines.append(f'rectangle "{dep_key}\\n{summary}" as {sanitize_key(dep_key)} {stereotype}')
+
+    lines.append("")
+
+    # Edges
+    for dep in dependencies:
+        dep_key = dep['key']
+        label = dep['direction_label']
+
+        if dep['direction'] == 'outward':
+            lines.append(f'{sanitize_key(issue_key)} --> {sanitize_key(dep_key)} : {label}')
+        else:
+            lines.append(f'{sanitize_key(dep_key)} --> {sanitize_key(issue_key)} : {label}')
+
+    lines.append("")
+    lines.append("@enduml")
+
+    return "\n".join(lines)
+
+
+def format_d2(issue_key: str, dependencies: list) -> str:
+    """Format as d2 diagram (Terrastruct)."""
+    lines = []
+    lines.append("# Dependency diagram for " + issue_key)
+    lines.append("direction: right")
+    lines.append("")
+
+    # Define main issue
+    safe_main = issue_key.replace('-', '_')
+    lines.append(f'{safe_main}: "{issue_key}" {{')
+    lines.append('  style.fill: "#87CEEB"')  # Light blue
+    lines.append('  style.stroke: "#4169E1"')
+    lines.append("}")
+    lines.append("")
+
+    # Define dependency nodes
+    seen_nodes = {issue_key}
+    for dep in dependencies:
+        dep_key = dep['key']
+        if dep_key not in seen_nodes:
+            seen_nodes.add(dep_key)
+            safe_key = dep_key.replace('-', '_')
+            status = dep['status']
+            summary = dep['summary'][:35].replace('"', "'") if dep['summary'] else ''
+
+            # Color based on status
+            status_lower = status.lower()
+            if 'done' in status_lower or 'closed' in status_lower or 'resolved' in status_lower:
+                fill_color = "#90EE90"  # Light green
+            elif 'progress' in status_lower:
+                fill_color = "#FFFACD"  # Light yellow
+            else:
+                fill_color = "#FFFFFF"  # White
+
+            label = f"{dep_key}"
+            if summary:
+                label += f"\\n{summary}"
+            label += f"\\n[{status}]"
+
+            lines.append(f'{safe_key}: "{label}" {{')
+            lines.append(f'  style.fill: "{fill_color}"')
+            lines.append("}")
+
+    lines.append("")
+
+    # Define edges
+    for dep in dependencies:
+        dep_key = dep['key']
+        safe_dep = dep_key.replace('-', '_')
+        label = dep['direction_label']
+
+        if dep['direction'] == 'outward':
+            lines.append(f'{safe_main} -> {safe_dep}: "{label}"')
+        else:
+            lines.append(f'{safe_dep} -> {safe_main}: "{label}"')
+
+    return "\n".join(lines)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description='Find all dependencies for a JIRA issue',
-        epilog='Example: python get_dependencies.py PROJ-123 --output mermaid'
+        epilog='''
+Examples:
+  %(prog)s PROJ-123
+  %(prog)s PROJ-123 --output mermaid
+  %(prog)s PROJ-123 --output dot > deps.dot
+  %(prog)s PROJ-123 --output plantuml > deps.puml
+  %(prog)s PROJ-123 --output d2 > deps.d2
+
+Export formats:
+  mermaid   - Mermaid.js flowchart format
+  dot       - Graphviz DOT format
+  plantuml  - PlantUML diagram format
+  d2        - D2 diagram format (Terrastruct)
+        '''
     )
 
     parser.add_argument('issue_key',
@@ -219,7 +352,7 @@ def main():
                        dest='link_types',
                        help='Comma-separated link types to include (e.g., blocks,relates)')
     parser.add_argument('--output', '-o',
-                       choices=['text', 'json', 'mermaid', 'dot'],
+                       choices=['text', 'json', 'mermaid', 'dot', 'plantuml', 'd2'],
                        default='text',
                        help='Output format (default: text)')
     parser.add_argument('--profile',

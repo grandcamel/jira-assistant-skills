@@ -306,9 +306,10 @@ class TestCreateIssueLinks:
         assert 'links_created' in result
 
     def test_create_issue_link_failure_continues(self, mock_jira_client, sample_created_issue):
-        """Test that link creation failure does not fail issue creation."""
+        """Test that recoverable link creation failure does not fail issue creation."""
+        from error_handler import NotFoundError
         mock_jira_client.create_issue.return_value = deepcopy(sample_created_issue)
-        mock_jira_client.create_link = Mock(side_effect=Exception("Link failed"))
+        mock_jira_client.create_link = Mock(side_effect=NotFoundError("Issue", "PROJ-999"))
 
         with patch.object(create_issue_module, 'get_jira_client', return_value=mock_jira_client):
             result = create_issue_module.create_issue(
@@ -320,6 +321,25 @@ class TestCreateIssueLinks:
 
         # Issue should still be created successfully
         assert result['key'] == "PROJ-130"
+        # Failed link should be tracked
+        assert 'links_failed' in result
+        assert len(result['links_failed']) == 1
+        assert "blocks PROJ-999" in result['links_failed'][0]
+
+    def test_create_issue_link_failure_reraises_auth_error(self, mock_jira_client, sample_created_issue):
+        """Test that non-recoverable errors are re-raised during link creation."""
+        from error_handler import AuthenticationError
+        mock_jira_client.create_issue.return_value = deepcopy(sample_created_issue)
+        mock_jira_client.create_link = Mock(side_effect=AuthenticationError("Token expired"))
+
+        with patch.object(create_issue_module, 'get_jira_client', return_value=mock_jira_client):
+            with pytest.raises(AuthenticationError):
+                create_issue_module.create_issue(
+                    project="PROJ",
+                    issue_type="Bug",
+                    summary="Bug with Auth Error on Link",
+                    blocks=["PROJ-999"]
+                )
 
 
 @pytest.mark.unit

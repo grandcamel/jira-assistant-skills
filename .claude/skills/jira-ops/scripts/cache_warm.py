@@ -37,9 +37,38 @@ try:
 except ImportError:
     HAS_CONFIG_MANAGER = False
 
+try:
+    from error_handler import AuthenticationError, RateLimitError, ServerError
+    HAS_ERROR_HANDLER = True
+except ImportError:
+    HAS_ERROR_HANDLER = False
+
+# Import requests for network error handling
+try:
+    import requests
+    HAS_REQUESTS = True
+except ImportError:
+    HAS_REQUESTS = False
+
+
+# Critical errors that should cause script to exit
+def is_critical_error(e):
+    """Check if an exception is a critical error that should stop execution."""
+    if HAS_ERROR_HANDLER:
+        if isinstance(e, (AuthenticationError, RateLimitError, ServerError)):
+            return True
+    if HAS_REQUESTS:
+        if isinstance(e, (requests.exceptions.Timeout, requests.exceptions.ConnectionError)):
+            return True
+    return False
+
 
 def warm_projects(client, cache, verbose=False):
-    """Fetch and cache project list."""
+    """Fetch and cache project list.
+
+    Returns:
+        tuple: (count, error) - count of cached items, error if critical
+    """
     if verbose:
         print("Fetching projects...")
 
@@ -53,15 +82,21 @@ def warm_projects(client, cache, verbose=False):
         count = len(response) if isinstance(response, list) else 1
         if verbose:
             print(f"  Cached {count} projects")
-        return count
+        return count, None
     except Exception as e:
         if verbose:
             print(f"  Error fetching projects: {e}")
-        return 0
+        if is_critical_error(e):
+            return 0, e
+        return 0, None
 
 
 def warm_fields(client, cache, verbose=False):
-    """Fetch and cache field definitions."""
+    """Fetch and cache field definitions.
+
+    Returns:
+        tuple: (count, error) - count of cached items, error if critical
+    """
     if verbose:
         print("Fetching fields...")
 
@@ -79,15 +114,21 @@ def warm_fields(client, cache, verbose=False):
         count = len(response) if isinstance(response, list) else 1
         if verbose:
             print(f"  Cached {count} fields")
-        return count
+        return count, None
     except Exception as e:
         if verbose:
             print(f"  Error fetching fields: {e}")
-        return 0
+        if is_critical_error(e):
+            return 0, e
+        return 0, None
 
 
 def warm_issue_types(client, cache, verbose=False):
-    """Fetch and cache issue type definitions."""
+    """Fetch and cache issue type definitions.
+
+    Returns:
+        tuple: (count, error) - count of cached items, error if critical
+    """
     if verbose:
         print("Fetching issue types...")
 
@@ -105,15 +146,21 @@ def warm_issue_types(client, cache, verbose=False):
         count = len(response) if isinstance(response, list) else 1
         if verbose:
             print(f"  Cached {count} issue types")
-        return count
+        return count, None
     except Exception as e:
         if verbose:
             print(f"  Error fetching issue types: {e}")
-        return 0
+        if is_critical_error(e):
+            return 0, e
+        return 0, None
 
 
 def warm_priorities(client, cache, verbose=False):
-    """Fetch and cache priority definitions."""
+    """Fetch and cache priority definitions.
+
+    Returns:
+        tuple: (count, error) - count of cached items, error if critical
+    """
     if verbose:
         print("Fetching priorities...")
 
@@ -131,15 +178,21 @@ def warm_priorities(client, cache, verbose=False):
         count = len(response) if isinstance(response, list) else 1
         if verbose:
             print(f"  Cached {count} priorities")
-        return count
+        return count, None
     except Exception as e:
         if verbose:
             print(f"  Error fetching priorities: {e}")
-        return 0
+        if is_critical_error(e):
+            return 0, e
+        return 0, None
 
 
 def warm_statuses(client, cache, verbose=False):
-    """Fetch and cache status definitions."""
+    """Fetch and cache status definitions.
+
+    Returns:
+        tuple: (count, error) - count of cached items, error if critical
+    """
     if verbose:
         print("Fetching statuses...")
 
@@ -157,11 +210,13 @@ def warm_statuses(client, cache, verbose=False):
         count = len(response) if isinstance(response, list) else 1
         if verbose:
             print(f"  Cached {count} statuses")
-        return count
+        return count, None
     except Exception as e:
         if verbose:
             print(f"  Error fetching statuses: {e}")
-        return 0
+        if is_critical_error(e):
+            return 0, e
+        return 0, None
 
 
 def main():
@@ -230,18 +285,44 @@ Examples:
         cache = JiraCache(cache_dir=args.cache_dir)
 
         total_cached = 0
+        critical_errors = []
 
         if args.all or args.projects:
-            total_cached += warm_projects(client, cache, args.verbose)
+            count, error = warm_projects(client, cache, args.verbose)
+            total_cached += count
+            if error:
+                critical_errors.append(error)
 
         if args.all or args.fields:
-            total_cached += warm_fields(client, cache, args.verbose)
-            total_cached += warm_issue_types(client, cache, args.verbose)
-            total_cached += warm_priorities(client, cache, args.verbose)
-            total_cached += warm_statuses(client, cache, args.verbose)
+            count, error = warm_fields(client, cache, args.verbose)
+            total_cached += count
+            if error:
+                critical_errors.append(error)
+
+            count, error = warm_issue_types(client, cache, args.verbose)
+            total_cached += count
+            if error:
+                critical_errors.append(error)
+
+            count, error = warm_priorities(client, cache, args.verbose)
+            total_cached += count
+            if error:
+                critical_errors.append(error)
+
+            count, error = warm_statuses(client, cache, args.verbose)
+            total_cached += count
+            if error:
+                critical_errors.append(error)
 
         if args.users:
             print("User caching requires a project context. Use search scripts instead.")
+
+        # If any critical errors occurred, exit with error
+        if critical_errors:
+            print(f"\nCache warming failed with {len(critical_errors)} error(s).", file=sys.stderr)
+            for err in critical_errors:
+                print(f"  - {err}", file=sys.stderr)
+            sys.exit(1)
 
         print(f"\nCache warming complete. Cached {total_cached} items.")
 

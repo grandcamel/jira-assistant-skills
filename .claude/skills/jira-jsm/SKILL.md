@@ -746,6 +746,141 @@ python create_request.py --profile prod --service-desk 1 --request-type 10 --sum
 python create_request.py --profile staging --service-desk 1 --request-type 10 --summary "Test"
 ```
 
+## Finding Service Desk IDs
+
+Service desk IDs are numeric identifiers required by most JSM API calls. Here are several ways to find them:
+
+### Method 1: List All Service Desks (Recommended)
+
+```bash
+# List all service desks with their IDs
+python list_service_desks.py
+
+# Example output:
+# ID  Key   Name              Project Key
+# 1   ITS   IT Support        ITS
+# 2   HR    HR Services       HR
+# 3   FAC   Facilities        FAC
+```
+
+### Method 2: From Project Key
+
+```bash
+# Get service desk by project key
+python get_service_desk.py --project-key ITS
+
+# Example output:
+# Service Desk: IT Support
+# ID: 1
+# Project Key: ITS
+# Project ID: 10000
+```
+
+### Method 3: From JIRA URL
+
+The service desk ID is often visible in JIRA URLs:
+- Customer Portal: `https://your-domain.atlassian.net/servicedesk/customer/portal/1`
+- Agent View: `https://your-domain.atlassian.net/jira/servicedesk/projects/ITS/queues/custom/1`
+
+In these URLs, the number after `/portal/` is the service desk ID.
+
+### Method 4: From Issue Key
+
+If you have a JSM issue key, you can retrieve its service desk:
+```bash
+python get_request.py SD-123 --output json | jq '.serviceDeskId'
+```
+
+### Service Desk ID vs Project Key
+
+| Concept | Example | Usage |
+|---------|---------|-------|
+| Service Desk ID | `1`, `2`, `3` | Numeric ID for JSM API calls |
+| Project Key | `ITS`, `HR`, `FAC` | Short text identifier for the JIRA project |
+| Project ID | `10000` | Numeric JIRA project ID |
+
+**Tip**: Store frequently used service desk IDs in environment variables:
+```bash
+export IT_SERVICE_DESK=1
+export HR_SERVICE_DESK=2
+
+python create_request.py --service-desk $IT_SERVICE_DESK --request-type 10 --summary "Issue"
+```
+
+## Rate Limiting Considerations
+
+JSM Cloud has API rate limits that may affect high-volume operations. Here's how to handle them:
+
+### JIRA Cloud Rate Limits
+
+| Tier | Requests/Minute | Notes |
+|------|-----------------|-------|
+| Standard | ~100-200 | Varies by endpoint and instance |
+| Concurrent | ~10 | Simultaneous requests |
+
+### Built-in Rate Limit Handling
+
+The shared JIRA client automatically handles rate limits:
+- **HTTP 429 Response**: Automatically retries with exponential backoff
+- **Retry Attempts**: Up to 3 retries per request
+- **Backoff Strategy**: Exponential delay (1s, 2s, 4s)
+
+### Best Practices for High-Volume Operations
+
+**1. Batch Requests When Possible**
+```bash
+# Add multiple participants in one call (preferred)
+python add_participant.py SD-123 --users "user1@example.com,user2@example.com,user3@example.com"
+
+# Instead of multiple calls
+# python add_participant.py SD-123 --users "user1@example.com"
+# python add_participant.py SD-123 --users "user2@example.com"
+```
+
+**2. Add Delays for Bulk Operations**
+```bash
+# When processing many requests, add delays between operations
+for issue in SD-{100..200}; do
+    python transition_request.py $issue --status "Resolved"
+    sleep 0.5  # 500ms delay
+done
+```
+
+**3. Use Pagination for Large Result Sets**
+```bash
+# Limit results per request
+python list_requests.py --service-desk 1 --max-results 50 --start 0
+python list_requests.py --service-desk 1 --max-results 50 --start 50
+```
+
+**4. Cache Static Data**
+Data that rarely changes (service desk IDs, request types) can be cached:
+```bash
+# Cache request types for reuse
+python list_request_types.py --service-desk 1 --output json > /tmp/request-types.json
+```
+
+### Monitoring Rate Limit Status
+
+Check response headers for rate limit information:
+- `X-RateLimit-Remaining`: Requests remaining in window
+- `X-RateLimit-Reset`: Timestamp when limit resets
+- `Retry-After`: Seconds to wait (on 429 response)
+
+### Error Handling
+
+If you encounter rate limit errors despite retries:
+```
+Error: HTTP 429 Too Many Requests
+Hint: Wait and retry after the rate limit window resets (usually 1 minute)
+```
+
+**Solutions:**
+1. Reduce request frequency
+2. Implement longer delays between operations
+3. Spread operations over time
+4. Contact Atlassian support for rate limit increases (enterprise)
+
 ## JSM API Endpoints Reference
 
 ### Service Desk APIs

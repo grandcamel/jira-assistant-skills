@@ -74,6 +74,12 @@ Examples:
         default=None,
         help="Custom cache directory"
     )
+    parser.add_argument(
+        "--verbose",
+        "-v",
+        action="store_true",
+        help="Verbose output"
+    )
 
     args = parser.parse_args()
 

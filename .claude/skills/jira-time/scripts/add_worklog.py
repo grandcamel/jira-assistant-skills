@@ -3,7 +3,12 @@
 Add a worklog (time entry) to a JIRA issue.
 
 Logs time spent working on an issue with optional comment,
-start time, and estimate adjustment options.
+start time, estimate adjustment, and visibility options.
+
+Usage:
+    python add_worklog.py PROJ-123 --time 2h
+    python add_worklog.py PROJ-123 --time 2h --visibility-type role --visibility-value Developers
+    python add_worklog.py PROJ-123 --time 2h --visibility-type group --visibility-value jira-users
 """
 
 import argparse
@@ -26,7 +31,9 @@ def add_worklog(client, issue_key: str, time_spent: str,
                 comment: Optional[str] = None,
                 adjust_estimate: str = 'auto',
                 new_estimate: Optional[str] = None,
-                reduce_by: Optional[str] = None) -> Dict[str, Any]:
+                reduce_by: Optional[str] = None,
+                visibility_type: Optional[str] = None,
+                visibility_value: Optional[str] = None) -> Dict[str, Any]:
     """
     Add a worklog to an issue.
 
@@ -39,6 +46,8 @@ def add_worklog(client, issue_key: str, time_spent: str,
         adjust_estimate: How to adjust remaining estimate
         new_estimate: New remaining estimate (when adjust_estimate='new')
         reduce_by: Amount to reduce estimate (when adjust_estimate='manual')
+        visibility_type: 'role' or 'group' to restrict visibility (None for public)
+        visibility_value: Role or group name for visibility restriction
 
     Returns:
         Created worklog object
@@ -56,6 +65,12 @@ def add_worklog(client, issue_key: str, time_spent: str,
             f"Invalid time format: '{time_spent}'. "
             f"Use format like '2h', '1d 4h', '30m'"
         )
+
+    # Validate visibility options
+    if visibility_type and not visibility_value:
+        raise ValidationError("--visibility-value is required when --visibility-type is specified")
+    if visibility_value and not visibility_type:
+        raise ValidationError("--visibility-type is required when --visibility-value is specified")
 
     # Convert relative dates to ISO format
     started_iso = None
@@ -79,7 +94,9 @@ def add_worklog(client, issue_key: str, time_spent: str,
         comment=comment_adf,
         adjust_estimate=adjust_estimate,
         new_estimate=new_estimate,
-        reduce_by=reduce_by
+        reduce_by=reduce_by,
+        visibility_type=visibility_type,
+        visibility_value=visibility_value
     )
 
 
@@ -94,6 +111,12 @@ Examples:
   %(prog)s PROJ-123 --time 2h --started "2025-01-15 09:00"
   %(prog)s PROJ-123 --time 2h --adjust-estimate leave
   %(prog)s PROJ-123 --time 2h --adjust-estimate new --new-estimate 6h
+  %(prog)s PROJ-123 --time 2h --visibility-type role --visibility-value Developers
+  %(prog)s PROJ-123 --time 2h --visibility-type group --visibility-value jira-users
+
+Visibility options:
+  role   - Restrict to users with a specific project role (e.g., Developers, Administrators)
+  group  - Restrict to members of a JIRA group (e.g., jira-users, jira-administrators)
         ''',
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
@@ -112,6 +135,11 @@ Examples:
                         help='New remaining estimate (when --adjust-estimate=new)')
     parser.add_argument('--reduce-by',
                         help='Amount to reduce estimate (when --adjust-estimate=manual)')
+    parser.add_argument('--visibility-type',
+                        choices=['role', 'group'],
+                        help='Restrict visibility to role or group')
+    parser.add_argument('--visibility-value',
+                        help='Role or group name for visibility restriction')
     parser.add_argument('--profile', '-p',
                         help='JIRA profile to use')
     parser.add_argument('--output', '-o', choices=['text', 'json'], default='text',
@@ -135,7 +163,9 @@ Examples:
             comment=args.comment,
             adjust_estimate=args.adjust_estimate,
             new_estimate=args.new_estimate,
-            reduce_by=args.reduce_by
+            reduce_by=args.reduce_by,
+            visibility_type=args.visibility_type,
+            visibility_value=args.visibility_value
         )
 
         # Output result
@@ -159,6 +189,11 @@ Examples:
                                 text_parts.append(content.get('text', ''))
                     if text_parts:
                         print(f"  Comment: {' '.join(text_parts)}")
+            if result.get('visibility'):
+                vis = result.get('visibility', {})
+                vis_type = vis.get('type', '')
+                vis_value = vis.get('value', '')
+                print(f"  Visibility: {vis_type} = {vis_value}")
 
         client.close()
 

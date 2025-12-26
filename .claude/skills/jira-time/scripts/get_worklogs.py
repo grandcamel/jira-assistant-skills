@@ -17,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'shared' / 'scripts
 from config_manager import get_jira_client
 from error_handler import print_error, JiraError
 from validators import validate_issue_key
-from time_utils import format_seconds, parse_relative_date
+from time_utils import format_seconds, convert_to_jira_datetime_string
 
 
 def get_worklogs(client, issue_key: str,
@@ -164,22 +164,20 @@ Examples:
             current_user = client.get('/rest/api/3/myself', operation='get current user')
             author_filter = current_user.get('emailAddress') or current_user.get('accountId')
 
-        # Convert relative dates
+        # Convert date strings to JIRA datetime format
         since = args.since
         until = args.until
         if since:
             try:
-                dt = parse_relative_date(since)
-                since = dt.strftime('%Y-%m-%dT%H:%M:%S.000+0000')
+                since = convert_to_jira_datetime_string(since)
             except ValueError:
-                pass  # Use as-is if not a relative date
+                pass  # Use as-is if format is unrecognized
 
         if until:
             try:
-                dt = parse_relative_date(until)
-                until = dt.strftime('%Y-%m-%dT%H:%M:%S.000+0000')
+                until = convert_to_jira_datetime_string(until)
             except ValueError:
-                pass
+                pass  # Use as-is if format is unrecognized
 
         # Get worklogs
         result = get_worklogs(client, args.issue_key,

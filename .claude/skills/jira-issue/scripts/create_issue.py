@@ -20,14 +20,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'shared' / 'scripts' / 'lib'))
 
-from config_manager import get_jira_client
-from error_handler import print_error, JiraError
+from config_manager import get_jira_client, get_agile_fields
+from error_handler import print_error, JiraError, PermissionError, NotFoundError
 from validators import validate_project_key, validate_issue_key
 from formatters import format_issue, print_success
 from adf_helper import markdown_to_adf, text_to_adf
-
-EPIC_LINK_FIELD = 'customfield_10014'
-STORY_POINTS_FIELD = 'customfield_10016'
 
 
 def load_template(template_name: str) -> dict:
@@ -120,13 +117,16 @@ def create_issue(project: str, issue_type: str, summary: str,
     if custom_fields:
         fields.update(custom_fields)
 
-    # Agile fields
-    if epic:
-        epic = validate_issue_key(epic)
-        fields[EPIC_LINK_FIELD] = epic
+    # Agile fields - get field IDs from configuration
+    if epic or story_points is not None:
+        agile_fields = get_agile_fields(profile)
 
-    if story_points is not None:
-        fields[STORY_POINTS_FIELD] = story_points
+        if epic:
+            epic = validate_issue_key(epic)
+            fields[agile_fields['epic_link']] = epic
+
+        if story_points is not None:
+            fields[agile_fields['story_points']] = story_points
 
     # Time tracking
     if estimate:
@@ -142,14 +142,18 @@ def create_issue(project: str, issue_type: str, summary: str,
 
     # Create issue links after creation
     links_created = []
+    links_failed = []
     if blocks:
         for target_key in blocks:
             target_key = validate_issue_key(target_key)
             try:
                 client.create_link('Blocks', issue_key, target_key)
                 links_created.append(f"blocks {target_key}")
-            except Exception:
-                pass  # Continue even if link fails
+            except JiraError as e:
+                if isinstance(e, (PermissionError, NotFoundError)):
+                    links_failed.append(f"blocks {target_key}: {str(e)}")
+                else:
+                    raise
 
     if relates_to:
         for target_key in relates_to:
@@ -157,11 +161,16 @@ def create_issue(project: str, issue_type: str, summary: str,
             try:
                 client.create_link('Relates', issue_key, target_key)
                 links_created.append(f"relates to {target_key}")
-            except Exception:
-                pass  # Continue even if link fails
+            except JiraError as e:
+                if isinstance(e, (PermissionError, NotFoundError)):
+                    links_failed.append(f"relates to {target_key}: {str(e)}")
+                else:
+                    raise
 
     if links_created:
         result['links_created'] = links_created
+    if links_failed:
+        result['links_failed'] = links_failed
 
     client.close()
 
@@ -255,6 +264,9 @@ def main():
             links_created = result.get('links_created', [])
             if links_created:
                 print(f"Links: {', '.join(links_created)}")
+            links_failed = result.get('links_failed', [])
+            if links_failed:
+                print(f"Links failed: {', '.join(links_failed)}")
 
     except JiraError as e:
         print_error(e)

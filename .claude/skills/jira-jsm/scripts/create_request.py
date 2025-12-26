@@ -149,7 +149,11 @@ Examples:
         # Parse participants
         participants = None
         if args.participants:
-            participants = [p.strip() for p in args.participants.split(',')]
+            participants = [p.strip() for p in args.participants.split(',') if p.strip()]
+            # Validate parsed list is non-empty
+            if len(participants) == 0:
+                print_error("Participant list is empty after parsing. Provide valid comma-separated emails.")
+                return 1
 
         if args.dry_run:
             print("DRY RUN MODE - No changes will be made\n")

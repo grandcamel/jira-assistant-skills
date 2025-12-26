@@ -6,6 +6,8 @@ Usage:
     python get_activity.py PROJ-123
     python get_activity.py PROJ-123 --limit 10 --offset 0
     python get_activity.py PROJ-123 --output json
+    python get_activity.py PROJ-123 --field status
+    python get_activity.py PROJ-123 --field-type custom
 """
 
 import sys
@@ -46,12 +48,16 @@ def get_activity(issue_key: str, limit: int = 100, offset: int = 0,
     return result
 
 
-def parse_changelog(changelog_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+def parse_changelog(changelog_data: Dict[str, Any],
+                   field_filter: List[str] = None,
+                   field_type_filter: List[str] = None) -> List[Dict[str, Any]]:
     """
-    Parse changelog into simplified format.
+    Parse changelog into simplified format with optional filtering.
 
     Args:
         changelog_data: Raw changelog data from API
+        field_filter: List of field names to include (e.g., ['status', 'assignee'])
+        field_type_filter: List of field types to include (e.g., ['custom', 'jira'])
 
     Returns:
         List of parsed changes with type, field, from, to, author, date
@@ -68,12 +74,23 @@ def parse_changelog(changelog_data: Dict[str, Any]) -> List[Dict[str, Any]]:
             from_string = item.get('fromString') or ''
             to_string = item.get('toString') or ''
 
+            # Apply field name filter
+            if field_filter:
+                if field.lower() not in [f.lower() for f in field_filter]:
+                    continue
+
+            # Apply field type filter
+            if field_type_filter:
+                if field_type.lower() not in [ft.lower() for ft in field_type_filter]:
+                    continue
+
             # Determine change type based on field
             change_type = field
 
             parsed.append({
                 'type': change_type,
                 'field': field,
+                'field_type': field_type,
                 'from': from_string,
                 'to': to_string,
                 'author': author,
@@ -121,6 +138,14 @@ Examples:
   %(prog)s PROJ-123
   %(prog)s PROJ-123 --limit 10
   %(prog)s PROJ-123 --output json
+  %(prog)s PROJ-123 --field status
+  %(prog)s PROJ-123 --field status --field assignee
+  %(prog)s PROJ-123 --field-type custom
+  %(prog)s PROJ-123 --field-type jira
+
+Field types:
+  jira    - Built-in JIRA fields (status, assignee, priority, etc.)
+  custom  - Custom fields (story points, etc.)
         '''
     )
 
@@ -134,6 +159,15 @@ Examples:
                        type=int,
                        default=0,
                        help='Starting position for pagination (default: 0)')
+    parser.add_argument('--field', '-f',
+                       action='append',
+                       dest='fields',
+                       help='Filter by field name (can be repeated)')
+    parser.add_argument('--field-type', '-t',
+                       action='append',
+                       dest='field_types',
+                       choices=['jira', 'custom'],
+                       help='Filter by field type: jira (built-in) or custom')
     parser.add_argument('--output', '-O',
                        choices=['table', 'json'],
                        default='table',
@@ -152,22 +186,36 @@ Examples:
             profile=args.profile
         )
 
-        # Parse changelog
-        changes = parse_changelog(changelog)
+        # Parse changelog with filters
+        changes = parse_changelog(
+            changelog,
+            field_filter=args.fields,
+            field_type_filter=args.field_types
+        )
 
         # Output
         if args.output == 'json':
             print(json.dumps(changes, indent=2))
         else:
-            print(f"Activity for {args.issue_key}:\n")
+            # Build filter description
+            filter_desc = ""
+            if args.fields:
+                filter_desc += f" (fields: {', '.join(args.fields)})"
+            if args.field_types:
+                filter_desc += f" (types: {', '.join(args.field_types)})"
+
+            print(f"Activity for {args.issue_key}{filter_desc}:\n")
             display_activity_table(changes)
 
             # Show pagination info
             total = changelog.get('total', 0)
+            raw_count = len(parse_changelog(changelog))  # Unfiltered count
             showing = len(changes)
-            if total > showing:
-                print(f"\nShowing {showing} of {total} total changes.")
-                print(f"Use --offset {args.offset + args.limit} to see more.")
+
+            if args.fields or args.field_types:
+                print(f"\nShowing {showing} filtered changes (from {raw_count} in range).")
+            if total > args.limit:
+                print(f"Use --offset {args.offset + args.limit} to see more (total: {total}).")
 
     except JiraError as e:
         print_error(e)
