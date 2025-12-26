@@ -141,12 +141,16 @@ def build_commit_comment(
 
 def link_commit(
     issue_key: str,
-    commit_sha: str,
+    commit_sha: str = None,
     message: Optional[str] = None,
     repo_url: Optional[str] = None,
     author: Optional[str] = None,
     branch: Optional[str] = None,
-    profile: Optional[str] = None
+    profile: Optional[str] = None,
+    client=None,
+    # Aliases for parameter names
+    commit: str = None,
+    repo: str = None
 ) -> Dict[str, Any]:
     """
     Link a commit to a JIRA issue by adding a comment.
@@ -159,10 +163,19 @@ def link_commit(
         author: Commit author
         branch: Branch name
         profile: JIRA profile
+        client: Optional JiraClient instance (created if not provided)
+        commit: Alias for commit_sha
+        repo: Alias for repo_url
 
     Returns:
         Result dictionary with success status
     """
+    # Handle parameter aliases
+    if commit_sha is None and commit is not None:
+        commit_sha = commit
+    if repo_url is None and repo is not None:
+        repo_url = repo
+
     issue_key = validate_issue_key(issue_key)
 
     # Build comment
@@ -175,7 +188,10 @@ def link_commit(
     )
 
     # Create comment via JIRA API
-    client = get_jira_client(profile)
+    close_client = False
+    if client is None:
+        client = get_jira_client(profile)
+        close_client = True
     try:
         # Use ADF (Atlassian Document Format) for comment
         comment_data = {
@@ -253,7 +269,8 @@ def link_commit(
         }
 
     finally:
-        client.close()
+        if close_client:
+            client.close()
 
 
 def link_commit_to_issues(

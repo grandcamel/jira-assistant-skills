@@ -30,7 +30,7 @@ class TestCacheWarmProjects:
 
         # Verify cache has data
         stats = test_cache.get_stats()
-        assert stats['total_entries'] > 0
+        assert stats.entry_count > 0
 
     def test_warm_projects_with_verbose(self, jira_client, test_cache, capsys):
         """Test verbose output during cache warming."""
@@ -47,7 +47,7 @@ class TestCacheWarmProjects:
         # Get a project from cache
         # Projects are cached by key
         stats = test_cache.get_stats()
-        assert stats['categories'].get('project', 0) > 0
+        assert stats.by_category.get('project', {}).get('count', 0) > 0
 
 
 class TestCacheWarmFields:
@@ -61,7 +61,7 @@ class TestCacheWarmFields:
 
         # Verify cache has field data
         stats = test_cache.get_stats()
-        assert stats['categories'].get('field', 0) > 0
+        assert stats.by_category.get('field', {}).get('count', 0) > 0
 
     def test_warm_fields_with_verbose(self, jira_client, test_cache, capsys):
         """Test verbose output during field cache warming."""
@@ -129,7 +129,7 @@ class TestCacheOperations:
         value = {"data": "test_value", "count": 42}
 
         test_cache.set(key, value, category="test")
-        retrieved = test_cache.get(key)
+        retrieved = test_cache.get(key, category="test")
 
         assert retrieved is not None
         assert retrieved == value
@@ -137,21 +137,22 @@ class TestCacheOperations:
     def test_cache_expiry(self, test_cache):
         """Test cache with short TTL."""
         import time
+        from datetime import timedelta
 
         key = "expiring_key"
         value = {"data": "will_expire"}
 
         # Set with very short TTL
-        test_cache.set(key, value, category="test", ttl=1)
+        test_cache.set(key, value, category="test", ttl=timedelta(seconds=1))
 
         # Should be available immediately
-        assert test_cache.get(key) is not None
+        assert test_cache.get(key, category="test") is not None
 
         # Wait for expiry
         time.sleep(2)
 
         # Should be expired
-        assert test_cache.get(key) is None
+        assert test_cache.get(key, category="test") is None
 
     def test_cache_invalidate(self, test_cache):
         """Test cache invalidation."""
@@ -159,10 +160,10 @@ class TestCacheOperations:
         value = {"data": "will_be_removed"}
 
         test_cache.set(key, value, category="test")
-        assert test_cache.get(key) is not None
+        assert test_cache.get(key, category="test") is not None
 
-        test_cache.invalidate(key)
-        assert test_cache.get(key) is None
+        test_cache.invalidate(key=key, category="test")
+        assert test_cache.get(key, category="test") is None
 
     def test_cache_stats(self, test_cache):
         """Test cache statistics."""
@@ -172,9 +173,8 @@ class TestCacheOperations:
 
         stats = test_cache.get_stats()
 
-        assert 'total_entries' in stats
-        assert stats['total_entries'] >= 5
-        assert 'categories' in stats
+        assert stats.entry_count >= 5
+        assert isinstance(stats.by_category, dict)
 
     def test_cache_generate_key(self, test_cache):
         """Test key generation."""
@@ -191,15 +191,15 @@ class TestCacheOperations:
         test_cache.set("issue_2", {"key": "PROJ-2"}, category="issue")
         test_cache.set("project_1", {"key": "PROJ"}, category="project")
 
-        # Clear only issue category
-        test_cache.clear(category="issue")
+        # Invalidate only issue category (use invalidate, not clear)
+        test_cache.invalidate(category="issue")
 
         # Issue entries should be gone
-        assert test_cache.get("issue_1") is None
-        assert test_cache.get("issue_2") is None
+        assert test_cache.get("issue_1", category="issue") is None
+        assert test_cache.get("issue_2", category="issue") is None
 
         # Project entries should remain
-        assert test_cache.get("project_1") is not None
+        assert test_cache.get("project_1", category="project") is not None
 
 
 class TestCacheIntegration:
@@ -213,14 +213,20 @@ class TestCacheIntegration:
             max_results=5
         )
 
-        # Cache the results
-        for issue in result.get('issues', []):
-            key = test_cache.generate_key("issue", issue['key'])
-            test_cache.set(key, issue, category="issue")
+        # Cache the results - handle both old and new API response formats
+        issues = result.get('issues', [])
+        cached_count = 0
+        for issue in issues:
+            # Handle different response formats
+            issue_key = issue.get('key') or issue.get('id')
+            if issue_key:
+                cache_key = test_cache.generate_key("issue", str(issue_key))
+                test_cache.set(cache_key, issue, category="issue")
+                cached_count += 1
 
         # Verify caching
         stats = test_cache.get_stats()
-        cached_issues = stats['categories'].get('issue', 0)
+        cached_issues = stats.by_category.get('issue', {}).get('count', 0)
         assert cached_issues >= 0  # May be 0 if no issues found
 
     def test_cache_project_lookup(self, jira_client, test_cache):
@@ -233,8 +239,8 @@ class TestCacheIntegration:
             key = test_cache.generate_key("project", project['key'])
             test_cache.set(key, project, category="project")
 
-            # Retrieve from cache
-            cached = test_cache.get(key)
+            # Retrieve from cache (need to pass category)
+            cached = test_cache.get(key, category="project")
             assert cached is not None
             assert cached['key'] == project['key']
 
@@ -246,7 +252,7 @@ class TestCacheIntegration:
 
         # Verify caches have data
         stats = test_cache.get_stats()
-        assert stats['total_entries'] > 0
+        assert stats.entry_count > 0
         assert project_count > 0 or field_count > 0
 
 
@@ -262,14 +268,14 @@ class TestCachePerformance:
 
         # Multiple gets
         for _ in range(5):
-            test_cache.get(key)
+            test_cache.get(key, category="test")
 
         # Get miss
-        test_cache.get("nonexistent_key")
+        test_cache.get("nonexistent_key", category="test")
 
         stats = test_cache.get_stats()
-        # Hit rate should be calculated
-        assert 'hit_rate' in stats or 'hits' in stats
+        # Hit rate should be calculated (CacheStats has hit_rate property and hits attribute)
+        assert stats.hits >= 5 or stats.hit_rate > 0
 
     def test_cache_size_tracking(self, test_cache):
         """Test cache size tracking."""
@@ -278,5 +284,5 @@ class TestCachePerformance:
             test_cache.set(f"size_test_{i}", {"index": i, "data": "x" * 100}, category="test")
 
         stats = test_cache.get_stats()
-        assert 'total_entries' in stats
-        assert stats['total_entries'] >= 10
+        assert stats.entry_count >= 10
+        assert stats.total_size_bytes > 0

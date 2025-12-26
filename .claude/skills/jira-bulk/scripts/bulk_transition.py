@@ -131,6 +131,7 @@ def bulk_transition(
                 current_status = issue.get('fields', {}).get('status', {}).get('name', 'Unknown')
                 print(f"  - {key} ({current_status} -> {target_status})")
             return {
+                'dry_run': True,
                 'success': 0,
                 'failed': 0,
                 'would_process': total,

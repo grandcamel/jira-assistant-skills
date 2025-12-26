@@ -297,6 +297,7 @@ def bulk_clone(
                 detail_str = f" ({', '.join(details)})" if details else ""
                 print(f"  - {key}: {summary}...{detail_str}")
             return {
+                'dry_run': True,
                 'success': 0,
                 'failed': 0,
                 'would_create': total,

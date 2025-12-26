@@ -63,6 +63,7 @@ def check_project_fields(project_key: str,
         project = client.get(f'/rest/api/3/project/{project_key}')
 
         result = {
+            'project_key': project.get('key'),  # Top-level for convenience
             'project': {
                 'key': project.get('key'),
                 'name': project.get('name'),

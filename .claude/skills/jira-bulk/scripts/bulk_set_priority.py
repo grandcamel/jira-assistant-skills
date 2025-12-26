@@ -122,6 +122,7 @@ def bulk_set_priority(
                 current_name = current.get('name', 'None') if current else 'None'
                 print(f"  - {key} ({current_name} -> {priority})")
             return {
+                'dry_run': True,
                 'success': 0,
                 'failed': 0,
                 'would_process': total,

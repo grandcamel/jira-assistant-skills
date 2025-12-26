@@ -19,7 +19,7 @@ import argparse
 import json
 import re
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Union
 
 # Add shared lib path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'shared' / 'scripts' / 'lib'))
@@ -112,8 +112,10 @@ def create_branch_name(
     issue_key: str,
     prefix: Optional[str] = None,
     auto_prefix: bool = False,
-    profile: Optional[str] = None
-) -> str:
+    profile: Optional[str] = None,
+    client=None,
+    output_format: str = 'text'
+) -> Dict[str, Any]:
     """
     Create a standardized branch name from JIRA issue.
 
@@ -122,18 +124,24 @@ def create_branch_name(
         prefix: Custom prefix (feature, bugfix, hotfix, task)
         auto_prefix: If True, determine prefix from issue type
         profile: JIRA profile to use
+        client: Optional JiraClient instance (created if not provided)
+        output_format: Output format (text, json, git)
 
     Returns:
-        Branch name string
+        Dictionary with branch_name, issue_key, issue_type, git_command
     """
     issue_key = validate_issue_key(issue_key)
 
     # Get issue from JIRA
-    client = get_jira_client(profile)
+    close_client = False
+    if client is None:
+        client = get_jira_client(profile)
+        close_client = True
     try:
         issue = client.get_issue(issue_key, fields=['summary', 'issuetype'])
     finally:
-        client.close()
+        if close_client:
+            client.close()
 
     fields = issue.get('fields', {})
     summary = fields.get('summary', '')
@@ -170,7 +178,13 @@ def create_branch_name(
 
     branch_name = f"{branch_prefix}/{issue_key_lower}-{sanitized_summary}"
 
-    return branch_name
+    return {
+        'branch_name': branch_name,
+        'issue_key': issue_key,
+        'issue_type': issue_type,
+        'summary': summary,
+        'git_command': f"git checkout -b {branch_name}"
+    }
 
 
 def format_output(

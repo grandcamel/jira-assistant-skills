@@ -100,8 +100,10 @@ def create_pr_description(
     include_checklist: bool = False,
     include_labels: bool = False,
     include_components: bool = False,
-    profile: Optional[str] = None
-) -> str:
+    profile: Optional[str] = None,
+    client=None,
+    output_format: str = 'text'
+) -> Dict[str, Any]:
     """
     Create a PR description from JIRA issue details.
 
@@ -111,20 +113,26 @@ def create_pr_description(
         include_labels: Include issue labels
         include_components: Include components
         profile: JIRA profile
+        client: Optional JiraClient instance (created if not provided)
+        output_format: Output format (text, json)
 
     Returns:
-        Formatted PR description (Markdown)
+        Dictionary with markdown, issue_key, issue_type, priority
     """
     issue_key = validate_issue_key(issue_key)
 
-    client = get_jira_client(profile)
+    close_client = False
+    if client is None:
+        client = get_jira_client(profile)
+        close_client = True
     try:
         issue = client.get_issue(
             issue_key,
             fields=['summary', 'description', 'issuetype', 'labels', 'components', 'priority']
         )
     finally:
-        client.close()
+        if close_client:
+            client.close()
 
     fields = issue.get('fields', {})
     summary = fields.get('summary', '')
@@ -209,22 +217,28 @@ def create_pr_description(
         lines.append("- [ ] No regressions introduced")
         lines.append("")
 
-    return '\n'.join(lines)
+    markdown = '\n'.join(lines)
+
+    return {
+        'markdown': markdown,
+        'issue_key': issue_key,
+        'issue_type': issue_type,
+        'summary': summary,
+        'priority': priority,
+        'labels': labels,
+        'components': components
+    }
 
 
 def format_output(
-    description: str,
-    issue_key: str,
-    issue: Dict[str, Any],
+    result: Dict[str, Any],
     output_format: str = 'text'
 ) -> str:
     """
     Format PR description for output.
 
     Args:
-        description: Generated PR description
-        issue_key: JIRA issue key
-        issue: Issue data
+        result: Result dictionary from create_pr_description
         output_format: Output format (text, json)
 
     Returns:
@@ -232,13 +246,14 @@ def format_output(
     """
     if output_format == 'json':
         return json.dumps({
-            'description': description,
-            'issue_key': issue_key,
-            'summary': issue.get('fields', {}).get('summary', ''),
-            'issue_type': issue.get('fields', {}).get('issuetype', {}).get('name', '')
+            'description': result['markdown'],
+            'issue_key': result['issue_key'],
+            'summary': result['summary'],
+            'issue_type': result['issue_type'],
+            'priority': result['priority']
         }, indent=2)
     else:
-        return description
+        return result['markdown']
 
 
 def main():
@@ -271,7 +286,7 @@ def main():
     args = parser.parse_args()
 
     try:
-        description = create_pr_description(
+        result = create_pr_description(
             issue_key=args.issue_key,
             include_checklist=args.include_checklist,
             include_labels=args.include_labels,
@@ -279,23 +294,13 @@ def main():
             profile=args.profile
         )
 
-        # Get issue for full output
-        if args.output == 'json':
-            client = get_jira_client(args.profile)
-            try:
-                issue = client.get_issue(args.issue_key, fields=['summary', 'issuetype'])
-            finally:
-                client.close()
-
-            output = format_output(description, args.issue_key, issue, args.output)
-        else:
-            output = description
+        output = format_output(result, args.output)
 
         # Copy to clipboard if requested
         if args.copy:
             try:
                 import pyperclip
-                pyperclip.copy(description)
+                pyperclip.copy(result['markdown'])
                 print("PR description copied to clipboard!", file=sys.stderr)
             except ImportError:
                 print("Warning: pyperclip not installed. Cannot copy to clipboard.", file=sys.stderr)

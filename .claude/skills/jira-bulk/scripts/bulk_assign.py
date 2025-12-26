@@ -150,6 +150,7 @@ def bulk_assign(
                 current_name = current.get('displayName', 'Unassigned') if current else 'Unassigned'
                 print(f"  - {key} (current: {current_name})")
             return {
+                'dry_run': True,
                 'success': 0,
                 'failed': 0,
                 'would_process': total,

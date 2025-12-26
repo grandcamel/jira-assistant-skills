@@ -148,7 +148,8 @@ def link_pr(
     title: Optional[str] = None,
     status: Optional[str] = None,
     author: Optional[str] = None,
-    profile: Optional[str] = None
+    profile: Optional[str] = None,
+    client=None
 ) -> Dict[str, Any]:
     """
     Link a pull request to a JIRA issue by adding a comment.
@@ -160,6 +161,7 @@ def link_pr(
         status: PR status
         author: PR author
         profile: JIRA profile
+        client: Optional JiraClient instance (created if not provided)
 
     Returns:
         Result dictionary with success status
@@ -180,7 +182,10 @@ def link_pr(
     )
 
     # Create comment via JIRA API
-    client = get_jira_client(profile)
+    close_client = False
+    if client is None:
+        client = get_jira_client(profile)
+        close_client = True
     try:
         # Build ADF content
         lines = comment_body.split('\n')
@@ -249,7 +254,8 @@ def link_pr(
         }
 
     finally:
-        client.close()
+        if close_client:
+            client.close()
 
 
 def main():
