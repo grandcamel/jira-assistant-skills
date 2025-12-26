@@ -16,6 +16,7 @@ from typing import Dict, Any, Optional
 from error_handler import ValidationError
 from validators import validate_url, validate_email
 from jira_client import JiraClient
+from automation_client import AutomationClient
 
 
 class ConfigManager:
@@ -272,6 +273,41 @@ class ConfigManager:
         """
         return list(self.config.get('jira', {}).get('profiles', {}).keys())
 
+    def get_automation_client(self, profile: Optional[str] = None) -> AutomationClient:
+        """
+        Create a configured Automation API client for a profile.
+
+        Args:
+            profile: Profile name (default: self.profile)
+
+        Returns:
+            Configured AutomationClient instance
+
+        Raises:
+            ValidationError: If configuration is invalid or incomplete
+        """
+        profile = profile or self.profile
+        url, email, api_token = self.get_credentials(profile)
+        api_config = self.get_api_config()
+
+        # Check for optional automation-specific config
+        automation_config = self.config.get('automation', {})
+        cloud_id = automation_config.get('cloudId')
+        product = automation_config.get('product', 'jira')
+        use_gateway = automation_config.get('useGateway', False)
+
+        return AutomationClient(
+            site_url=url,
+            email=email,
+            api_token=api_token,
+            cloud_id=cloud_id,  # Will be auto-fetched if None
+            product=product,
+            use_gateway=use_gateway,
+            timeout=api_config.get('timeout', 30),
+            max_retries=api_config.get('max_retries', 3),
+            retry_backoff=api_config.get('retry_backoff', 2.0)
+        )
+
 
 def get_jira_client(profile: Optional[str] = None) -> JiraClient:
     """
@@ -288,3 +324,20 @@ def get_jira_client(profile: Optional[str] = None) -> JiraClient:
     """
     config_manager = ConfigManager(profile=profile)
     return config_manager.get_client()
+
+
+def get_automation_client(profile: Optional[str] = None) -> AutomationClient:
+    """
+    Convenience function to get a configured Automation API client.
+
+    Args:
+        profile: Profile name (default: from config or environment)
+
+    Returns:
+        Configured AutomationClient instance
+
+    Raises:
+        ValidationError: If configuration is invalid or incomplete
+    """
+    config_manager = ConfigManager(profile=profile)
+    return config_manager.get_automation_client()

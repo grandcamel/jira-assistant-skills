@@ -3789,3 +3789,2066 @@ class JiraClient:
         """
         # Get linked assets from issue
         return self.get_issue_assets(issue_key)
+
+    # ========== Notification Scheme API Methods (/rest/api/3/notificationscheme) ==========
+
+    def get_notification_schemes(self, start_at: int = 0, max_results: int = 50,
+                                  expand: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Get all notification schemes with pagination.
+
+        Args:
+            start_at: Starting index for pagination
+            max_results: Maximum number of results
+            expand: Optional expand parameter (e.g., 'all', 'notificationSchemeEvents')
+
+        Returns:
+            Paginated notification schemes with 'values', 'startAt', 'maxResults', 'total'
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        params = {'startAt': start_at, 'maxResults': max_results}
+        if expand:
+            params['expand'] = expand
+        return self.get('/rest/api/3/notificationscheme', params=params,
+                        operation="get notification schemes")
+
+    def get_notification_scheme(self, scheme_id: str,
+                                 expand: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Get a specific notification scheme by ID.
+
+        Args:
+            scheme_id: Notification scheme ID
+            expand: Optional expand parameter (e.g., 'all', 'notificationSchemeEvents')
+
+        Returns:
+            Notification scheme object with events and notifications
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        params = {}
+        if expand:
+            params['expand'] = expand
+        return self.get(f'/rest/api/3/notificationscheme/{scheme_id}',
+                        params=params if params else None,
+                        operation=f"get notification scheme {scheme_id}")
+
+    def get_notification_scheme_projects(self, start_at: int = 0,
+                                          max_results: int = 50,
+                                          notification_scheme_id: Optional[list] = None,
+                                          project_id: Optional[list] = None) -> Dict[str, Any]:
+        """
+        Get project-to-notification scheme mappings.
+
+        Args:
+            start_at: Starting index for pagination
+            max_results: Maximum number of results
+            notification_scheme_id: Filter by notification scheme IDs
+            project_id: Filter by project IDs
+
+        Returns:
+            Paginated project-to-scheme mappings with 'values'
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        params = {'startAt': start_at, 'maxResults': max_results}
+        if notification_scheme_id:
+            params['notificationSchemeId'] = notification_scheme_id
+        if project_id:
+            params['projectId'] = project_id
+        return self.get('/rest/api/3/notificationscheme/project', params=params,
+                        operation="get notification scheme project mappings")
+
+    def create_notification_scheme(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Create a new notification scheme.
+
+        Args:
+            data: Dictionary with 'name', 'description' (optional),
+                  'notificationSchemeEvents' (optional)
+
+        Returns:
+            Created notification scheme object with 'id'
+
+        Raises:
+            JiraError or subclass on failure
+
+        Example data:
+            {
+                "name": "New Notification Scheme",
+                "description": "Description here",
+                "notificationSchemeEvents": [
+                    {
+                        "event": {"id": "1"},
+                        "notifications": [
+                            {"notificationType": "CurrentAssignee"},
+                            {"notificationType": "Group", "parameter": "developers"}
+                        ]
+                    }
+                ]
+            }
+        """
+        return self.post('/rest/api/3/notificationscheme', data=data,
+                         operation="create notification scheme")
+
+    def update_notification_scheme(self, scheme_id: str,
+                                    data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Update notification scheme metadata (name, description).
+
+        Args:
+            scheme_id: Notification scheme ID
+            data: Dictionary with 'name' and/or 'description'
+
+        Returns:
+            Empty dict on success (204 No Content)
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        return self.put(f'/rest/api/3/notificationscheme/{scheme_id}', data=data,
+                        operation=f"update notification scheme {scheme_id}")
+
+    def add_notification_to_scheme(self, scheme_id: str,
+                                    event_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Add notifications to a notification scheme.
+
+        Args:
+            scheme_id: Notification scheme ID
+            event_data: Dictionary with 'notificationSchemeEvents' list
+
+        Returns:
+            Empty dict on success (204 No Content)
+
+        Raises:
+            JiraError or subclass on failure
+
+        Example event_data:
+            {
+                "notificationSchemeEvents": [
+                    {
+                        "event": {"id": "1"},
+                        "notifications": [
+                            {"notificationType": "Group", "parameter": "jira-admins"}
+                        ]
+                    }
+                ]
+            }
+        """
+        return self.put(
+            f'/rest/api/3/notificationscheme/{scheme_id}/notification',
+            data=event_data,
+            operation=f"add notifications to scheme {scheme_id}"
+        )
+
+    def delete_notification_scheme(self, scheme_id: str) -> None:
+        """
+        Delete a notification scheme.
+
+        Args:
+            scheme_id: Notification scheme ID
+
+        Raises:
+            JiraError or subclass on failure
+
+        Note:
+            Cannot delete schemes that are in use by projects.
+        """
+        self.delete(f'/rest/api/3/notificationscheme/{scheme_id}',
+                    operation=f"delete notification scheme {scheme_id}")
+
+    def delete_notification_from_scheme(self, scheme_id: str,
+                                         notification_id: str) -> None:
+        """
+        Remove a notification from a notification scheme.
+
+        Args:
+            scheme_id: Notification scheme ID
+            notification_id: Notification ID to remove
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        self.delete(
+            f'/rest/api/3/notificationscheme/{scheme_id}/notification/{notification_id}',
+            operation=f"remove notification {notification_id} from scheme {scheme_id}"
+        )
+
+    def lookup_notification_scheme_by_name(self, name: str) -> Optional[Dict[str, Any]]:
+        """
+        Lookup notification scheme by name.
+
+        Args:
+            name: Notification scheme name (case-sensitive)
+
+        Returns:
+            Notification scheme object if found, None otherwise
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        # Paginate through all schemes to find by name
+        start_at = 0
+        max_results = 50
+        while True:
+            result = self.get_notification_schemes(start_at=start_at,
+                                                    max_results=max_results)
+            schemes = result.get('values', [])
+            for scheme in schemes:
+                if scheme.get('name') == name:
+                    return scheme
+            # Check if there are more pages
+            total = result.get('total', 0)
+            if start_at + len(schemes) >= total:
+                break
+            start_at += max_results
+        return None
+
+    # ========== User Management API Methods (/rest/api/3/user) ==========
+
+    def get_user(self, account_id: Optional[str] = None,
+                 email: Optional[str] = None,
+                 expand: Optional[list] = None) -> Dict[str, Any]:
+        """
+        Get user details by accountId or email.
+
+        Args:
+            account_id: User's account ID (preferred)
+            email: User's email address (may fail if email is privacy-restricted)
+            expand: Optional fields to expand (e.g., ['groups', 'applicationRoles'])
+
+        Returns:
+            User object with accountId, displayName, emailAddress, active, etc.
+
+        Raises:
+            ValidationError: If neither account_id nor email is provided
+            JiraError or subclass on failure
+        """
+        if not account_id and not email:
+            from error_handler import ValidationError
+            raise ValidationError("Either account_id or email must be provided")
+
+        params = {}
+        if account_id:
+            params['accountId'] = account_id
+        if email:
+            # Search by email - this may fail if email is hidden
+            params['username'] = email  # Legacy parameter, still works for email lookup
+        if expand:
+            params['expand'] = ','.join(expand)
+
+        return self.get('/rest/api/3/user', params=params,
+                       operation="get user")
+
+    def get_current_user(self, expand: Optional[list] = None) -> Dict[str, Any]:
+        """
+        Get the current authenticated user.
+
+        Args:
+            expand: Optional fields to expand (e.g., ['groups', 'applicationRoles'])
+
+        Returns:
+            User object for the authenticated user
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        params = {}
+        if expand:
+            params['expand'] = ','.join(expand)
+
+        return self.get('/rest/api/3/myself',
+                       params=params if params else None,
+                       operation="get current user")
+
+    def get_user_groups(self, account_id: str) -> list:
+        """
+        Get groups that a user belongs to.
+
+        Args:
+            account_id: User's account ID
+
+        Returns:
+            List of group objects with name, groupId
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        params = {'accountId': account_id}
+        result = self.get('/rest/api/3/user/groups', params=params,
+                         operation="get user groups")
+        return result if isinstance(result, list) else []
+
+    def find_assignable_users(self, query: str, project_key: str,
+                              start_at: int = 0, max_results: int = 50) -> list:
+        """
+        Find users assignable to issues in a project.
+
+        Args:
+            query: Search query (name or email)
+            project_key: Project key to search within
+            start_at: Starting index for pagination
+            max_results: Maximum results to return
+
+        Returns:
+            List of matching assignable users
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        params = {
+            'query': query,
+            'project': project_key,
+            'startAt': start_at,
+            'maxResults': max_results
+        }
+        return self.get('/rest/api/3/user/assignable/search', params=params,
+                       operation=f"find assignable users for {project_key}")
+
+    def get_all_users(self, start_at: int = 0, max_results: int = 50) -> list:
+        """
+        Get all users (paginated).
+
+        Note: Requires 'Browse users and groups' global permission.
+
+        Args:
+            start_at: Starting index for pagination
+            max_results: Maximum results to return
+
+        Returns:
+            List of user objects
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        params = {
+            'startAt': start_at,
+            'maxResults': max_results
+        }
+        return self.get('/rest/api/3/users/search', params=params,
+                       operation="get all users")
+
+    def get_users_bulk(self, account_ids: list, max_results: int = 200) -> Dict[str, Any]:
+        """
+        Get multiple users by account IDs.
+
+        Args:
+            account_ids: List of user account IDs (max 200)
+            max_results: Maximum results to return
+
+        Returns:
+            Response with 'values' array of user objects
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        params = {
+            'accountId': account_ids,
+            'maxResults': max_results
+        }
+        return self.get('/rest/api/3/user/bulk', params=params,
+                       operation="get users bulk")
+
+    # ========== Group Management API Methods (/rest/api/3/group) ==========
+
+    def find_groups(self, query: str = '', start_at: int = 0,
+                    max_results: int = 50, exclude_id: Optional[list] = None,
+                    caseInsensitive: bool = True) -> Dict[str, Any]:
+        """
+        Find groups by name using the groups picker API.
+
+        Args:
+            query: Search query (partial group name)
+            start_at: Starting index for pagination (called 'start' in API)
+            max_results: Maximum results (called 'maxResults' in API)
+            exclude_id: List of group IDs to exclude
+            caseInsensitive: Case-insensitive search (default True)
+
+        Returns:
+            Response with 'groups' array and pagination info
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        params = {
+            'query': query,
+            'maxResults': max_results,
+            'caseInsensitive': str(caseInsensitive).lower()
+        }
+        if exclude_id:
+            params['exclude'] = ','.join(exclude_id)
+
+        return self.get('/rest/api/3/groups/picker', params=params,
+                       operation="find groups")
+
+    def get_group(self, group_name: Optional[str] = None,
+                  group_id: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Get group details.
+
+        Args:
+            group_name: Group name
+            group_id: Group ID (preferred for GDPR compliance)
+
+        Returns:
+            Group object with name, groupId, self
+
+        Raises:
+            ValidationError: If neither group_name nor group_id is provided
+            JiraError or subclass on failure
+        """
+        if not group_name and not group_id:
+            from error_handler import ValidationError
+            raise ValidationError("Either group_name or group_id must be provided")
+
+        params = {}
+        if group_id:
+            params['groupId'] = group_id
+        elif group_name:
+            params['groupname'] = group_name
+
+        return self.get('/rest/api/3/group', params=params,
+                       operation="get group")
+
+    def create_group(self, name: str) -> Dict[str, Any]:
+        """
+        Create a new group.
+
+        Note: Requires 'Site administration' permission.
+
+        Args:
+            name: Group name (e.g., 'jira-developers')
+
+        Returns:
+            Created group object with name, groupId, self
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        return self.post('/rest/api/3/group', data={'name': name},
+                        operation=f"create group '{name}'")
+
+    def delete_group(self, group_name: Optional[str] = None,
+                     group_id: Optional[str] = None,
+                     swap_group: Optional[str] = None,
+                     swap_group_id: Optional[str] = None) -> None:
+        """
+        Delete a group.
+
+        Note: Requires 'Site administration' permission.
+
+        Args:
+            group_name: Group name to delete
+            group_id: Group ID to delete (preferred)
+            swap_group: Group name to reassign issues to (optional)
+            swap_group_id: Group ID to reassign issues to (optional)
+
+        Raises:
+            ValidationError: If neither group_name nor group_id is provided
+            JiraError or subclass on failure
+        """
+        if not group_name and not group_id:
+            from error_handler import ValidationError
+            raise ValidationError("Either group_name or group_id must be provided")
+
+        params = {}
+        if group_id:
+            params['groupId'] = group_id
+        elif group_name:
+            params['groupname'] = group_name
+        if swap_group:
+            params['swapGroup'] = swap_group
+        if swap_group_id:
+            params['swapGroupId'] = swap_group_id
+
+        endpoint = '/rest/api/3/group'
+        url = f"{self.base_url}{endpoint}"
+        response = self.session.delete(url, params=params, timeout=self.timeout)
+        handle_jira_error(response, f"delete group")
+
+    def get_group_members(self, group_name: Optional[str] = None,
+                          group_id: Optional[str] = None,
+                          include_inactive: bool = False,
+                          start_at: int = 0, max_results: int = 50) -> Dict[str, Any]:
+        """
+        Get members of a group.
+
+        Args:
+            group_name: Group name
+            group_id: Group ID (preferred)
+            include_inactive: Include inactive users (default False)
+            start_at: Starting index for pagination
+            max_results: Maximum results to return
+
+        Returns:
+            Response with 'values' array of user objects and pagination info
+
+        Raises:
+            ValidationError: If neither group_name nor group_id is provided
+            JiraError or subclass on failure
+        """
+        if not group_name and not group_id:
+            from error_handler import ValidationError
+            raise ValidationError("Either group_name or group_id must be provided")
+
+        params = {
+            'startAt': start_at,
+            'maxResults': max_results,
+            'includeInactiveUsers': str(include_inactive).lower()
+        }
+        if group_id:
+            params['groupId'] = group_id
+        elif group_name:
+            params['groupname'] = group_name
+
+        return self.get('/rest/api/3/group/member', params=params,
+                       operation="get group members")
+
+    def add_user_to_group(self, account_id: str,
+                          group_name: Optional[str] = None,
+                          group_id: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Add a user to a group.
+
+        Note: Requires 'Site administration' permission.
+
+        Args:
+            account_id: User's account ID
+            group_name: Group name
+            group_id: Group ID (preferred)
+
+        Returns:
+            Group object with name, groupId, self
+
+        Raises:
+            ValidationError: If neither group_name nor group_id is provided
+            JiraError or subclass on failure
+
+        Note:
+            This operation is idempotent - adding a user already in the group
+            will not cause an error.
+        """
+        if not group_name and not group_id:
+            from error_handler import ValidationError
+            raise ValidationError("Either group_name or group_id must be provided")
+
+        params = {}
+        if group_id:
+            params['groupId'] = group_id
+        elif group_name:
+            params['groupname'] = group_name
+
+        endpoint = '/rest/api/3/group/user'
+        url = f"{self.base_url}{endpoint}"
+        response = self.session.post(url, json={'accountId': account_id},
+                                     params=params, timeout=self.timeout)
+        handle_jira_error(response, f"add user to group")
+        return response.json()
+
+    def remove_user_from_group(self, account_id: str,
+                               group_name: Optional[str] = None,
+                               group_id: Optional[str] = None) -> None:
+        """
+        Remove a user from a group.
+
+        Note: Requires 'Site administration' permission.
+
+        Args:
+            account_id: User's account ID
+            group_name: Group name
+            group_id: Group ID (preferred)
+
+        Raises:
+            ValidationError: If neither group_name nor group_id is provided
+            JiraError or subclass on failure
+
+        Note:
+            This operation is idempotent - removing a user not in the group
+            will not cause an error.
+        """
+        if not group_name and not group_id:
+            from error_handler import ValidationError
+            raise ValidationError("Either group_name or group_id must be provided")
+
+        params = {'accountId': account_id}
+        if group_id:
+            params['groupId'] = group_id
+        elif group_name:
+            params['groupname'] = group_name
+
+        endpoint = '/rest/api/3/group/user'
+        url = f"{self.base_url}{endpoint}"
+        response = self.session.delete(url, params=params, timeout=self.timeout)
+        handle_jira_error(response, f"remove user from group")
+
+    # ========== Project Admin API Methods (/rest/api/3/project) ==========
+
+    def update_project(self, project_key: str, **kwargs) -> Dict[str, Any]:
+        """
+        Update a project.
+
+        Args:
+            project_key: Project key (e.g., 'PROJ')
+            **kwargs: Fields to update (name, description, lead, url,
+                      assignee_type, category_id, new_key)
+
+        Returns:
+            Updated project data
+
+        Raises:
+            JiraError or subclass on failure
+
+        Note:
+            Changing project key requires Administer Jira global permission.
+        """
+        data = {}
+        field_mapping = {
+            'name': 'name',
+            'description': 'description',
+            'lead': 'lead',
+            'url': 'url',
+            'assignee_type': 'assigneeType',
+            'category_id': 'categoryId',
+            'new_key': 'key',
+        }
+        for key, api_key in field_mapping.items():
+            if key in kwargs and kwargs[key] is not None:
+                data[api_key] = kwargs[key]
+
+        return self.put(f'/rest/api/3/project/{project_key}',
+                       data=data,
+                       operation=f"update project {project_key}")
+
+    def search_projects(self, query: Optional[str] = None,
+                        type_key: Optional[str] = None,
+                        category_id: Optional[int] = None,
+                        action: str = 'browse',
+                        expand: Optional[list] = None,
+                        status: Optional[list] = None,
+                        start_at: int = 0,
+                        max_results: int = 50) -> Dict[str, Any]:
+        """
+        Search for projects with filtering and pagination.
+
+        Args:
+            query: Search term for project name/key
+            type_key: Filter by project type (software, business, service_desk)
+            category_id: Filter by category ID
+            action: Required permission action ('browse', 'edit', 'view')
+            expand: Fields to expand (description, lead, issueTypes, url, projectKeys, permissions)
+            status: Filter by status (live, archived, deleted)
+            start_at: Starting index for pagination
+            max_results: Maximum results per page (max 50)
+
+        Returns:
+            Search results with values, total, isLast
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        params = {
+            'startAt': start_at,
+            'maxResults': max_results,
+            'action': action,
+        }
+        if query:
+            params['query'] = query
+        if type_key:
+            params['typeKey'] = type_key
+        if category_id:
+            params['categoryId'] = category_id
+        if expand:
+            params['expand'] = ','.join(expand)
+        if status:
+            params['status'] = ','.join(status)
+
+        return self.get('/rest/api/3/project/search',
+                       params=params,
+                       operation="search projects")
+
+    def archive_project(self, project_key: str) -> None:
+        """
+        Archive a project.
+
+        Archived projects are read-only and can be restored later.
+
+        Args:
+            project_key: Project key to archive
+
+        Raises:
+            JiraError or subclass on failure
+
+        Note:
+            Requires Administer Jira global permission.
+        """
+        self.post(f'/rest/api/3/project/{project_key}/archive',
+                 operation=f"archive project {project_key}")
+
+    def restore_project(self, project_key: str) -> Dict[str, Any]:
+        """
+        Restore an archived or deleted project.
+
+        Args:
+            project_key: Project key to restore
+
+        Returns:
+            Restored project data
+
+        Raises:
+            JiraError or subclass on failure
+
+        Note:
+            Deleted projects can be restored within 60 days.
+            Requires Administer Jira global permission.
+        """
+        return self.post(f'/rest/api/3/project/{project_key}/restore',
+                        operation=f"restore project {project_key}")
+
+    def delete_project_async(self, project_key: str) -> str:
+        """
+        Delete a project asynchronously.
+
+        Use for large projects to avoid timeout.
+
+        Args:
+            project_key: Project key to delete
+
+        Returns:
+            Task ID for polling status
+
+        Raises:
+            JiraError or subclass on failure
+
+        Note:
+            Use get_task_status() to poll for completion.
+        """
+        result = self.post(f'/rest/api/3/project/{project_key}/delete',
+                          operation=f"delete project {project_key} (async)")
+        return result.get('taskId', '')
+
+    def get_task_status(self, task_id: str) -> Dict[str, Any]:
+        """
+        Get status of an async task.
+
+        Args:
+            task_id: Task ID from async operation
+
+        Returns:
+            Task status with status, progress, etc.
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        return self.get(f'/rest/api/3/task/{task_id}',
+                       operation=f"get task status {task_id}")
+
+    # ========== Project Category API Methods (/rest/api/3/projectCategory) ==========
+
+    def get_project_categories(self) -> list:
+        """
+        Get all project categories.
+
+        Returns:
+            List of project category objects
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        return self.get('/rest/api/3/projectCategory',
+                       operation="get project categories")
+
+    def get_project_category(self, category_id: str) -> Dict[str, Any]:
+        """
+        Get a specific project category.
+
+        Args:
+            category_id: Category ID
+
+        Returns:
+            Project category object
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        return self.get(f'/rest/api/3/projectCategory/{category_id}',
+                       operation=f"get project category {category_id}")
+
+    def create_project_category(self, name: str,
+                                 description: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Create a new project category.
+
+        Args:
+            name: Category name
+            description: Category description (optional)
+
+        Returns:
+            Created category object
+
+        Raises:
+            JiraError or subclass on failure
+
+        Note:
+            Requires Administer Jira global permission.
+        """
+        data = {'name': name}
+        if description:
+            data['description'] = description
+
+        return self.post('/rest/api/3/projectCategory',
+                        data=data,
+                        operation=f"create project category '{name}'")
+
+    def update_project_category(self, category_id: str,
+                                 name: Optional[str] = None,
+                                 description: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Update a project category.
+
+        Args:
+            category_id: Category ID
+            name: New name (optional)
+            description: New description (optional)
+
+        Returns:
+            Updated category object
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        data = {}
+        if name is not None:
+            data['name'] = name
+        if description is not None:
+            data['description'] = description
+
+        return self.put(f'/rest/api/3/projectCategory/{category_id}',
+                       data=data,
+                       operation=f"update project category {category_id}")
+
+    def delete_project_category(self, category_id: str) -> None:
+        """
+        Delete a project category.
+
+        Args:
+            category_id: Category ID
+
+        Raises:
+            JiraError or subclass on failure
+
+        Note:
+            Projects in this category will have their category set to None.
+        """
+        self.delete(f'/rest/api/3/projectCategory/{category_id}',
+                   operation=f"delete project category {category_id}")
+
+    # ========== Project Type API Methods (/rest/api/3/project/type) ==========
+
+    def get_project_types(self) -> list:
+        """
+        Get all project types.
+
+        Returns:
+            List of project type objects
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        return self.get('/rest/api/3/project/type',
+                       operation="get project types")
+
+    def get_project_type(self, type_key: str) -> Dict[str, Any]:
+        """
+        Get a specific project type.
+
+        Args:
+            type_key: Project type key (software, business, service_desk)
+
+        Returns:
+            Project type object
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        return self.get(f'/rest/api/3/project/type/{type_key}',
+                       operation=f"get project type {type_key}")
+
+    # ========== Project Avatar API Methods (/rest/api/3/project/{}/avatar) ==========
+
+    def get_project_avatars(self, project_key: str) -> Dict[str, Any]:
+        """
+        Get all avatars for a project.
+
+        Args:
+            project_key: Project key
+
+        Returns:
+            Dict with 'system' (default avatars) and 'custom' (uploaded) lists
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        return self.get(f'/rest/api/3/project/{project_key}/avatars',
+                       operation=f"get avatars for project {project_key}")
+
+    def set_project_avatar(self, project_key: str, avatar_id: str) -> None:
+        """
+        Set the project's avatar.
+
+        Args:
+            project_key: Project key
+            avatar_id: Avatar ID to set
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        self.put(f'/rest/api/3/project/{project_key}/avatar',
+                data={'id': avatar_id},
+                operation=f"set avatar for project {project_key}")
+
+    def upload_project_avatar(self, project_key: str, file_path: str,
+                               x: int = 0, y: int = 0, size: int = 48) -> Dict[str, Any]:
+        """
+        Upload a custom avatar for a project.
+
+        Args:
+            project_key: Project key
+            file_path: Path to image file (PNG, GIF, JPG; max 1MB)
+            x: X coordinate of crop area (default 0)
+            y: Y coordinate of crop area (default 0)
+            size: Size of cropped square (default 48)
+
+        Returns:
+            Created avatar object with id
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        params = {'x': x, 'y': y, 'size': size}
+        endpoint = f'/rest/api/3/project/{project_key}/avatar2'
+        url = f"{self.base_url}{endpoint}"
+
+        import os
+        with open(file_path, 'rb') as f:
+            content_type = 'image/png'
+            if file_path.lower().endswith('.jpg') or file_path.lower().endswith('.jpeg'):
+                content_type = 'image/jpeg'
+            elif file_path.lower().endswith('.gif'):
+                content_type = 'image/gif'
+
+            response = self.session.post(
+                url,
+                params=params,
+                data=f.read(),
+                headers={
+                    'Content-Type': content_type,
+                    'X-Atlassian-Token': 'no-check',
+                },
+                timeout=self.timeout
+            )
+
+        handle_jira_error(response, f"upload avatar for project {project_key}")
+        return response.json()
+
+    def delete_project_avatar(self, project_key: str, avatar_id: str) -> None:
+        """
+        Delete a custom avatar from a project.
+
+        Args:
+            project_key: Project key
+            avatar_id: Avatar ID to delete
+
+        Raises:
+            JiraError or subclass on failure
+
+        Note:
+            Cannot delete system avatars.
+        """
+        self.delete(f'/rest/api/3/project/{project_key}/avatar/{avatar_id}',
+                   operation=f"delete avatar {avatar_id} from project {project_key}")
+
+    # ========== Screen Management API Methods (/rest/api/2/screens) ==========
+
+    def get_screens(self, start_at: int = 0, max_results: int = 100,
+                    scope: Optional[list] = None,
+                    query_string: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Get all screens with pagination.
+
+        Args:
+            start_at: Starting index for pagination
+            max_results: Maximum results per page (max 100)
+            scope: Filter by scope type (PROJECT, TEMPLATE, GLOBAL)
+            query_string: Filter screens by name (partial match)
+
+        Returns:
+            Paginated response with screens data:
+            {
+                'maxResults': 100,
+                'startAt': 0,
+                'total': 5,
+                'isLast': True,
+                'values': [...]
+            }
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        params = {
+            'startAt': start_at,
+            'maxResults': max_results
+        }
+        if scope:
+            params['scope'] = ','.join(scope)
+        if query_string:
+            params['queryString'] = query_string
+
+        return self.get('/rest/api/2/screens', params=params,
+                       operation="get screens")
+
+    def get_screen(self, screen_id: int) -> Dict[str, Any]:
+        """
+        Get a specific screen by ID.
+
+        Note: The JIRA API doesn't have a direct get by ID endpoint,
+        so we list screens and filter. For efficiency, we search with
+        pagination.
+
+        Args:
+            screen_id: Screen ID
+
+        Returns:
+            Screen object with id, name, description, scope
+
+        Raises:
+            JiraError or subclass on failure (404 if not found)
+        """
+        # JIRA doesn't have a direct GET /screens/{id} endpoint
+        # We need to list all screens and find the one we need
+        result = self.get('/rest/api/2/screens',
+                         params={'maxResults': 100},
+                         operation=f"get screen {screen_id}")
+
+        for screen in result.get('values', []):
+            if screen.get('id') == screen_id:
+                return screen
+
+        # If not found in first page, search more
+        total = result.get('total', 0)
+        start_at = 100
+        while start_at < total:
+            result = self.get('/rest/api/2/screens',
+                             params={'maxResults': 100, 'startAt': start_at},
+                             operation=f"get screen {screen_id}")
+            for screen in result.get('values', []):
+                if screen.get('id') == screen_id:
+                    return screen
+            start_at += 100
+
+        # Screen not found
+        from error_handler import NotFoundError
+        raise NotFoundError(f"Screen with ID {screen_id} not found")
+
+    def get_screen_tabs(self, screen_id: int) -> list:
+        """
+        Get all tabs for a screen.
+
+        Args:
+            screen_id: Screen ID
+
+        Returns:
+            List of tab objects with id, name
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        result = self.get(f'/rest/api/2/screens/{screen_id}/tabs',
+                         operation=f"get tabs for screen {screen_id}")
+        return result if isinstance(result, list) else []
+
+    def get_screen_tab_fields(self, screen_id: int, tab_id: int) -> list:
+        """
+        Get all fields for a screen tab.
+
+        Args:
+            screen_id: Screen ID
+            tab_id: Tab ID
+
+        Returns:
+            List of field objects with id, name
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        result = self.get(f'/rest/api/2/screens/{screen_id}/tabs/{tab_id}/fields',
+                         operation=f"get fields for screen {screen_id} tab {tab_id}")
+        return result if isinstance(result, list) else []
+
+    def add_field_to_screen_tab(self, screen_id: int, tab_id: int,
+                                 field_id: str) -> Dict[str, Any]:
+        """
+        Add a field to a screen tab.
+
+        Args:
+            screen_id: Screen ID
+            tab_id: Tab ID
+            field_id: Field ID to add (e.g., 'customfield_10016')
+
+        Returns:
+            Added field object
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        data = {'fieldId': field_id}
+        return self.post(f'/rest/api/2/screens/{screen_id}/tabs/{tab_id}/fields',
+                        data=data,
+                        operation=f"add field {field_id} to screen {screen_id} tab {tab_id}")
+
+    def remove_field_from_screen_tab(self, screen_id: int, tab_id: int,
+                                      field_id: str) -> None:
+        """
+        Remove a field from a screen tab.
+
+        Args:
+            screen_id: Screen ID
+            tab_id: Tab ID
+            field_id: Field ID to remove
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        self.delete(f'/rest/api/2/screens/{screen_id}/tabs/{tab_id}/fields/{field_id}',
+                   operation=f"remove field {field_id} from screen {screen_id} tab {tab_id}")
+
+    def get_screen_available_fields(self, screen_id: int) -> list:
+        """
+        Get available fields that can be added to a screen.
+
+        Args:
+            screen_id: Screen ID
+
+        Returns:
+            List of available field objects
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        result = self.get(f'/rest/api/2/screens/{screen_id}/availableFields',
+                         operation=f"get available fields for screen {screen_id}")
+        return result if isinstance(result, list) else []
+
+    # ========== Screen Schemes API Methods (/rest/api/3/screenscheme) ==========
+
+    def get_screen_schemes(self, start_at: int = 0, max_results: int = 100,
+                           query_string: Optional[str] = None,
+                           expand: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Get all screen schemes with pagination.
+
+        Args:
+            start_at: Starting index for pagination
+            max_results: Maximum results per page
+            query_string: Filter by name (partial match)
+            expand: Expand options
+
+        Returns:
+            Paginated response with screen schemes:
+            {
+                'maxResults': 100,
+                'startAt': 0,
+                'total': 3,
+                'isLast': True,
+                'values': [...]
+            }
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        params = {
+            'startAt': start_at,
+            'maxResults': max_results
+        }
+        if query_string:
+            params['queryString'] = query_string
+        if expand:
+            params['expand'] = expand
+
+        return self.get('/rest/api/3/screenscheme', params=params,
+                       operation="get screen schemes")
+
+    def get_screen_scheme(self, scheme_id: int) -> Dict[str, Any]:
+        """
+        Get a specific screen scheme by ID.
+
+        Note: JIRA API v3 doesn't have direct GET by ID, so we search.
+
+        Args:
+            scheme_id: Screen scheme ID
+
+        Returns:
+            Screen scheme object with id, name, description, screens
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        # Search for the specific scheme
+        result = self.get('/rest/api/3/screenscheme',
+                         params={'id': [scheme_id]},
+                         operation=f"get screen scheme {scheme_id}")
+
+        values = result.get('values', [])
+        if values:
+            return values[0]
+
+        from error_handler import NotFoundError
+        raise NotFoundError(f"Screen scheme with ID {scheme_id} not found")
+
+    # ========== Issue Type API Methods (/rest/api/3/issuetype) ==========
+
+    def get_issue_types(self) -> list:
+        """
+        Get all issue types.
+
+        Returns:
+            List of issue type dictionaries
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        return self.get('/rest/api/3/issuetype',
+                       operation='get issue types')
+
+    def get_issue_type(self, issue_type_id: str) -> Dict[str, Any]:
+        """
+        Get issue type by ID.
+
+        Args:
+            issue_type_id: Issue type ID
+
+        Returns:
+            Issue type details
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        return self.get(f'/rest/api/3/issuetype/{issue_type_id}',
+                       operation=f'get issue type {issue_type_id}')
+
+    def create_issue_type(
+        self,
+        name: str,
+        description: Optional[str] = None,
+        issue_type: str = 'standard',
+        hierarchy_level: Optional[int] = None
+    ) -> Dict[str, Any]:
+        """
+        Create new issue type.
+
+        Args:
+            name: Issue type name (max 60 characters)
+            description: Issue type description
+            issue_type: 'standard' or 'subtask'
+            hierarchy_level: -1 (subtask), 0 (standard), 1 (epic), etc.
+
+        Returns:
+            Created issue type details
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        data = {
+            'name': name,
+            'type': issue_type
+        }
+
+        if description:
+            data['description'] = description
+
+        if hierarchy_level is not None:
+            data['hierarchyLevel'] = hierarchy_level
+
+        return self.post('/rest/api/3/issuetype',
+                        data=data,
+                        operation='create issue type')
+
+    def update_issue_type(
+        self,
+        issue_type_id: str,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+        avatar_id: Optional[int] = None
+    ) -> Dict[str, Any]:
+        """
+        Update issue type.
+
+        Args:
+            issue_type_id: Issue type ID
+            name: New name
+            description: New description
+            avatar_id: New avatar ID
+
+        Returns:
+            Updated issue type details
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        data = {}
+
+        if name:
+            data['name'] = name
+        if description is not None:
+            data['description'] = description
+        if avatar_id:
+            data['avatarId'] = avatar_id
+
+        return self.put(f'/rest/api/3/issuetype/{issue_type_id}',
+                       data=data,
+                       operation=f'update issue type {issue_type_id}')
+
+    def delete_issue_type(
+        self,
+        issue_type_id: str,
+        alternative_issue_type_id: Optional[str] = None
+    ) -> None:
+        """
+        Delete issue type.
+
+        Args:
+            issue_type_id: Issue type ID to delete
+            alternative_issue_type_id: Alternative issue type for existing issues
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        params = {}
+        if alternative_issue_type_id:
+            params['alternativeIssueTypeId'] = alternative_issue_type_id
+
+        endpoint = f'/rest/api/3/issuetype/{issue_type_id}'
+        url = f"{self.base_url}{endpoint}"
+        response = self.session.delete(url, params=params if params else None,
+                                       timeout=self.timeout)
+        handle_jira_error(response, f'delete issue type {issue_type_id}')
+
+    def get_issue_type_alternatives(self, issue_type_id: str) -> list:
+        """
+        Get alternative issue types (for deletion/migration).
+
+        Args:
+            issue_type_id: Issue type ID
+
+        Returns:
+            List of alternative issue types
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        return self.get(f'/rest/api/3/issuetype/{issue_type_id}/alternatives',
+                       operation=f'get alternatives for issue type {issue_type_id}')
+
+    # ========== Issue Type Scheme API Methods (/rest/api/3/issuetypescheme) ==========
+
+    def get_issue_type_schemes(
+        self,
+        start_at: int = 0,
+        max_results: int = 50,
+        scheme_ids: Optional[list] = None,
+        order_by: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Get all issue type schemes.
+
+        Args:
+            start_at: Starting index for pagination
+            max_results: Maximum results per page
+            scheme_ids: Filter by scheme IDs
+            order_by: Order by field (e.g., 'name', '-name')
+
+        Returns:
+            Paginated list of schemes
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        params = {
+            'startAt': start_at,
+            'maxResults': max_results
+        }
+
+        if scheme_ids:
+            params['id'] = scheme_ids
+        if order_by:
+            params['orderBy'] = order_by
+
+        return self.get('/rest/api/3/issuetypescheme',
+                       params=params,
+                       operation='get issue type schemes')
+
+    def get_issue_type_scheme_items(
+        self,
+        start_at: int = 0,
+        max_results: int = 50,
+        scheme_ids: Optional[list] = None
+    ) -> Dict[str, Any]:
+        """
+        Get issue type scheme items (issue types in schemes).
+
+        Args:
+            start_at: Starting index for pagination
+            max_results: Maximum results per page
+            scheme_ids: Filter by scheme IDs
+
+        Returns:
+            Paginated list of scheme items
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        params = {
+            'startAt': start_at,
+            'maxResults': max_results
+        }
+
+        if scheme_ids:
+            params['issueTypeSchemeId'] = scheme_ids
+
+        return self.get('/rest/api/3/issuetypescheme/mapping',
+                       params=params,
+                       operation='get issue type scheme items')
+
+    def create_issue_type_scheme(
+        self,
+        name: str,
+        issue_type_ids: list,
+        description: Optional[str] = None,
+        default_issue_type_id: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Create issue type scheme.
+
+        Args:
+            name: Scheme name
+            issue_type_ids: List of issue type IDs
+            description: Scheme description
+            default_issue_type_id: Default issue type ID
+
+        Returns:
+            Created scheme with ID
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        data = {
+            'name': name,
+            'issueTypeIds': issue_type_ids
+        }
+
+        if description:
+            data['description'] = description
+        if default_issue_type_id:
+            data['defaultIssueTypeId'] = default_issue_type_id
+
+        return self.post('/rest/api/3/issuetypescheme',
+                        data=data,
+                        operation='create issue type scheme')
+
+    def update_issue_type_scheme(
+        self,
+        scheme_id: str,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+        default_issue_type_id: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Update issue type scheme.
+
+        Args:
+            scheme_id: Scheme ID
+            name: New name
+            description: New description
+            default_issue_type_id: New default issue type
+
+        Returns:
+            Empty response on success
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        data = {}
+
+        if name:
+            data['name'] = name
+        if description is not None:
+            data['description'] = description
+        if default_issue_type_id:
+            data['defaultIssueTypeId'] = default_issue_type_id
+
+        return self.put(f'/rest/api/3/issuetypescheme/{scheme_id}',
+                       data=data,
+                       operation=f'update issue type scheme {scheme_id}')
+
+    def delete_issue_type_scheme(self, scheme_id: str) -> None:
+        """
+        Delete issue type scheme.
+
+        Args:
+            scheme_id: Scheme ID to delete
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        self.delete(f'/rest/api/3/issuetypescheme/{scheme_id}',
+                   operation=f'delete issue type scheme {scheme_id}')
+
+    def get_issue_type_scheme_for_projects(
+        self,
+        project_ids: list,
+        start_at: int = 0,
+        max_results: int = 50
+    ) -> Dict[str, Any]:
+        """
+        Get issue type schemes for projects.
+
+        Args:
+            project_ids: List of project IDs (1-100)
+            start_at: Starting index
+            max_results: Maximum results per page
+
+        Returns:
+            Schemes assigned to projects
+
+        Raises:
+            ValidationError: If more than 100 project IDs
+            JiraError or subclass on failure
+        """
+        from error_handler import ValidationError
+
+        if len(project_ids) > 100:
+            raise ValidationError("Maximum 100 project IDs allowed")
+
+        params = {
+            'projectId': project_ids,
+            'startAt': start_at,
+            'maxResults': max_results
+        }
+
+        return self.get('/rest/api/3/issuetypescheme/project',
+                       params=params,
+                       operation='get project issue type schemes')
+
+    def assign_issue_type_scheme(
+        self,
+        scheme_id: str,
+        project_id: str
+    ) -> None:
+        """
+        Assign issue type scheme to project.
+
+        Args:
+            scheme_id: Issue type scheme ID
+            project_id: Project ID
+
+        Raises:
+            JiraError or subclass on failure
+
+        Note:
+            Only works for classic projects.
+            Fails if issues use types not in the new scheme.
+        """
+        data = {
+            'issueTypeSchemeId': scheme_id,
+            'projectId': project_id
+        }
+
+        self.put('/rest/api/3/issuetypescheme/project',
+                data=data,
+                operation=f'assign issue type scheme {scheme_id} to project {project_id}')
+
+    def add_issue_types_to_scheme(
+        self,
+        scheme_id: str,
+        issue_type_ids: list
+    ) -> None:
+        """
+        Add issue types to scheme.
+
+        Args:
+            scheme_id: Scheme ID
+            issue_type_ids: List of issue type IDs to add
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        data = {
+            'issueTypeIds': issue_type_ids
+        }
+
+        self.put(f'/rest/api/3/issuetypescheme/{scheme_id}/issuetype',
+                data=data,
+                operation=f'add issue types to scheme {scheme_id}')
+
+    def remove_issue_type_from_scheme(
+        self,
+        scheme_id: str,
+        issue_type_id: str
+    ) -> None:
+        """
+        Remove issue type from scheme.
+
+        Args:
+            scheme_id: Scheme ID
+            issue_type_id: Issue type ID to remove
+
+        Raises:
+            JiraError or subclass on failure
+
+        Note:
+            Cannot remove default issue type or last issue type.
+        """
+        self.delete(f'/rest/api/3/issuetypescheme/{scheme_id}/issuetype/{issue_type_id}',
+                   operation=f'remove issue type {issue_type_id} from scheme {scheme_id}')
+
+    def reorder_issue_types_in_scheme(
+        self,
+        scheme_id: str,
+        issue_type_id: str,
+        after: Optional[str] = None
+    ) -> None:
+        """
+        Reorder issue types in scheme.
+
+        Args:
+            scheme_id: Scheme ID
+            issue_type_id: Issue type ID to move
+            after: Issue type ID to position after (None = move to first)
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        data = {
+            'issueTypeId': issue_type_id
+        }
+
+        if after:
+            data['after'] = after
+
+        self.put(f'/rest/api/3/issuetypescheme/{scheme_id}/issuetype/move',
+                data=data,
+                operation=f'reorder issue types in scheme {scheme_id}')
+
+    # ========== Issue Type Screen Schemes API (/rest/api/3/issuetypescreenscheme) ==========
+
+    def get_issue_type_screen_schemes(self, start_at: int = 0,
+                                       max_results: int = 100,
+                                       expand: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Get all issue type screen schemes.
+
+        Args:
+            start_at: Starting index for pagination
+            max_results: Maximum results per page
+            expand: Optional expand (e.g., 'projects')
+
+        Returns:
+            Paginated response with issue type screen schemes
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        params = {
+            'startAt': start_at,
+            'maxResults': max_results
+        }
+        if expand:
+            params['expand'] = expand
+
+        return self.get('/rest/api/3/issuetypescreenscheme',
+                       params=params,
+                       operation="get issue type screen schemes")
+
+    def get_issue_type_screen_scheme(self, scheme_id: int) -> Dict[str, Any]:
+        """
+        Get a specific issue type screen scheme by ID.
+
+        Args:
+            scheme_id: Issue type screen scheme ID
+
+        Returns:
+            Issue type screen scheme object
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        result = self.get('/rest/api/3/issuetypescreenscheme',
+                         params={'id': [scheme_id]},
+                         operation=f"get issue type screen scheme {scheme_id}")
+
+        values = result.get('values', [])
+        if values:
+            return values[0]
+
+        from error_handler import NotFoundError
+        raise NotFoundError(f"Issue type screen scheme with ID {scheme_id} not found")
+
+    def get_issue_type_screen_scheme_mappings(self, scheme_ids: list = None,
+                                               start_at: int = 0,
+                                               max_results: int = 100) -> Dict[str, Any]:
+        """
+        Get issue type to screen scheme mappings.
+
+        Args:
+            scheme_ids: List of issue type screen scheme IDs to filter
+            start_at: Starting index for pagination
+            max_results: Maximum results per page
+
+        Returns:
+            Paginated response with mappings
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        params = {
+            'startAt': start_at,
+            'maxResults': max_results
+        }
+        if scheme_ids:
+            params['issueTypeScreenSchemeId'] = scheme_ids
+
+        return self.get('/rest/api/3/issuetypescreenscheme/mapping',
+                       params=params,
+                       operation="get issue type screen scheme mappings")
+
+    def get_project_issue_type_screen_schemes(self, project_ids: list = None,
+                                               start_at: int = 0,
+                                               max_results: int = 100) -> Dict[str, Any]:
+        """
+        Get issue type screen schemes for projects.
+
+        Args:
+            project_ids: List of project IDs to filter
+            start_at: Starting index for pagination
+            max_results: Maximum results per page
+
+        Returns:
+            Paginated response with project to scheme mappings:
+            {
+                'values': [
+                    {
+                        'issueTypeScreenScheme': {...},
+                        'projectIds': ['10000', '10001']
+                    }
+                ]
+            }
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        params = {
+            'startAt': start_at,
+            'maxResults': max_results
+        }
+        if project_ids:
+            params['projectId'] = project_ids
+
+        return self.get('/rest/api/3/issuetypescreenscheme/project',
+                       params=params,
+                       operation="get project issue type screen schemes")
+
+    # ========== Permission Scheme API Methods (/rest/api/3/permissionscheme) ==========
+
+    def get_permission_schemes(self, expand: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Get all permission schemes.
+
+        Args:
+            expand: Optional expansion (e.g., 'permissions', 'user,group,projectRole')
+
+        Returns:
+            Dict containing 'permissionSchemes' list
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        params = {}
+        if expand:
+            params['expand'] = expand
+
+        return self.get('/rest/api/3/permissionscheme',
+                       params=params if params else None,
+                       operation="get permission schemes")
+
+    def get_permission_scheme(self, scheme_id: int, expand: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Get a specific permission scheme by ID.
+
+        Args:
+            scheme_id: Permission scheme ID
+            expand: Optional expansion (e.g., 'permissions', 'user,group,projectRole,all')
+
+        Returns:
+            Permission scheme data with grants
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        params = {}
+        if expand:
+            params['expand'] = expand
+
+        return self.get(f'/rest/api/3/permissionscheme/{scheme_id}',
+                       params=params if params else None,
+                       operation=f"get permission scheme {scheme_id}")
+
+    def create_permission_scheme(self, name: str, description: Optional[str] = None,
+                                  permissions: Optional[list] = None) -> Dict[str, Any]:
+        """
+        Create a new permission scheme.
+
+        Args:
+            name: Name of the permission scheme
+            description: Optional description
+            permissions: Optional list of permission grants
+
+        Returns:
+            Created permission scheme data
+
+        Raises:
+            JiraError or subclass on failure
+
+        Note:
+            Requires 'Administer Jira' global permission.
+        """
+        data = {'name': name}
+        if description:
+            data['description'] = description
+        if permissions:
+            data['permissions'] = permissions
+
+        return self.post('/rest/api/3/permissionscheme', data=data,
+                        operation="create permission scheme")
+
+    def update_permission_scheme(self, scheme_id: int, name: Optional[str] = None,
+                                  description: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Update a permission scheme's name and/or description.
+
+        Args:
+            scheme_id: Permission scheme ID
+            name: New name (optional)
+            description: New description (optional)
+
+        Returns:
+            Updated permission scheme data
+
+        Raises:
+            JiraError or subclass on failure
+
+        Note:
+            Requires 'Administer Jira' global permission.
+            To modify grants, use create_permission_grant and delete_permission_grant.
+        """
+        data = {}
+        if name is not None:
+            data['name'] = name
+        if description is not None:
+            data['description'] = description
+
+        return self.put(f'/rest/api/3/permissionscheme/{scheme_id}', data=data,
+                       operation=f"update permission scheme {scheme_id}")
+
+    def delete_permission_scheme(self, scheme_id: int) -> None:
+        """
+        Delete a permission scheme.
+
+        Args:
+            scheme_id: Permission scheme ID
+
+        Raises:
+            JiraError or subclass on failure
+
+        Note:
+            Requires 'Administer Jira' global permission.
+            Cannot delete schemes that are assigned to projects.
+        """
+        self.delete(f'/rest/api/3/permissionscheme/{scheme_id}',
+                   operation=f"delete permission scheme {scheme_id}")
+
+    def get_permission_scheme_grants(self, scheme_id: int, expand: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Get all permission grants for a permission scheme.
+
+        Args:
+            scheme_id: Permission scheme ID
+            expand: Optional expansion (e.g., 'user,group,projectRole,field,all')
+
+        Returns:
+            Dict containing 'permissions' list of grants
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        params = {}
+        if expand:
+            params['expand'] = expand
+
+        return self.get(f'/rest/api/3/permissionscheme/{scheme_id}/permission',
+                       params=params if params else None,
+                       operation=f"get permission grants for scheme {scheme_id}")
+
+    def create_permission_grant(self, scheme_id: int, permission: str,
+                                 holder_type: str, holder_parameter: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Create a permission grant in a permission scheme.
+
+        Args:
+            scheme_id: Permission scheme ID
+            permission: Permission key (e.g., 'BROWSE_PROJECTS', 'CREATE_ISSUES')
+            holder_type: Holder type (e.g., 'user', 'group', 'projectRole', 'anyone', 'projectLead')
+            holder_parameter: Parameter for holder (e.g., group name, user account ID)
+
+        Returns:
+            Created permission grant data
+
+        Raises:
+            JiraError or subclass on failure
+
+        Note:
+            Requires 'Administer Jira' global permission.
+        """
+        holder = {'type': holder_type}
+        if holder_parameter:
+            holder['parameter'] = holder_parameter
+
+        data = {
+            'permission': permission,
+            'holder': holder
+        }
+
+        return self.post(f'/rest/api/3/permissionscheme/{scheme_id}/permission',
+                        data=data,
+                        operation=f"create permission grant in scheme {scheme_id}")
+
+    def get_permission_grant(self, scheme_id: int, permission_id: int,
+                              expand: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Get a specific permission grant.
+
+        Args:
+            scheme_id: Permission scheme ID
+            permission_id: Permission grant ID
+            expand: Optional expansion
+
+        Returns:
+            Permission grant data
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        params = {}
+        if expand:
+            params['expand'] = expand
+
+        return self.get(f'/rest/api/3/permissionscheme/{scheme_id}/permission/{permission_id}',
+                       params=params if params else None,
+                       operation=f"get permission grant {permission_id}")
+
+    def delete_permission_grant(self, scheme_id: int, permission_id: int) -> None:
+        """
+        Delete a permission grant from a permission scheme.
+
+        Args:
+            scheme_id: Permission scheme ID
+            permission_id: Permission grant ID
+
+        Raises:
+            JiraError or subclass on failure
+
+        Note:
+            Requires 'Administer Jira' global permission.
+        """
+        self.delete(f'/rest/api/3/permissionscheme/{scheme_id}/permission/{permission_id}',
+                   operation=f"delete permission grant {permission_id}")
+
+    def get_all_permissions(self) -> Dict[str, Any]:
+        """
+        Get all permissions available in the JIRA instance.
+
+        Returns:
+            Dict containing 'permissions' dict with permission keys and details
+
+        Raises:
+            JiraError or subclass on failure
+
+        Note:
+            This is a public endpoint - no special permissions required.
+        """
+        return self.get('/rest/api/3/permissions',
+                       operation="get all permissions")
+
+    def get_project_permission_scheme(self, project_key_or_id: str,
+                                       expand: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Get the permission scheme associated with a project.
+
+        Args:
+            project_key_or_id: Project key or ID
+            expand: Optional expansion (e.g., 'permissions')
+
+        Returns:
+            Permission scheme data
+
+        Raises:
+            JiraError or subclass on failure
+
+        Note:
+            Requires 'Administer Jira' global permission or project admin permission.
+        """
+        params = {}
+        if expand:
+            params['expand'] = expand
+
+        return self.get(f'/rest/api/3/project/{project_key_or_id}/permissionscheme',
+                       params=params if params else None,
+                       operation=f"get permission scheme for project {project_key_or_id}")
+
+    def assign_permission_scheme_to_project(self, project_key_or_id: str, scheme_id: int) -> Dict[str, Any]:
+        """
+        Assign a permission scheme to a project.
+
+        Args:
+            project_key_or_id: Project key or ID
+            scheme_id: Permission scheme ID to assign
+
+        Returns:
+            Assigned permission scheme data
+
+        Raises:
+            JiraError or subclass on failure
+
+        Note:
+            Requires 'Administer Jira' global permission.
+        """
+        data = {'id': scheme_id}
+        return self.put(f'/rest/api/3/project/{project_key_or_id}/permissionscheme',
+                       data=data,
+                       operation=f"assign permission scheme to project {project_key_or_id}")
+
+    def get_project_roles(self) -> list:
+        """
+        Get all project roles.
+
+        Returns:
+            List of project roles
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        return self.get('/rest/api/3/role',
+                       operation="get project roles")
