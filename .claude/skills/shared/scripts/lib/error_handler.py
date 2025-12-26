@@ -94,6 +94,55 @@ class ServerError(JiraError):
         super().__init__(message + hint, **kwargs)
 
 
+# -----------------------------------------------------------------------------
+# Automation API Errors
+# -----------------------------------------------------------------------------
+
+class AutomationError(JiraError):
+    """Base exception for Automation API errors."""
+
+    def __init__(self, message: str = "Automation API error", **kwargs):
+        hint = "\n\nTroubleshooting:\n"
+        hint += "  1. Verify you have Jira Administrator permissions\n"
+        hint += "  2. Ensure the Cloud ID is correct\n"
+        hint += "  3. Check API token scopes include 'manage:jira-automation'"
+        super().__init__(message + hint, **kwargs)
+
+
+class AutomationNotFoundError(AutomationError):
+    """Raised when an automation rule or template is not found."""
+
+    def __init__(self, resource_type: str = "Automation resource", resource_id: str = "", **kwargs):
+        message = f"{resource_type} not found"
+        if resource_id:
+            message += f": {resource_id}"
+        # Call grandparent to avoid adding AutomationError hints
+        JiraError.__init__(self, message, **kwargs)
+
+
+class AutomationPermissionError(AutomationError):
+    """Raised when the user lacks permissions for automation management."""
+
+    def __init__(self, message: str = "Automation permission denied", **kwargs):
+        hint = "\n\nTroubleshooting:\n"
+        hint += "  1. You need Jira Administrator permission for full rule management\n"
+        hint += "  2. Project Administrator is needed for project-scoped rules\n"
+        hint += "  3. Ensure API token has 'manage:jira-automation' scope"
+        # Call grandparent to avoid adding AutomationError hints
+        JiraError.__init__(self, message + hint, **kwargs)
+
+
+class AutomationValidationError(AutomationError):
+    """Raised when automation rule configuration is invalid."""
+
+    def __init__(self, message: str = "Automation validation failed", field: Optional[str] = None, **kwargs):
+        self.field = field
+        if field:
+            message = f"{message} (field: {field})"
+        # Call grandparent to avoid adding AutomationError hints
+        JiraError.__init__(self, message, **kwargs)
+
+
 def handle_jira_error(response, operation: str = "operation") -> None:
     """
     Handle HTTP response errors and raise appropriate exceptions.
