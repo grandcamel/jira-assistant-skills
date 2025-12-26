@@ -27,10 +27,18 @@ from typing import List, Dict, Any, Optional, Callable
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'shared' / 'scripts' / 'lib'))
 
+try:
+    from tqdm import tqdm
+    TQDM_AVAILABLE = True
+except ImportError:
+    TQDM_AVAILABLE = False
+
 from config_manager import get_jira_client
-from error_handler import print_error, JiraError, ValidationError
+from error_handler import print_error, JiraError, ValidationError, sanitize_error_message
 from validators import validate_issue_key, validate_jql, validate_project_key
 from formatters import print_success, print_warning, print_info
+
+from bulk_utils import confirm_bulk_operation
 
 
 # Fields to copy when cloning (excluding system fields)
@@ -198,7 +206,9 @@ def clone_issue(
                 client.post('/rest/api/3/issueLink', data=link_data, operation='create link')
                 cloned_links.append(f"{link_type} -> {linked_key}")
             except Exception as e:
-                print_warning(f"Could not recreate link: {e}")
+                # Sanitize error message for logging to prevent sensitive data exposure
+                sanitized_msg = sanitize_error_message(str(e))
+                print_warning(f"Could not recreate link: {sanitized_msg}")
 
     return {
         'key': new_key,
@@ -221,7 +231,10 @@ def bulk_clone(
     max_issues: int = 100,
     delay_between_ops: float = 0.2,
     progress_callback: Callable = None,
-    profile: str = None
+    profile: str = None,
+    show_progress: bool = True,
+    confirm_threshold: int = 50,
+    skip_confirmation: bool = False
 ) -> Dict[str, Any]:
     """
     Clone multiple issues.
@@ -239,6 +252,9 @@ def bulk_clone(
         delay_between_ops: Delay between operations (seconds)
         progress_callback: Optional callback(current, total, issue_key, status)
         profile: JIRA profile to use
+        show_progress: If True, show tqdm progress bar (default: True)
+        confirm_threshold: Prompt for confirmation above this count (default: 50)
+        skip_confirmation: If True, skip confirmation prompt (default: False)
 
     Returns:
         Dict with success, failed, errors, created_issues, etc.
@@ -253,21 +269,25 @@ def bulk_clone(
         if target_project:
             target_project = validate_project_key(target_project)
 
-        # Get issues to process
+        # Get issues to process - clone requires full issue data
+        retrieval_errors = {}
         if issue_keys:
             issue_keys = [validate_issue_key(k) for k in issue_keys[:max_issues]]
             issues = []
             for key in issue_keys:
-                issue = client.get_issue(key)
-                issues.append(issue)
+                try:
+                    issue = client.get_issue(key)
+                    issues.append(issue)
+                except JiraError as e:
+                    # Sanitize error message for logging to prevent sensitive data exposure
+                    sanitized_msg = sanitize_error_message(str(e))
+                    retrieval_errors[key] = sanitized_msg
+                    print_warning(f"Could not retrieve {key}: {sanitized_msg}")
         elif jql:
             jql = validate_jql(jql)
-            result = client.search_issues(jql, fields=['key'], max_results=max_issues)
-            issue_keys = [i['key'] for i in result.get('issues', [])]
-            issues = []
-            for key in issue_keys:
-                issue = client.get_issue(key)
-                issues.append(issue)
+            result = client.search_issues(jql, fields=['*all'], max_results=max_issues)
+            issues = result.get('issues', [])
+            retrieval_errors = {}  # JQL search handles its own errors
         else:
             raise ValidationError("Either --issues or --jql must be provided")
 
@@ -278,8 +298,9 @@ def bulk_clone(
                 'success': 0,
                 'failed': 0,
                 'total': 0,
-                'errors': {},
-                'created_issues': []
+                'errors': retrieval_errors,
+                'created_issues': [],
+                'retrieval_failed': len(retrieval_errors)
             }
 
         if dry_run:
@@ -302,8 +323,23 @@ def bulk_clone(
                 'failed': 0,
                 'would_create': total,
                 'total': total,
-                'errors': {},
-                'created_issues': []
+                'errors': retrieval_errors,
+                'created_issues': [],
+                'retrieval_failed': len(retrieval_errors)
+            }
+
+        # Confirmation for large operations using shared utility
+        if not skip_confirmation and not confirm_bulk_operation(
+            total, "clone", confirm_threshold
+        ):
+            return {
+                'cancelled': True,
+                'success': 0,
+                'failed': 0,
+                'total': total,
+                'errors': retrieval_errors,
+                'created_issues': [],
+                'retrieval_failed': len(retrieval_errors)
             }
 
         success = 0
@@ -312,7 +348,19 @@ def bulk_clone(
         created_issues = []
         created_mapping = {}
 
-        for i, issue in enumerate(issues, 1):
+        # Use tqdm progress bar if available and enabled
+        use_tqdm = TQDM_AVAILABLE and show_progress and not progress_callback
+        if use_tqdm:
+            issue_iterator = tqdm(
+                enumerate(issues, 1),
+                total=total,
+                desc="Cloning issues",
+                unit="issue"
+            )
+        else:
+            issue_iterator = enumerate(issues, 1)
+
+        for i, issue in issue_iterator:
             issue_key = issue.get('key')
 
             try:
@@ -329,30 +377,39 @@ def bulk_clone(
                 success += 1
                 created_issues.append(result)
 
-                if progress_callback:
+                if use_tqdm:
+                    issue_iterator.set_postfix(success=success, failed=failed)
+                elif progress_callback:
                     progress_callback(i, total, issue_key, 'success')
                 else:
                     print_success(f"[{i}/{total}] Cloned {issue_key} -> {result['key']}")
 
             except Exception as e:
                 failed += 1
-                errors[issue_key] = str(e)
+                # Sanitize error message for logging to prevent sensitive data exposure
+                sanitized_msg = sanitize_error_message(str(e))
+                errors[issue_key] = sanitized_msg
 
-                if progress_callback:
+                if use_tqdm:
+                    issue_iterator.set_postfix(success=success, failed=failed)
+                elif progress_callback:
                     progress_callback(i, total, issue_key, 'failed')
                 else:
-                    print_warning(f"[{i}/{total}] Failed {issue_key}: {e}")
+                    print_warning(f"[{i}/{total}] Failed {issue_key}: {sanitized_msg}")
 
             # Rate limiting delay
             if i < total and delay_between_ops > 0:
                 time.sleep(delay_between_ops)
 
+        # Merge retrieval errors with cloning errors
+        all_errors = {**retrieval_errors, **errors}
         return {
             'success': success,
             'failed': failed,
             'total': total,
-            'errors': errors,
-            'created_issues': created_issues
+            'errors': all_errors,
+            'created_issues': created_issues,
+            'retrieval_failed': len(retrieval_errors)
         }
 
     finally:
@@ -389,6 +446,12 @@ def main():
     parser.add_argument('--dry-run',
                         action='store_true',
                         help='Preview changes without making them')
+    parser.add_argument('--yes', '-y',
+                        action='store_true',
+                        help='Skip confirmation prompt for large operations')
+    parser.add_argument('--no-progress',
+                        action='store_true',
+                        help='Disable progress bar')
     parser.add_argument('--profile',
                         help='JIRA profile to use')
 
@@ -408,17 +471,27 @@ def main():
             include_links=args.include_links,
             dry_run=args.dry_run,
             max_issues=args.max_issues,
-            profile=args.profile
+            profile=args.profile,
+            show_progress=not args.no_progress,
+            skip_confirmation=args.yes
         )
 
-        print(f"\nSummary: {result['success']} cloned, {result['failed']} failed")
+        if result.get('cancelled'):
+            print("\nOperation cancelled by user.")
+            sys.exit(0)
+
+        retrieval_failed = result.get('retrieval_failed', 0)
+        if retrieval_failed > 0:
+            print(f"\nSummary: {result['success']} cloned, {result['failed']} failed, {retrieval_failed} could not be retrieved")
+        else:
+            print(f"\nSummary: {result['success']} cloned, {result['failed']} failed")
 
         if result['created_issues']:
             print("\nCreated issues:")
             for item in result['created_issues']:
                 print(f"  {item['source']} -> {item['key']}")
 
-        if result['failed'] > 0:
+        if result['failed'] > 0 or retrieval_failed > 0:
             sys.exit(1)
 
     except JiraError as e:

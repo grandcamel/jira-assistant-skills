@@ -19,8 +19,6 @@ Usage:
 
 import sys
 import argparse
-import time
-import re
 from pathlib import Path
 from typing import List, Dict, Any, Optional, Callable
 
@@ -28,8 +26,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'shared' / 'scripts
 
 from config_manager import get_jira_client
 from error_handler import print_error, JiraError, ValidationError
-from validators import validate_issue_key, validate_jql
-from formatters import print_success, print_warning, print_info
+
+from bulk_utils import get_issues_to_process, execute_bulk_operation
 
 
 def resolve_user_id(client, user_identifier: str) -> Optional[str]:
@@ -82,7 +80,10 @@ def bulk_assign(
     max_issues: int = 100,
     delay_between_ops: float = 0.1,
     progress_callback: Callable = None,
-    profile: str = None
+    profile: str = None,
+    show_progress: bool = True,
+    confirm_threshold: int = 50,
+    skip_confirmation: bool = False
 ) -> Dict[str, Any]:
     """
     Assign multiple issues to a user.
@@ -98,6 +99,9 @@ def bulk_assign(
         delay_between_ops: Delay between operations (seconds)
         progress_callback: Optional callback(current, total, issue_key, status)
         profile: JIRA profile to use
+        show_progress: If True, show tqdm progress bar (default: True)
+        confirm_threshold: Prompt for confirmation above this count (default: 50)
+        skip_confirmation: If True, skip confirmation prompt (default: False)
 
     Returns:
         Dict with success, failed, errors, etc.
@@ -121,82 +125,46 @@ def bulk_assign(
         else:
             raise ValidationError("Either --assignee or --unassign must be provided")
 
-        # Get issues to process
-        if issue_keys:
-            issues = [{'key': validate_issue_key(k)} for k in issue_keys[:max_issues]]
-        elif jql:
-            jql = validate_jql(jql)
-            result = client.search_issues(jql, fields=['key', 'summary', 'assignee'], max_results=max_issues)
-            issues = result.get('issues', [])
-        else:
-            raise ValidationError("Either --issues or --jql must be provided")
+        # Get issues to process using shared utility
+        issues = get_issues_to_process(
+            client,
+            issue_keys=issue_keys,
+            jql=jql,
+            max_issues=max_issues,
+            fields=['key', 'summary', 'assignee']
+        )
 
-        total = len(issues)
-
-        if total == 0:
-            return {
-                'success': 0,
-                'failed': 0,
-                'total': 0,
-                'errors': {},
-                'processed': []
-            }
-
-        if dry_run:
-            print_info(f"[DRY RUN] Would {action} {total} issue(s):")
-            for issue in issues:
-                key = issue.get('key')
-                current = issue.get('fields', {}).get('assignee')
-                current_name = current.get('displayName', 'Unassigned') if current else 'Unassigned'
-                print(f"  - {key} (current: {current_name})")
-            return {
-                'dry_run': True,
-                'success': 0,
-                'failed': 0,
-                'would_process': total,
-                'total': total,
-                'errors': {},
-                'processed': []
-            }
-
-        success = 0
-        failed = 0
-        errors = {}
-        processed = []
-
-        for i, issue in enumerate(issues, 1):
+        def assign_operation(issue: Dict, index: int, total: int) -> str:
+            """Execute assignment for a single issue."""
             issue_key = issue.get('key')
+            client.assign_issue(issue_key, account_id)
+            return action
 
-            try:
-                client.assign_issue(issue_key, account_id)
-                success += 1
-                processed.append(issue_key)
+        def format_dry_run_item(issue: Dict) -> str:
+            """Format issue for dry-run preview."""
+            key = issue.get('key')
+            current = issue.get('fields', {}).get('assignee')
+            current_name = current.get('displayName', 'Unassigned') if current else 'Unassigned'
+            return f"{key} (current: {current_name})"
 
-                if progress_callback:
-                    progress_callback(i, total, issue_key, 'success')
-                else:
-                    print_success(f"[{i}/{total}] {action.capitalize()}d {issue_key}")
+        # Execute bulk operation using shared utility
+        result = execute_bulk_operation(
+            issues=issues,
+            operation_func=assign_operation,
+            dry_run=dry_run,
+            dry_run_message=f"[DRY RUN] Would {action} {len(issues)} issue(s):",
+            dry_run_item_formatter=format_dry_run_item,
+            delay=delay_between_ops,
+            progress_callback=progress_callback,
+            success_message_formatter=lambda key, _: f"{action.capitalize()}d {key}",
+            show_progress=show_progress,
+            progress_desc=f"{action.capitalize()}ing",
+            confirm_threshold=confirm_threshold,
+            skip_confirmation=skip_confirmation,
+            operation_name=action
+        )
 
-            except Exception as e:
-                failed += 1
-                errors[issue_key] = str(e)
-
-                if progress_callback:
-                    progress_callback(i, total, issue_key, 'failed')
-                else:
-                    print_warning(f"[{i}/{total}] Failed {issue_key}: {e}")
-
-            # Rate limiting delay
-            if i < total and delay_between_ops > 0:
-                time.sleep(delay_between_ops)
-
-        return {
-            'success': success,
-            'failed': failed,
-            'total': total,
-            'errors': errors,
-            'processed': processed
-        }
+        return result
 
     finally:
         if close_client:
@@ -229,6 +197,12 @@ def main():
     parser.add_argument('--dry-run',
                         action='store_true',
                         help='Preview changes without making them')
+    parser.add_argument('--yes', '-y',
+                        action='store_true',
+                        help='Skip confirmation prompt for large operations')
+    parser.add_argument('--no-progress',
+                        action='store_true',
+                        help='Disable progress bar')
     parser.add_argument('--profile',
                         help='JIRA profile to use')
 
@@ -246,8 +220,14 @@ def main():
             unassign=args.unassign,
             dry_run=args.dry_run,
             max_issues=args.max_issues,
-            profile=args.profile
+            profile=args.profile,
+            show_progress=not args.no_progress,
+            skip_confirmation=args.yes
         )
+
+        if result.get('cancelled'):
+            print("\nOperation cancelled by user.")
+            sys.exit(0)
 
         print(f"\nSummary: {result['success']} succeeded, {result['failed']} failed")
 

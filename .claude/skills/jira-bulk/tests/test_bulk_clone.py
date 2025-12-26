@@ -360,20 +360,22 @@ class TestBulkCloneApiErrors:
         from bulk_clone import bulk_clone
         from error_handler import JiraError
 
-        # 404 during initial issue fetch propagates as exception
+        # 404 during initial issue fetch is handled gracefully
         mock_jira_client.get_issue.side_effect = JiraError(
             "Issue not found", status_code=404
         )
 
-        # The script raises the error when issue cannot be fetched during preparation
-        with pytest.raises(JiraError) as exc_info:
-            bulk_clone(
-                client=mock_jira_client,
-                issue_keys=['PROJ-999'],
-                dry_run=False
-            )
+        # Bulk operations handle errors gracefully and continue processing
+        result = bulk_clone(
+            client=mock_jira_client,
+            issue_keys=['PROJ-999'],
+            dry_run=False
+        )
 
-        assert '404' in str(exc_info.value) or 'not found' in str(exc_info.value).lower()
+        # Should handle gracefully, not raise
+        assert result['success'] == 0
+        assert result['retrieval_failed'] == 1
+        assert 'PROJ-999' in result.get('errors', {})
 
     def test_rate_limit_error(self, mock_jira_client, sample_issues):
         """Test handling of 429 rate limit error."""

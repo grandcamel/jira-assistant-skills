@@ -110,6 +110,82 @@ When some operations fail:
 Uses shared configuration from `.claude/settings.json` and `.claude/settings.local.json`.
 Requires JIRA credentials via environment variables or settings files.
 
+## Return Values and Exit Codes
+
+### Exit Codes
+
+All bulk scripts use the following exit codes:
+
+| Exit Code | Meaning |
+|-----------|---------|
+| 0 | All operations completed successfully |
+| 1 | One or more operations failed, or validation/configuration error |
+| 130 | Operation cancelled by user (Ctrl+C) |
+
+### Return Dictionary Structure
+
+When using bulk functions programmatically, they return a dictionary with:
+
+```python
+{
+    'success': 5,          # Number of successful operations
+    'failed': 2,           # Number of failed operations
+    'total': 7,            # Total issues processed
+    'errors': {            # Map of issue_key -> error message
+        'PROJ-3': 'Transition not available',
+        'PROJ-5': 'Permission denied'
+    },
+    'processed': ['PROJ-1', 'PROJ-2', ...]  # Successfully processed issue keys
+}
+```
+
+For dry-run mode, the return includes:
+
+```python
+{
+    'dry_run': True,
+    'would_process': 10,   # Number of issues that would be processed
+    'success': 0,
+    'failed': 0,
+    'total': 10,
+    'errors': {},
+    'processed': []
+}
+```
+
+## Rate Limiting and Delays
+
+### delay_between_ops Parameter
+
+All bulk operations support a `delay_between_ops` parameter that controls the pause between individual API calls:
+
+```python
+# Python API usage
+from bulk_transition import bulk_transition
+
+result = bulk_transition(
+    issue_keys=['PROJ-1', 'PROJ-2', 'PROJ-3'],
+    target_status='Done',
+    delay_between_ops=0.5  # 500ms delay between each transition
+)
+```
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `delay_between_ops` | `0.1` (100ms) | Seconds to wait between processing each issue |
+
+**When to adjust:**
+- **Increase** (0.5-1.0s) for large batches or rate-limited instances
+- **Decrease** (0.0) for small batches when speed is critical
+- **Default** (0.1s) works well for most scenarios
+
+### Built-in Rate Limiting
+
+In addition to `delay_between_ops`, the underlying JIRA client automatically:
+- Retries on HTTP 429 (Rate Limit) with exponential backoff
+- Retries on 5xx server errors (500, 502, 503, 504)
+- Uses up to 3 retry attempts with increasing delays
+
 ## Related skills
 
 - **jira-lifecycle**: For single-issue transitions and assignments
