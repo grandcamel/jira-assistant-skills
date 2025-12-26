@@ -27,11 +27,19 @@ while [[ $# -gt 0 ]]; do
 done
 
 SKILLS=(
+    "jira-admin"
+    "jira-agile"
     "jira-bulk"
+    "jira-collaborate"
     "jira-dev"
     "jira-fields"
-    "jira-ops"
+    "jira-issue"
     "jira-jsm"
+    "jira-lifecycle"
+    "jira-ops"
+    "jira-relationships"
+    "jira-search"
+    "jira-time"
     "shared"
 )
 
