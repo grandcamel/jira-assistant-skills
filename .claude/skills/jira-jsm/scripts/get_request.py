@@ -70,6 +70,13 @@ def format_request_text(request: Dict[str, Any], show_fields: bool = False) -> s
     lines.append("=" * 60)
     lines.append("")
 
+    # Summary (always show)
+    for field in request.get('requestFieldValues', []):
+        if field.get('fieldId') == 'summary':
+            lines.append(f"Summary: {field.get('value', 'N/A')}")
+            lines.append("")
+            break
+
     # Request type
     req_type = request.get('requestType', {})
     lines.append(f"Request Type: {req_type.get('name', 'N/A')}")
@@ -82,13 +89,14 @@ def format_request_text(request: Dict[str, Any], show_fields: bool = False) -> s
     lines.append(f"Status: {status.get('status', 'N/A')} ({status.get('statusCategory', 'N/A')})")
     lines.append("")
 
-    # Field values
+    # Field values (other than summary)
     if show_fields:
         lines.append("Fields:")
         for field in request.get('requestFieldValues', []):
-            label = field.get('label', field.get('fieldId'))
-            value = field.get('value', 'N/A')
-            lines.append(f"  {label}: {value}")
+            if field.get('fieldId') != 'summary':  # Skip summary, already shown
+                label = field.get('label', field.get('fieldId'))
+                value = field.get('value', 'N/A')
+                lines.append(f"  {label}: {value}")
         lines.append("")
 
     # Reporter

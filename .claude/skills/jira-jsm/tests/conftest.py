@@ -6,7 +6,7 @@ for testing JSM functionality without hitting real JIRA instance.
 """
 
 import pytest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 import sys
 from pathlib import Path
 
@@ -722,3 +722,39 @@ def sample_asset_schemas():
             }
         ]
     }
+
+
+@pytest.fixture(autouse=True)
+def mock_config_manager_all(mock_jira_client, monkeypatch):
+    """
+    Automatically mock config_manager.get_jira_client() for all tests.
+
+    This prevents tests from trying to load actual credentials and
+    ensures all tests use the mock client.
+
+    Patches it in all script modules that import it.
+    """
+    # List of all script modules that use get_jira_client
+    script_modules = [
+        'create_request',
+        'get_request',
+        'get_request_status',
+        'list_requests',
+        'transition_request',
+        'approve_request',
+        'decline_request',
+        'add_request_comment',
+        'get_request_comments',
+        'get_approvals',
+        'list_pending_approvals',
+    ]
+
+    # Mock in each script module that imports get_jira_client
+    for module_name in script_modules:
+        try:
+            monkeypatch.setattr(f'{module_name}.get_jira_client', lambda profile=None: mock_jira_client)
+        except (AttributeError, ModuleNotFoundError):
+            # Module not yet imported or doesn't use get_jira_client
+            pass
+
+    yield

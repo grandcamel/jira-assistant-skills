@@ -47,7 +47,7 @@ class TestListRequests:
         )
 
         call_args = mock_jira_client.search_issues.call_args
-        assert 'status="In Progress"' in call_args[0][0]
+        assert 'status="In Progress"' in call_args.kwargs['jql']
 
     def test_list_requests_by_status(self, mock_jira_client):
         """Test filtering by status."""
@@ -62,7 +62,7 @@ class TestListRequests:
         )
 
         call_args = mock_jira_client.search_issues.call_args
-        assert 'status' in call_args[0][0].lower()
+        assert 'status' in call_args.kwargs['jql'].lower()
 
     def test_list_requests_by_request_type(self, mock_jira_client):
         """Test filtering by request type."""

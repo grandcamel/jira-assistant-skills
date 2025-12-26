@@ -6,6 +6,7 @@ from unittest.mock import Mock, patch
 
 def test_approve_request(mock_jira_client, sample_approval_approved):
     """Test approving an approval request."""
+    mock_jira_client.get_request_approval.return_value = sample_approval_approved
     mock_jira_client.answer_approval.return_value = sample_approval_approved
 
     from approve_request import main
@@ -19,6 +20,7 @@ def test_approve_request(mock_jira_client, sample_approval_approved):
 
 def test_approve_request_skip_confirmation(mock_jira_client, sample_approval_approved):
     """Test --yes flag skips confirmation."""
+    mock_jira_client.get_request_approval.return_value = sample_approval_approved
     mock_jira_client.answer_approval.return_value = sample_approval_approved
 
     from approve_request import main
@@ -28,46 +30,52 @@ def test_approve_request_skip_confirmation(mock_jira_client, sample_approval_app
     assert result == 0
 
 
-def test_approve_request_not_pending(mock_jira_client):
+def test_approve_request_not_pending(mock_jira_client, sample_approval_pending):
     """Test error when approval already completed."""
     from error_handler import JiraError
 
+    mock_jira_client.get_request_approval.return_value = sample_approval_pending
     mock_jira_client.answer_approval.side_effect = JiraError("Approval is not pending")
 
     from approve_request import main
     with patch('approve_request.get_jira_client', return_value=mock_jira_client):
         with patch('builtins.input', return_value='yes'):
-            result = main(['REQ-123', '--approval-id', '10050'])
+            with pytest.raises(SystemExit) as exc_info:
+                main(['REQ-123', '--approval-id', '10050'])
 
-    assert result == 1
+    assert exc_info.value.code == 1
 
 
-def test_approve_request_not_approver(mock_jira_client):
+def test_approve_request_not_approver(mock_jira_client, sample_approval_pending):
     """Test error when user is not an approver."""
     from error_handler import PermissionError
 
+    mock_jira_client.get_request_approval.return_value = sample_approval_pending
     mock_jira_client.answer_approval.side_effect = PermissionError("Not an approver")
 
     from approve_request import main
     with patch('approve_request.get_jira_client', return_value=mock_jira_client):
         with patch('builtins.input', return_value='yes'):
-            result = main(['REQ-123', '--approval-id', '10050'])
+            with pytest.raises(SystemExit) as exc_info:
+                main(['REQ-123', '--approval-id', '10050'])
 
-    assert result == 1
+    assert exc_info.value.code == 1
 
 
-def test_approve_request_not_found(mock_jira_client):
+def test_approve_request_not_found(mock_jira_client, sample_approval_pending):
     """Test error when approval doesn't exist."""
     from error_handler import NotFoundError
 
+    mock_jira_client.get_request_approval.return_value = sample_approval_pending
     mock_jira_client.answer_approval.side_effect = NotFoundError("Approval not found")
 
     from approve_request import main
     with patch('approve_request.get_jira_client', return_value=mock_jira_client):
         with patch('builtins.input', return_value='yes'):
-            result = main(['REQ-123', '--approval-id', '99999'])
+            with pytest.raises(SystemExit) as exc_info:
+                main(['REQ-123', '--approval-id', '99999'])
 
-    assert result == 1
+    assert exc_info.value.code == 1
 
 
 def test_approve_request_with_confirmation(mock_jira_client, sample_approval_pending, sample_approval_approved):

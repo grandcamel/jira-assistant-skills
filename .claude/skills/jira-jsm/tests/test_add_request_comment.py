@@ -92,9 +92,10 @@ def test_add_comment_issue_not_found(mock_jira_client):
 
     from add_request_comment import main
     with patch('add_request_comment.get_jira_client', return_value=mock_jira_client):
-        result = main(['NONEXIST-999', '--body', 'Test'])
+        with pytest.raises(SystemExit) as exc_info:
+            result = main(['NONEXIST-999', '--body', 'Test'])
 
-    assert result == 1
+    assert exc_info.value.code == 1
 
 
 def test_add_comment_not_service_desk(mock_jira_client):
@@ -107,9 +108,10 @@ def test_add_comment_not_service_desk(mock_jira_client):
 
     from add_request_comment import main
     with patch('add_request_comment.get_jira_client', return_value=mock_jira_client):
-        result = main(['PROJ-123', '--body', 'Test'])
+        with pytest.raises(SystemExit) as exc_info:
+            result = main(['PROJ-123', '--body', 'Test'])
 
-    assert result == 1
+    assert exc_info.value.code == 1
 
 
 def test_add_comment_output_format(mock_jira_client, sample_comment_public, capsys):

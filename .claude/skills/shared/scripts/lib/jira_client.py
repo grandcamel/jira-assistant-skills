@@ -3236,3 +3236,483 @@ class JiraClient:
             JiraError or subclass on failure
         """
         return self.list_assets(iql=iql)
+
+    # ==========================================
+    # Additional JSM Methods
+    # ==========================================
+
+    def get_current_user(self) -> Dict[str, Any]:
+        """
+        Get the currently authenticated user's full details.
+
+        Returns:
+            User object with accountId, displayName, emailAddress, etc.
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        return self.get(
+            '/rest/api/3/myself',
+            operation="get current user"
+        )
+
+    def get_service_desk_organizations(self, service_desk_id: str,
+                                       start: int = 0, limit: int = 50) -> Dict[str, Any]:
+        """
+        Get organizations associated with a service desk.
+
+        Args:
+            service_desk_id: Service desk ID
+            start: Starting index for pagination
+            limit: Maximum results to return
+
+        Returns:
+            Paginated list of organizations
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        return self.get(
+            f'/rest/servicedeskapi/servicedesk/{service_desk_id}/organization',
+            params={'start': start, 'limit': limit},
+            operation=f"get organizations for service desk {service_desk_id}"
+        )
+
+    def add_organization_to_service_desk(self, service_desk_id: str,
+                                         organization_id: int) -> None:
+        """
+        Add an organization to a service desk.
+
+        Args:
+            service_desk_id: Service desk ID
+            organization_id: Organization ID to add
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        self.post(
+            f'/rest/servicedeskapi/servicedesk/{service_desk_id}/organization',
+            data={'organizationId': organization_id},
+            operation=f"add organization {organization_id} to service desk {service_desk_id}"
+        )
+
+    def remove_organization_from_service_desk(self, service_desk_id: str,
+                                              organization_id: int) -> None:
+        """
+        Remove an organization from a service desk.
+
+        Args:
+            service_desk_id: Service desk ID
+            organization_id: Organization ID to remove
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        self.delete(
+            f'/rest/servicedeskapi/servicedesk/{service_desk_id}/organization/{organization_id}',
+            operation=f"remove organization {organization_id} from service desk {service_desk_id}"
+        )
+
+    def get_organization_users(self, organization_id: int,
+                               start: int = 0, limit: int = 50) -> Dict[str, Any]:
+        """
+        Get users in an organization.
+
+        Args:
+            organization_id: Organization ID
+            start: Starting index for pagination
+            limit: Maximum results to return
+
+        Returns:
+            Paginated list of users
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        return self.get(
+            f'/rest/servicedeskapi/organization/{organization_id}/user',
+            params={'start': start, 'limit': limit},
+            operation=f"get users for organization {organization_id}"
+        )
+
+    def update_organization(self, organization_id: int, name: str) -> Dict[str, Any]:
+        """
+        Update an organization's name.
+
+        Args:
+            organization_id: Organization ID
+            name: New organization name
+
+        Returns:
+            Updated organization object
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        # Note: JSM doesn't have a direct update endpoint for orgs
+        # This uses the property update if available
+        return self.put(
+            f'/rest/servicedeskapi/organization/{organization_id}',
+            data={'name': name},
+            operation=f"update organization {organization_id}"
+        )
+
+    def get_service_desk_agents(self, service_desk_id: str,
+                                start: int = 0, limit: int = 50) -> Dict[str, Any]:
+        """
+        Get agents assigned to a service desk.
+
+        Args:
+            service_desk_id: Service desk ID
+            start: Starting index for pagination
+            limit: Maximum results to return
+
+        Returns:
+            Paginated list of agents
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        # Note: This may require admin permissions
+        service_desk = self.get_service_desk(service_desk_id)
+        project_key = service_desk.get('projectKey')
+
+        # Get project actors with agent role
+        actors = self.get(
+            f'/rest/api/3/project/{project_key}/role',
+            operation=f"get roles for project {project_key}"
+        )
+
+        # Find Service Desk Team role
+        for role_name, role_url in actors.items():
+            if 'agent' in role_name.lower() or 'team' in role_name.lower():
+                role_data = self.get(role_url.replace(self.base_url, ''))
+                return {
+                    'values': role_data.get('actors', []),
+                    'start': start,
+                    'limit': limit,
+                    'size': len(role_data.get('actors', []))
+                }
+
+        return {'values': [], 'start': start, 'limit': limit, 'size': 0}
+
+    def get_my_approvals(self, service_desk_id: int = None) -> Dict[str, Any]:
+        """
+        Get pending approvals for the current user.
+
+        Args:
+            service_desk_id: Optional service desk ID to filter by
+
+        Returns:
+            Paginated list of pending approvals
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        approvals = self.get_pending_approvals(service_desk_id)
+        return {'values': approvals, 'size': len(approvals)}
+
+    # Alias methods for consistent naming
+    def get_queues(self, service_desk_id: int, include_count: bool = False,
+                   start: int = 0, limit: int = 50) -> Dict[str, Any]:
+        """Alias for get_service_desk_queues."""
+        return self.get_service_desk_queues(service_desk_id, include_count, start, limit)
+
+    def search_knowledge_base(self, service_desk_id: int, query: str,
+                              highlight: bool = True, start: int = 0,
+                              limit: int = 25, space_key: str = None) -> Dict[str, Any]:
+        """
+        Search the knowledge base for articles.
+
+        Args:
+            service_desk_id: Service desk ID
+            query: Search query string
+            highlight: Whether to highlight matches
+            start: Starting index for pagination
+            limit: Maximum results to return
+            space_key: Optional Confluence space key to search within
+
+        Returns:
+            Search results with articles
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        articles = self.search_kb_articles(service_desk_id, query, highlight, start, limit)
+        return {'values': articles}
+
+    def get_knowledge_base_article(self, service_desk_id: str, article_id: str) -> Dict[str, Any]:
+        """Alias for get_kb_article."""
+        return self.get_kb_article(article_id)
+
+    def get_knowledge_base_suggestions(self, service_desk_id: str,
+                                       issue_key: str) -> Dict[str, Any]:
+        """
+        Get KB article suggestions for a request.
+
+        Args:
+            service_desk_id: Service desk ID
+            issue_key: Request issue key
+
+        Returns:
+            Suggested articles
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        suggestions = self.suggest_kb_for_request(issue_key)
+        return {'values': suggestions}
+
+    def get_knowledge_base_spaces(self, service_desk_id: str) -> Dict[str, Any]:
+        """
+        Get knowledge base spaces/categories for a service desk.
+
+        Args:
+            service_desk_id: Service desk ID
+
+        Returns:
+            Available KB spaces
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        # KB spaces are Confluence spaces linked to the service desk
+        return self.get(
+            f'/rest/servicedeskapi/servicedesk/{service_desk_id}/knowledgebase/category',
+            operation=f"get KB spaces for service desk {service_desk_id}"
+        )
+
+    def link_knowledge_base_article(self, issue_key: str, article_id: str) -> None:
+        """
+        Link a KB article to a request.
+
+        Args:
+            issue_key: Request issue key
+            article_id: KB article ID
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        self.add_request_comment(
+            issue_key,
+            f"Linked KB article: {article_id}",
+            public=True
+        )
+
+    def attach_article_as_solution(self, issue_key: str, article_id: str) -> None:
+        """
+        Attach a KB article as the solution for a request.
+
+        Args:
+            issue_key: Request issue key
+            article_id: KB article ID
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        self.add_request_comment(
+            issue_key,
+            f"Solution: KB article {article_id}",
+            public=True
+        )
+
+    # ==========================================
+    # Additional Assets/Insight Methods
+    # ==========================================
+
+    def get_object_schemas(self) -> Dict[str, Any]:
+        """
+        Get all object schemas (Assets/Insight).
+
+        Returns:
+            List of object schemas
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        result = self.get(
+            '/rest/insight/1.0/objectschema/list',
+            operation="list object schemas"
+        )
+        # Normalize response format
+        if 'objectschemas' in result:
+            return {'values': result['objectschemas']}
+        return result
+
+    def get_object_schema(self, schema_id: int) -> Dict[str, Any]:
+        """
+        Get a specific object schema.
+
+        Args:
+            schema_id: Object schema ID
+
+        Returns:
+            Object schema details
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        return self.get(
+            f'/rest/insight/1.0/objectschema/{schema_id}',
+            operation=f"get object schema {schema_id}"
+        )
+
+    def get_object_types(self, schema_id: int) -> Dict[str, Any]:
+        """
+        Get object types in a schema.
+
+        Args:
+            schema_id: Object schema ID
+
+        Returns:
+            List of object types
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        result = self.get(
+            f'/rest/insight/1.0/objectschema/{schema_id}/objecttypes/flat',
+            operation=f"get object types for schema {schema_id}"
+        )
+        if isinstance(result, list):
+            return {'values': result}
+        return result
+
+    def get_object_type_attributes(self, object_type_id: int) -> Dict[str, Any]:
+        """
+        Get attributes for an object type.
+
+        Args:
+            object_type_id: Object type ID
+
+        Returns:
+            List of attributes
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        result = self.get(
+            f'/rest/insight/1.0/objecttype/{object_type_id}/attributes',
+            operation=f"get attributes for object type {object_type_id}"
+        )
+        if isinstance(result, list):
+            return {'values': result}
+        return result
+
+    def search_assets(self, iql: str, schema_id: int = None,
+                      max_results: int = 100) -> Dict[str, Any]:
+        """
+        Search assets using IQL.
+
+        Args:
+            iql: IQL query string
+            schema_id: Optional schema ID to search within
+            max_results: Maximum results to return
+
+        Returns:
+            Search results with asset objects
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        params = {
+            'iql': iql,
+            'page': 1,
+            'resultsPerPage': min(max_results, 100),
+            'includeAttributes': True
+        }
+
+        if schema_id:
+            params['objectSchemaId'] = schema_id
+        else:
+            # Get first schema if not specified
+            schemas = self.get_object_schemas()
+            schema_list = schemas.get('values', [])
+            if schema_list:
+                params['objectSchemaId'] = schema_list[0]['id']
+
+        result = self.get(
+            '/rest/insight/1.0/iql/objects',
+            params=params,
+            operation="search assets"
+        )
+
+        # Normalize response
+        if 'objectEntries' in result:
+            return {'values': result['objectEntries']}
+        return result
+
+    def delete_asset(self, asset_id: int) -> None:
+        """
+        Delete an asset.
+
+        Args:
+            asset_id: Asset object ID
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        self.delete(
+            f'/rest/insight/1.0/object/{asset_id}',
+            operation=f"delete asset {asset_id}"
+        )
+
+    def get_issue_assets(self, issue_key: str) -> Dict[str, Any]:
+        """
+        Get assets linked to an issue.
+
+        Args:
+            issue_key: Issue key
+
+        Returns:
+            List of linked assets
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        # Assets are stored in a custom field on the issue
+        issue = self.get_issue(issue_key)
+        assets = []
+
+        # Look for asset custom fields
+        for field_id, field_value in issue.get('fields', {}).items():
+            if field_value and isinstance(field_value, list):
+                for item in field_value:
+                    if isinstance(item, dict) and 'objectKey' in item:
+                        assets.append(item)
+
+        return {'values': assets}
+
+    def link_asset_to_issue(self, issue_key: str, asset_key: str) -> None:
+        """
+        Link an asset to an issue by asset key.
+
+        Args:
+            issue_key: Issue key
+            asset_key: Asset object key (e.g., 'ASSET-123')
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        # Add comment with asset reference
+        self.add_request_comment(
+            issue_key,
+            f"Linked asset: {asset_key}",
+            public=False
+        )
+
+    def find_affected_assets(self, issue_key: str) -> Dict[str, Any]:
+        """
+        Find assets potentially affected by an incident/request.
+
+        Args:
+            issue_key: Issue key
+
+        Returns:
+            List of potentially affected assets
+
+        Raises:
+            JiraError or subclass on failure
+        """
+        # Get linked assets from issue
+        return self.get_issue_assets(issue_key)

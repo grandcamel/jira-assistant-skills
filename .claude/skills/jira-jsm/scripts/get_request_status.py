@@ -122,12 +122,10 @@ def format_timeline(statuses: List[Dict[str, Any]], show_durations: bool = False
         return "No status history found."
 
     lines = []
-    lines.append(f"\n{'Status':<25} {'Category':<15} {'Changed':<25}", end='')
-
+    header = f"\n{'Status':<25} {'Category':<15} {'Changed':<25}"
     if show_durations:
-        lines.append(f" {'Duration'}")
-    else:
-        lines.append('')
+        header += f" {'Duration'}"
+    lines.append(header)
 
     lines.append("-" * 80)
 

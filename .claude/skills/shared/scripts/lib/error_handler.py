@@ -6,7 +6,8 @@ JIRA API errors with user-friendly messages.
 """
 
 import sys
-from typing import Optional, Dict, Any
+import functools
+from typing import Optional, Dict, Any, Callable
 
 
 class JiraError(Exception):
@@ -166,3 +167,34 @@ def print_error(error: Exception, debug: bool = False) -> None:
 
     if isinstance(error, JiraError) and error.response_data:
         print(f"\nResponse data: {error.response_data}", file=sys.stderr)
+
+
+def handle_errors(func: Callable) -> Callable:
+    """
+    Decorator to handle errors in CLI scripts.
+
+    Catches all exceptions, prints user-friendly error messages,
+    and exits with appropriate status codes.
+
+    Args:
+        func: Function to wrap
+
+    Returns:
+        Wrapped function with error handling
+    """
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except KeyboardInterrupt:
+            print("\n\nOperation cancelled by user.", file=sys.stderr)
+            sys.exit(130)  # Standard exit code for SIGINT
+        except JiraError as e:
+            print_error(e)
+            sys.exit(1)
+        except Exception as e:
+            print(f"\nUnexpected error: {e}", file=sys.stderr)
+            print_error(e, debug=True)
+            sys.exit(1)
+
+    return wrapper

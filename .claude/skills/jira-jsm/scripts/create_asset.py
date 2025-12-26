@@ -16,7 +16,7 @@ import json
 from pathlib import Path
 
 # Add shared lib to path
-shared_lib_path = str(Path(__file__).parent.parent.parent.parent / 'shared' / 'scripts' / 'lib')
+shared_lib_path = str(Path(__file__).parent.parent.parent / 'shared' / 'scripts' / 'lib')
 if shared_lib_path not in sys.path:
     sys.path.insert(0, shared_lib_path)
 
