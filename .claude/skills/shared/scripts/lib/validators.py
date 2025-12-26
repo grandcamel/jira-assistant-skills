@@ -237,3 +237,209 @@ def validate_transition_id(transition_id: str) -> str:
         )
 
     return transition_id
+
+
+# ========== Project Administration Validators ==========
+
+VALID_PROJECT_TYPES = ['software', 'business', 'service_desk']
+VALID_ASSIGNEE_TYPES = ['PROJECT_LEAD', 'UNASSIGNED', 'COMPONENT_LEAD']
+
+# Common project template shortcuts
+PROJECT_TEMPLATES = {
+    'scrum': 'com.pyxis.greenhopper.jira:gh-simplified-agility-scrum',
+    'kanban': 'com.pyxis.greenhopper.jira:gh-simplified-agility-kanban',
+    'basic': 'com.pyxis.greenhopper.jira:gh-simplified-basic',
+    'simplified-scrum': 'com.pyxis.greenhopper.jira:gh-simplified-agility-scrum',
+    'simplified-kanban': 'com.pyxis.greenhopper.jira:gh-simplified-agility-kanban',
+    'classic-scrum': 'com.pyxis.greenhopper.jira:gh-scrum-template',
+    'classic-kanban': 'com.pyxis.greenhopper.jira:gh-kanban-template',
+    'project-management': 'com.atlassian.jira-core-project-templates:jira-core-project-management',
+    'task-management': 'com.atlassian.jira-core-project-templates:jira-core-task-management',
+    'it-service-desk': 'com.atlassian.servicedesk:simplified-it-service-desk',
+    'general-service-desk': 'com.atlassian.servicedesk:simplified-general-service-desk',
+}
+
+
+def validate_project_type(project_type: str) -> str:
+    """
+    Validate project type.
+
+    Args:
+        project_type: Project type (software, business, service_desk)
+
+    Returns:
+        Validated project type (lowercase)
+
+    Raises:
+        ValidationError: If project type is invalid
+    """
+    if not project_type:
+        raise ValidationError("Project type cannot be empty")
+
+    project_type = project_type.strip().lower()
+
+    if project_type not in VALID_PROJECT_TYPES:
+        raise ValidationError(
+            f"Invalid project type: '{project_type}'. "
+            f"Valid types: {', '.join(VALID_PROJECT_TYPES)}"
+        )
+
+    return project_type
+
+
+def validate_assignee_type(assignee_type: str) -> str:
+    """
+    Validate default assignee type.
+
+    Args:
+        assignee_type: Assignee type (PROJECT_LEAD, UNASSIGNED, COMPONENT_LEAD)
+
+    Returns:
+        Validated assignee type (uppercase)
+
+    Raises:
+        ValidationError: If assignee type is invalid
+    """
+    if not assignee_type:
+        raise ValidationError("Assignee type cannot be empty")
+
+    assignee_type = assignee_type.strip().upper()
+
+    if assignee_type not in VALID_ASSIGNEE_TYPES:
+        raise ValidationError(
+            f"Invalid assignee type: '{assignee_type}'. "
+            f"Valid types: {', '.join(VALID_ASSIGNEE_TYPES)}"
+        )
+
+    return assignee_type
+
+
+def validate_project_template(template: str) -> str:
+    """
+    Validate and expand project template.
+
+    Args:
+        template: Template shortcut or full template key
+
+    Returns:
+        Full template key
+
+    Raises:
+        ValidationError: If template is unknown shortcut
+    """
+    if not template:
+        raise ValidationError("Project template cannot be empty")
+
+    template = template.strip().lower()
+
+    # If it's a shortcut, expand it
+    if template in PROJECT_TEMPLATES:
+        return PROJECT_TEMPLATES[template]
+
+    # If it looks like a full template key, return it
+    if '.' in template or ':' in template:
+        return template
+
+    # Unknown shortcut
+    shortcuts = ', '.join(PROJECT_TEMPLATES.keys())
+    raise ValidationError(
+        f"Unknown template shortcut: '{template}'. "
+        f"Valid shortcuts: {shortcuts}\n"
+        "Or provide a full template key (e.g., com.pyxis.greenhopper.jira:gh-scrum-template)"
+    )
+
+
+def validate_project_name(name: str) -> str:
+    """
+    Validate project name.
+
+    Args:
+        name: Project name
+
+    Returns:
+        Validated project name (stripped)
+
+    Raises:
+        ValidationError: If name is invalid
+    """
+    if not name:
+        raise ValidationError("Project name cannot be empty")
+
+    name = name.strip()
+
+    if len(name) < 2:
+        raise ValidationError("Project name must be at least 2 characters long")
+
+    if len(name) > 80:
+        raise ValidationError(
+            f"Project name is too long ({len(name)} characters). Maximum is 80."
+        )
+
+    return name
+
+
+def validate_category_name(name: str) -> str:
+    """
+    Validate project category name.
+
+    Args:
+        name: Category name
+
+    Returns:
+        Validated category name (stripped)
+
+    Raises:
+        ValidationError: If name is invalid
+    """
+    if not name:
+        raise ValidationError("Category name cannot be empty")
+
+    name = name.strip()
+
+    if len(name) < 1:
+        raise ValidationError("Category name must not be empty")
+
+    if len(name) > 255:
+        raise ValidationError(
+            f"Category name is too long ({len(name)} characters). Maximum is 255."
+        )
+
+    return name
+
+
+def validate_avatar_file(file_path: str) -> str:
+    """
+    Validate avatar file for project avatar upload.
+
+    Args:
+        file_path: Path to avatar image file
+
+    Returns:
+        Absolute path to validated file
+
+    Raises:
+        ValidationError: If file is invalid for avatar use
+    """
+    # Use base file validation
+    abs_path = validate_file_path(file_path, must_exist=True)
+
+    # Check file extension
+    valid_extensions = ['.png', '.jpg', '.jpeg', '.gif']
+    ext = os.path.splitext(abs_path)[1].lower()
+
+    if ext not in valid_extensions:
+        raise ValidationError(
+            f"Invalid avatar file format: '{ext}'. "
+            f"Valid formats: {', '.join(valid_extensions)}"
+        )
+
+    # Check file size (1MB max for avatars)
+    file_size = os.path.getsize(abs_path)
+    max_size = 1 * 1024 * 1024  # 1MB
+    if file_size > max_size:
+        raise ValidationError(
+            f"Avatar file is too large ({file_size / 1024:.1f}KB). "
+            f"Maximum size is {max_size / 1024}KB."
+        )
+
+    return abs_path
