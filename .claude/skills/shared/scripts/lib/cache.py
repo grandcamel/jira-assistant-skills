@@ -8,7 +8,7 @@ Features:
 - SQLite-based persistence for durability
 - Category-based TTL defaults (issue: 5min, project: 1hr, user: 1hr, field: 1day)
 - LRU eviction when cache size limit is reached
-- Pattern-based key invalidation (glob patterns)
+- Pattern-based key invalidation (glob patterns with SQL LIKE optimization)
 - Thread-safe concurrent access
 - Cache hit/miss statistics
 """
@@ -19,10 +19,11 @@ import sqlite3
 import hashlib
 import threading
 import fnmatch
+import re
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, Any, Optional, NamedTuple
+from typing import Dict, Any, Optional, NamedTuple, Tuple
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 
@@ -45,6 +46,72 @@ class CacheStats:
         return self.hits / total
 
 
+def is_simple_glob_pattern(pattern: str) -> bool:
+    """
+    Check if a glob pattern is simple enough to convert to SQL LIKE.
+
+    Simple patterns only use:
+    - * for any characters (converted to %)
+    - ? for single character (converted to _)
+    - No character classes like [abc]
+    - No nested patterns
+
+    Args:
+        pattern: Glob pattern to check
+
+    Returns:
+        True if pattern can be converted to SQL LIKE
+    """
+    # Patterns with character classes are not simple
+    if '[' in pattern or ']' in pattern:
+        return False
+
+    # Patterns with special glob syntax are not simple
+    if '{' in pattern or '}' in pattern:
+        return False
+
+    # Patterns with ** (recursive) need special handling
+    if '**' in pattern:
+        # **/ can be handled as % in SQL
+        return True
+
+    return True
+
+
+def glob_to_sql_like(pattern: str) -> Tuple[str, bool]:
+    """
+    Convert a glob pattern to SQL LIKE pattern if possible.
+
+    Args:
+        pattern: Glob pattern (e.g., "PROJ-*", "issue:*:detail")
+
+    Returns:
+        Tuple of (sql_pattern, is_converted) where:
+        - sql_pattern: The SQL LIKE pattern if converted, else original
+        - is_converted: True if successfully converted to SQL LIKE
+    """
+    if not is_simple_glob_pattern(pattern):
+        return pattern, False
+
+    # Escape SQL LIKE special characters that aren't glob chars
+    sql_pattern = pattern
+
+    # Escape % and _ that are literal in glob but special in SQL
+    sql_pattern = sql_pattern.replace('%', r'\%')
+    sql_pattern = sql_pattern.replace('_', r'\_')
+
+    # Convert glob wildcards to SQL LIKE
+    # ** matches any path including /
+    sql_pattern = sql_pattern.replace('**/', '%')
+    sql_pattern = sql_pattern.replace('**', '%')
+    # * matches any characters except /
+    sql_pattern = sql_pattern.replace('*', '%')
+    # ? matches single character
+    sql_pattern = sql_pattern.replace('?', '_')
+
+    return sql_pattern, True
+
+
 class JiraCache:
     """
     Caching layer for JIRA API responses.
@@ -57,12 +124,24 @@ class JiraCache:
         """
         Initialize cache.
 
+        SECURITY NOTE: The cache may contain sensitive data including:
+        - Issue details (potentially confidential project information)
+        - User information (account IDs, emails, display names)
+        - API response data with project/company details
+
+        The cache directory is created with restrictive permissions (0700)
+        to ensure only the owner can access cached data.
+
         Args:
             cache_dir: Directory for cache storage (default: ~/.jira-skills/cache)
             max_size_mb: Maximum cache size in megabytes (default: 100 MB)
         """
         self.cache_dir = Path(cache_dir) if cache_dir else Path.home() / ".jira-skills" / "cache"
-        self.cache_dir.mkdir(parents=True, exist_ok=True)
+        self.cache_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
+
+        # Ensure restrictive permissions even if directory already exists
+        # This protects against directory created with default permissions
+        os.chmod(self.cache_dir, 0o700)
 
         self.max_size = int(max_size_mb * 1024 * 1024)  # Convert to bytes
         self.db_path = self.cache_dir / "cache.db"
@@ -187,6 +266,13 @@ class JiraCache:
             value_json = json.dumps(value)
             size_bytes = len(value_json.encode('utf-8'))
 
+            # Validate single entry is not larger than max cache size
+            if size_bytes > self.max_size:
+                raise ValueError(
+                    f"Cache entry size ({size_bytes} bytes) exceeds maximum cache size "
+                    f"({self.max_size} bytes). Consider increasing max_size_mb or caching smaller data."
+                )
+
             # Check if we need to evict entries
             self._evict_if_needed(size_bytes)
 
@@ -252,6 +338,10 @@ class JiraCache:
         """
         Invalidate cache entries.
 
+        Uses SQL LIKE for simple glob patterns (containing only * and ?)
+        for better performance on large caches. Falls back to Python
+        fnmatch for complex patterns with character classes.
+
         Args:
             key: Specific key to invalidate
             pattern: Glob pattern for keys to invalidate (e.g., "PROJ-*")
@@ -271,30 +361,47 @@ class JiraCache:
                     return cursor.rowcount
 
                 elif pattern is not None:
-                    # Invalidate by pattern
-                    # Get all keys and filter by pattern
-                    if category is not None:
-                        cursor = conn.execute("""
-                            SELECT key FROM cache_entries WHERE category = ?
-                        """, (category,))
+                    # Try to use SQL LIKE for simple patterns (performance optimization)
+                    sql_pattern, can_use_like = glob_to_sql_like(pattern)
+
+                    if can_use_like:
+                        # Use SQL LIKE directly - much faster for large caches
+                        if category is not None:
+                            cursor = conn.execute("""
+                                DELETE FROM cache_entries
+                                WHERE key LIKE ? ESCAPE '\\' AND category = ?
+                            """, (sql_pattern, category))
+                        else:
+                            cursor = conn.execute("""
+                                DELETE FROM cache_entries
+                                WHERE key LIKE ? ESCAPE '\\'
+                            """, (sql_pattern,))
+                        conn.commit()
+                        return cursor.rowcount
                     else:
-                        cursor = conn.execute("SELECT key, category FROM cache_entries")
+                        # Fall back to Python fnmatch for complex patterns
+                        if category is not None:
+                            cursor = conn.execute("""
+                                SELECT key FROM cache_entries WHERE category = ?
+                            """, (category,))
+                        else:
+                            cursor = conn.execute("SELECT key, category FROM cache_entries")
 
-                    to_delete = []
-                    for row in cursor:
-                        if fnmatch.fnmatch(row["key"], pattern):
-                            if category is not None:
-                                to_delete.append((row["key"], category))
-                            else:
-                                to_delete.append((row["key"], row["category"]))
+                        to_delete = []
+                        for row in cursor:
+                            if fnmatch.fnmatch(row["key"], pattern):
+                                if category is not None:
+                                    to_delete.append((row["key"], category))
+                                else:
+                                    to_delete.append((row["key"], row["category"]))
 
-                    for k, cat in to_delete:
-                        conn.execute("""
-                            DELETE FROM cache_entries WHERE key = ? AND category = ?
-                        """, (k, cat))
+                        for k, cat in to_delete:
+                            conn.execute("""
+                                DELETE FROM cache_entries WHERE key = ? AND category = ?
+                            """, (k, cat))
 
-                    conn.commit()
-                    return len(to_delete)
+                        conn.commit()
+                        return len(to_delete)
 
                 elif category is not None:
                     # Invalidate entire category

@@ -3,8 +3,12 @@ Error handling for JIRA API operations.
 
 Provides custom exception hierarchy and utilities for handling
 JIRA API errors with user-friendly messages.
+
+Security Note: Error messages may contain sensitive data from JIRA responses.
+Use sanitize_error_message() before logging errors in production environments.
 """
 
+import re
 import sys
 import functools
 from typing import Optional, Dict, Any, Callable
@@ -73,6 +77,7 @@ class RateLimitError(JiraError):
     """Raised when API rate limit is exceeded."""
 
     def __init__(self, retry_after: Optional[int] = None, **kwargs):
+        self.retry_after = retry_after
         message = "API rate limit exceeded"
         if retry_after:
             message += f". Retry after {retry_after} seconds"
@@ -199,15 +204,94 @@ def handle_jira_error(response, operation: str = "operation") -> None:
         raise JiraError(message, status_code=status_code, response_data=error_data)
 
 
-def print_error(error: Exception, debug: bool = False) -> None:
+def sanitize_error_message(message: str) -> str:
+    """
+    Sanitize error messages to remove potentially sensitive information.
+
+    Removes or redacts:
+    - Email addresses
+    - Account IDs (Atlassian format)
+    - API tokens/keys
+    - URLs with authentication
+    - Issue keys with context (keeps key, redacts description)
+
+    Args:
+        message: Raw error message
+
+    Returns:
+        Sanitized error message safe for production logging
+
+    Example:
+        >>> sanitize_error_message("User john@company.com not found")
+        "User [EMAIL REDACTED] not found"
+    """
+    if not message:
+        return message
+
+    sanitized = message
+
+    # Redact email addresses
+    sanitized = re.sub(
+        r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}',
+        '[EMAIL REDACTED]',
+        sanitized
+    )
+
+    # Redact Atlassian account IDs (24-character hex strings)
+    sanitized = re.sub(
+        r'[0-9a-f]{24}',
+        '[ACCOUNT_ID REDACTED]',
+        sanitized,
+        flags=re.IGNORECASE
+    )
+
+    # Redact longer UUIDs/tokens (32+ chars of hex)
+    sanitized = re.sub(
+        r'[0-9a-f]{32,}',
+        '[TOKEN REDACTED]',
+        sanitized,
+        flags=re.IGNORECASE
+    )
+
+    # Redact API tokens (typical formats)
+    sanitized = re.sub(
+        r'(ATATT[A-Za-z0-9+/=]+)',
+        '[API_TOKEN REDACTED]',
+        sanitized
+    )
+
+    # Redact URLs with credentials
+    sanitized = re.sub(
+        r'(https?://)[^:]+:[^@]+@',
+        r'\1[CREDENTIALS REDACTED]@',
+        sanitized
+    )
+
+    # Redact bearer tokens
+    sanitized = re.sub(
+        r'(Bearer\s+)[A-Za-z0-9._-]+',
+        r'\1[TOKEN REDACTED]',
+        sanitized,
+        flags=re.IGNORECASE
+    )
+
+    return sanitized
+
+
+def print_error(error: Exception, debug: bool = False, sanitize: bool = False) -> None:
     """
     Print error message to stderr with optional debug information.
 
     Args:
         error: Exception to print
         debug: If True, include full stack trace
+        sanitize: If True, sanitize sensitive data from error messages
     """
-    print(f"\nError: {error}", file=sys.stderr)
+    error_str = str(error)
+    if sanitize:
+        error_str = sanitize_error_message(error_str)
+
+    print(f"\nError: {error_str}", file=sys.stderr)
 
     if debug and hasattr(error, '__traceback__'):
         import traceback
@@ -215,7 +299,10 @@ def print_error(error: Exception, debug: bool = False) -> None:
         traceback.print_tb(error.__traceback__, file=sys.stderr)
 
     if isinstance(error, JiraError) and error.response_data:
-        print(f"\nResponse data: {error.response_data}", file=sys.stderr)
+        response_str = str(error.response_data)
+        if sanitize:
+            response_str = sanitize_error_message(response_str)
+        print(f"\nResponse data: {response_str}", file=sys.stderr)
 
 
 def handle_errors(func: Callable) -> Callable:

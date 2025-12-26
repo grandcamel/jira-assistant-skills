@@ -325,3 +325,112 @@ def format_progress_bar(progress: float, width: int = 20) -> str:
     filled = int(min(progress, 100) / 100 * width)
     empty = width - filled
     return '█' * filled + '░' * empty
+
+
+def parse_date_to_iso(date_str: str, base_date: Optional[datetime] = None) -> str:
+    """
+    Parse various date formats to ISO 8601 format for JIRA API.
+
+    Combines parsing of relative dates, simple dates, and full ISO dates
+    into a single function that returns a consistent ISO format.
+
+    Args:
+        date_str: Date string in various formats:
+                  - Relative: 'today', 'yesterday', 'last-week', 'this-month'
+                  - Simple: 'YYYY-MM-DD' (e.g., '2025-01-20')
+                  - Full ISO: '2025-01-20T00:00:00.000Z'
+        base_date: Base date for relative calculations (default: now)
+
+    Returns:
+        ISO 8601 date string like '2025-01-20T00:00:00.000Z'
+
+    Raises:
+        ValueError: If date format is unrecognized
+
+    Examples:
+        >>> parse_date_to_iso('2025-01-20')
+        '2025-01-20T00:00:00.000Z'
+        >>> parse_date_to_iso('2025-01-20T10:30:00.000Z')
+        '2025-01-20T10:30:00.000Z'
+        >>> parse_date_to_iso('today')  # doctest: +SKIP
+        '2025-01-15T00:00:00.000Z'
+    """
+    if not date_str or not date_str.strip():
+        raise ValueError("Date string cannot be empty")
+
+    date_str = date_str.strip()
+
+    # Already in full ISO format with 'T'
+    if 'T' in date_str:
+        # Normalize timezone format
+        if date_str.endswith('Z'):
+            return date_str
+        if '+' in date_str or date_str[-6:].startswith('-'):
+            # Has timezone, convert to Z format
+            try:
+                dt = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+                return dt.strftime('%Y-%m-%dT%H:%M:%S.000Z')
+            except ValueError:
+                pass
+        return date_str
+
+    # Try simple date format YYYY-MM-DD first
+    try:
+        dt = datetime.strptime(date_str, '%Y-%m-%d')
+        return dt.strftime('%Y-%m-%dT00:00:00.000Z')
+    except ValueError:
+        pass
+
+    # Try relative date parsing
+    try:
+        dt = parse_relative_date(date_str, base_date)
+        return dt.strftime('%Y-%m-%dT00:00:00.000Z')
+    except ValueError:
+        pass
+
+    raise ValueError(
+        f"Invalid date format: '{date_str}'. "
+        f"Use YYYY-MM-DD, ISO format, or relative dates like 'today', 'yesterday'."
+    )
+
+
+def convert_to_jira_datetime_string(date_str: str, base_date: Optional[datetime] = None) -> str:
+    """
+    Convert a date string to JIRA datetime format with timezone offset.
+
+    Similar to parse_date_to_iso but returns format with +0000 timezone
+    offset instead of 'Z', which is preferred for some JIRA APIs.
+
+    Args:
+        date_str: Date string in various formats:
+                  - Relative: 'today', 'yesterday', 'last-week'
+                  - Simple: 'YYYY-MM-DD'
+                  - Full ISO: '2025-01-20T00:00:00.000Z'
+        base_date: Base date for relative calculations (default: now)
+
+    Returns:
+        JIRA datetime string like '2025-01-20T00:00:00.000+0000'
+
+    Raises:
+        ValueError: If date format is unrecognized
+
+    Examples:
+        >>> convert_to_jira_datetime_string('2025-01-20')
+        '2025-01-20T00:00:00.000+0000'
+        >>> convert_to_jira_datetime_string('yesterday')  # doctest: +SKIP
+        '2025-01-14T00:00:00.000+0000'
+    """
+    if not date_str or not date_str.strip():
+        raise ValueError("Date string cannot be empty")
+
+    date_str = date_str.strip()
+
+    # Try to parse using parse_date_to_iso first
+    iso_date = parse_date_to_iso(date_str, base_date)
+
+    # Convert 'Z' suffix to '+0000'
+    if iso_date.endswith('Z'):
+        return iso_date[:-1] + '+0000'
+
+    # Already has timezone offset
+    return iso_date

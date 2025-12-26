@@ -395,3 +395,127 @@ def create_adf_code_block(code: str, language: str = "") -> Dict[str, Any]:
         node["attrs"] = attrs
 
     return node
+
+
+def wiki_markup_to_adf(text: str) -> Dict[str, Any]:
+    """
+    Convert JIRA wiki markup to ADF format.
+
+    Supports:
+    - *bold* -> strong text
+    - [text|url] -> linked text
+    - Plain text paragraphs
+
+    This is commonly used for formatting commit/PR comments that use
+    wiki-style markup like "*Field:* [link_text|url]".
+
+    Args:
+        text: Text with wiki markup
+
+    Returns:
+        ADF document dictionary
+
+    Example:
+        >>> wiki_markup_to_adf("*Commit:* [abc123|https://github.com/org/repo/commit/abc123]")
+        {
+            "version": 1,
+            "type": "doc",
+            "content": [...]
+        }
+    """
+    if not text:
+        return {
+            "version": 1,
+            "type": "doc",
+            "content": []
+        }
+
+    lines = text.split('\n')
+    content_blocks = []
+
+    for line in lines:
+        if line.strip():
+            content_blocks.append({
+                "type": "paragraph",
+                "content": _parse_wiki_inline(line)
+            })
+
+    return {
+        "version": 1,
+        "type": "doc",
+        "content": content_blocks if content_blocks else []
+    }
+
+
+def _parse_wiki_inline(text: str) -> List[Dict[str, Any]]:
+    """
+    Parse wiki-style inline formatting.
+
+    Handles:
+    - *bold text* -> strong
+    - [text|url] -> link
+
+    Args:
+        text: Text with wiki inline formatting
+
+    Returns:
+        List of ADF text nodes with formatting
+    """
+    if not text:
+        return [{"type": "text", "text": ""}]
+
+    result = []
+    remaining = text
+
+    # Patterns for wiki markup
+    # *bold* - matches *text* but not ** (empty bold)
+    bold_pattern = r'\*([^*]+)\*'
+    # [text|url] - wiki-style links
+    link_pattern = r'\[([^\]|]+)\|([^\]]+)\]'
+
+    while remaining:
+        bold_match = re.search(bold_pattern, remaining)
+        link_match = re.search(link_pattern, remaining)
+
+        # Collect valid matches
+        matches = []
+        if bold_match:
+            matches.append((bold_match, 'bold'))
+        if link_match:
+            matches.append((link_match, 'link'))
+
+        if not matches:
+            # No more matches, add remaining text
+            if remaining:
+                result.append({"type": "text", "text": remaining})
+            break
+
+        # Process the match that appears first
+        matches.sort(key=lambda x: x[0].start())
+        match, match_type = matches[0]
+
+        # Add any text before the match
+        if match.start() > 0:
+            result.append({"type": "text", "text": remaining[:match.start()]})
+
+        if match_type == 'bold':
+            result.append({
+                "type": "text",
+                "text": match.group(1),
+                "marks": [{"type": "strong"}]
+            })
+        elif match_type == 'link':
+            result.append({
+                "type": "text",
+                "text": match.group(1),
+                "marks": [
+                    {
+                        "type": "link",
+                        "attrs": {"href": match.group(2)}
+                    }
+                ]
+            })
+
+        remaining = remaining[match.end():]
+
+    return result if result else [{"type": "text", "text": ""}]

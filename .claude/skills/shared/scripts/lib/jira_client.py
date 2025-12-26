@@ -1116,7 +1116,9 @@ class JiraClient:
                     comment: Optional[Dict[str, Any]] = None,
                     adjust_estimate: str = 'auto',
                     new_estimate: Optional[str] = None,
-                    reduce_by: Optional[str] = None) -> Dict[str, Any]:
+                    reduce_by: Optional[str] = None,
+                    visibility_type: Optional[str] = None,
+                    visibility_value: Optional[str] = None) -> Dict[str, Any]:
         """
         Add a worklog to an issue.
 
@@ -1129,6 +1131,8 @@ class JiraClient:
                            'auto' (default), 'leave', 'new', 'manual'
             new_estimate: New remaining estimate (when adjust_estimate='new')
             reduce_by: Amount to reduce estimate (when adjust_estimate='manual')
+            visibility_type: 'role' or 'group' to restrict visibility (None for public)
+            visibility_value: Role or group name for visibility restriction
 
         Returns:
             Created worklog object
@@ -1143,6 +1147,12 @@ class JiraClient:
             payload['started'] = started
         if comment:
             payload['comment'] = comment
+        if visibility_type and visibility_value:
+            payload['visibility'] = {
+                'type': visibility_type,
+                'value': visibility_value,
+                'identifier': visibility_value
+            }
 
         params = {'adjustEstimate': adjust_estimate}
         if new_estimate and adjust_estimate == 'new':
@@ -1203,7 +1213,9 @@ class JiraClient:
                        started: Optional[str] = None,
                        comment: Optional[Dict[str, Any]] = None,
                        adjust_estimate: str = 'auto',
-                       new_estimate: Optional[str] = None) -> Dict[str, Any]:
+                       new_estimate: Optional[str] = None,
+                       visibility_type: Optional[str] = None,
+                       visibility_value: Optional[str] = None) -> Dict[str, Any]:
         """
         Update an existing worklog.
 
@@ -1215,6 +1227,8 @@ class JiraClient:
             comment: New comment in ADF format (optional)
             adjust_estimate: How to adjust remaining estimate
             new_estimate: New remaining estimate (when adjust_estimate='new')
+            visibility_type: 'role' or 'group' to restrict visibility (None for public)
+            visibility_value: Role or group name for visibility restriction
 
         Returns:
             Updated worklog object
@@ -1229,6 +1243,12 @@ class JiraClient:
             payload['started'] = started
         if comment:
             payload['comment'] = comment
+        if visibility_type and visibility_value:
+            payload['visibility'] = {
+                'type': visibility_type,
+                'value': visibility_value,
+                'identifier': visibility_value
+            }
 
         params = {'adjustEstimate': adjust_estimate}
         if new_estimate and adjust_estimate == 'new':

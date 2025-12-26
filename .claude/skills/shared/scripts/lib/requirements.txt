@@ -12,6 +12,9 @@ colorama>=0.4.6
 # Optional: .env file support
 python-dotenv>=1.0.0
 
+# Progress bar for bulk operations
+tqdm>=4.66.0
+
 # Testing dependencies
 pytest>=7.4.0
 pytest-cov>=4.1.0
