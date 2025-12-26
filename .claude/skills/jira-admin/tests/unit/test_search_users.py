@@ -249,6 +249,6 @@ class TestSearchUsersEmptyQuery:
 
         with patch('config_manager.get_jira_client', return_value=mock_jira_client):
             from search_users import search_users
-            results = search_users(mock_jira_client, query="")
+            results = search_users(mock_jira_client, query="", active_only=False)
 
         assert len(results) == len(sample_users)

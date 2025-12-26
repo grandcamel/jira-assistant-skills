@@ -1,1 +1,1 @@
-"""Unit tests for jira-admin skill."""
+"""Unit tests for jira-admin skill - Project Management."""

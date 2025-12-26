@@ -6,6 +6,13 @@ issue type and issue type scheme management.
 """
 
 import pytest
+
+
+def pytest_configure(config):
+    """Register custom markers."""
+    config.addinivalue_line("markers", "admin: mark test as admin skill test")
+    config.addinivalue_line("markers", "unit: mark test as unit test")
+    config.addinivalue_line("markers", "integration: mark test as integration test")
 from unittest.mock import Mock, MagicMock
 import sys
 from pathlib import Path
@@ -50,6 +57,24 @@ from fixtures.notification_scheme_responses import (
     RECIPIENT_TYPES,
 )
 
+from fixtures.permission_scheme_responses import (
+    PERMISSION_SCHEMES_RESPONSE,
+    PERMISSION_SCHEME_DETAIL_RESPONSE,
+    MINIMAL_SCHEME_RESPONSE,
+    CREATED_SCHEME_RESPONSE as PERMISSION_CREATED_SCHEME_RESPONSE,
+    CREATED_SCHEME_WITH_GRANTS_RESPONSE,
+    UPDATED_SCHEME_RESPONSE,
+    PERMISSION_GRANTS_RESPONSE,
+    CREATED_GRANT_RESPONSE,
+    ALL_PERMISSIONS_RESPONSE,
+    PROJECT_PERMISSION_SCHEME_RESPONSE,
+    PROJECT_ROLES_RESPONSE,
+    EMPTY_SCHEMES_RESPONSE,
+    SCHEME_NOT_FOUND_ERROR,
+    SCHEME_IN_USE_ERROR,
+    PERMISSION_DENIED_ERROR,
+)
+
 from fixtures.screen_responses import (
     SCREENS_RESPONSE,
     DEFAULT_SCREEN,
@@ -78,6 +103,31 @@ from fixtures.screen_responses import (
     SCREENS_PAGE_3,
     PROJECT_ISSUE_TYPES,
     SAMPLE_PROJECT,
+)
+
+from fixtures.workflow_responses import (
+    WORKFLOWS_RESPONSE,
+    SOFTWARE_WORKFLOW,
+    BUG_WORKFLOW,
+    WORKFLOW_SEARCH_RESPONSE,
+    WORKFLOW_SCHEMES_RESPONSE as WORKFLOW_SCHEMES_LIST_RESPONSE,
+    SOFTWARE_SCHEME_DETAIL,
+    PROJECT_WORKFLOW_SCHEME,
+    ASSIGN_SCHEME_TASK_RESPONSE,
+    TASK_COMPLETE_RESPONSE,
+    TASK_IN_PROGRESS_RESPONSE,
+    TASK_FAILED_RESPONSE,
+    ALL_STATUSES_RESPONSE,
+    STATUS_SEARCH_RESPONSE,
+    SINGLE_STATUS,
+    ISSUE_TRANSITIONS,
+    ISSUE_WITH_STATUS,
+    SCHEMES_FOR_WORKFLOW,
+    EMPTY_WORKFLOWS_RESPONSE,
+    EMPTY_SCHEMES_RESPONSE as WORKFLOW_EMPTY_SCHEMES_RESPONSE,
+    EMPTY_STATUSES_RESPONSE,
+    WORKFLOWS_PAGE_1,
+    WORKFLOWS_PAGE_2,
 )
 
 
@@ -909,3 +959,466 @@ def sample_trash_projects():
             }
         ]
     }
+
+
+# ========== Screen Management Fixtures ==========
+
+@pytest.fixture
+def screens_response():
+    """Sample JIRA API response for all screens."""
+    import copy
+    return copy.deepcopy(SCREENS_RESPONSE)
+
+
+@pytest.fixture
+def default_screen():
+    """Sample default screen for testing."""
+    import copy
+    return copy.deepcopy(DEFAULT_SCREEN)
+
+
+@pytest.fixture
+def bug_create_screen():
+    """Sample bug create screen with project scope."""
+    import copy
+    return copy.deepcopy(BUG_CREATE_SCREEN)
+
+
+@pytest.fixture
+def epic_screen():
+    """Sample epic screen for testing."""
+    import copy
+    return copy.deepcopy(EPIC_SCREEN)
+
+
+@pytest.fixture
+def default_screen_tabs():
+    """Sample screen tabs for default screen."""
+    import copy
+    return copy.deepcopy(DEFAULT_SCREEN_TABS)
+
+
+@pytest.fixture
+def single_tab():
+    """Sample single tab response."""
+    import copy
+    return copy.deepcopy(SINGLE_TAB)
+
+
+@pytest.fixture
+def field_tab_fields():
+    """Sample fields in Field Tab."""
+    import copy
+    return copy.deepcopy(FIELD_TAB_FIELDS)
+
+
+@pytest.fixture
+def custom_fields_tab_fields():
+    """Sample fields in Custom Fields tab."""
+    import copy
+    return copy.deepcopy(CUSTOM_FIELDS_TAB_FIELDS)
+
+
+@pytest.fixture
+def all_screen_fields():
+    """Sample all fields from all tabs."""
+    import copy
+    return copy.deepcopy(ALL_SCREEN_FIELDS)
+
+
+@pytest.fixture
+def available_fields():
+    """Sample available fields that can be added."""
+    import copy
+    return copy.deepcopy(AVAILABLE_FIELDS)
+
+
+@pytest.fixture
+def added_field_response():
+    """Sample response when adding a field."""
+    import copy
+    return copy.deepcopy(ADDED_FIELD_RESPONSE)
+
+
+@pytest.fixture
+def screen_schemes_response():
+    """Sample JIRA API response for screen schemes."""
+    import copy
+    return copy.deepcopy(SCREEN_SCHEMES_RESPONSE)
+
+
+@pytest.fixture
+def default_screen_scheme():
+    """Sample default screen scheme."""
+    import copy
+    return copy.deepcopy(DEFAULT_SCREEN_SCHEME)
+
+
+@pytest.fixture
+def bug_screen_scheme():
+    """Sample bug screen scheme."""
+    import copy
+    return copy.deepcopy(BUG_SCREEN_SCHEME)
+
+
+@pytest.fixture
+def issue_type_screen_schemes_response():
+    """Sample JIRA API response for issue type screen schemes."""
+    import copy
+    return copy.deepcopy(ISSUE_TYPE_SCREEN_SCHEMES_RESPONSE)
+
+
+@pytest.fixture
+def default_issue_type_screen_scheme():
+    """Sample default issue type screen scheme."""
+    import copy
+    return copy.deepcopy(DEFAULT_ISSUE_TYPE_SCREEN_SCHEME)
+
+
+@pytest.fixture
+def software_issue_type_screen_scheme():
+    """Sample software issue type screen scheme."""
+    import copy
+    return copy.deepcopy(SOFTWARE_ISSUE_TYPE_SCREEN_SCHEME)
+
+
+@pytest.fixture
+def issue_type_screen_scheme_mappings():
+    """Sample issue type to screen scheme mappings."""
+    import copy
+    return copy.deepcopy(ISSUE_TYPE_SCREEN_SCHEME_MAPPINGS)
+
+
+@pytest.fixture
+def project_issue_type_screen_schemes():
+    """Sample project to issue type screen scheme mappings."""
+    import copy
+    return copy.deepcopy(PROJECT_ISSUE_TYPE_SCREEN_SCHEMES)
+
+
+@pytest.fixture
+def empty_screens_response():
+    """Empty screens response for testing."""
+    import copy
+    return copy.deepcopy(EMPTY_SCREENS_RESPONSE)
+
+
+@pytest.fixture
+def empty_screen_schemes_response():
+    """Empty screen schemes response for testing."""
+    import copy
+    return copy.deepcopy(EMPTY_SCREEN_SCHEMES_RESPONSE)
+
+
+@pytest.fixture
+def empty_issue_type_screen_schemes_response():
+    """Empty issue type screen schemes response for testing."""
+    import copy
+    return copy.deepcopy(EMPTY_ISSUE_TYPE_SCREEN_SCHEMES_RESPONSE)
+
+
+@pytest.fixture
+def screens_page_1():
+    """First page of paginated screens."""
+    import copy
+    return copy.deepcopy(SCREENS_PAGE_1)
+
+
+@pytest.fixture
+def screens_page_2():
+    """Second page of paginated screens."""
+    import copy
+    return copy.deepcopy(SCREENS_PAGE_2)
+
+
+@pytest.fixture
+def screens_page_3():
+    """Third page of paginated screens."""
+    import copy
+    return copy.deepcopy(SCREENS_PAGE_3)
+
+
+@pytest.fixture
+def project_issue_types():
+    """Sample project issue types."""
+    import copy
+    return copy.deepcopy(PROJECT_ISSUE_TYPES)
+
+
+@pytest.fixture
+def sample_project():
+    """Sample project for testing."""
+    import copy
+    return copy.deepcopy(SAMPLE_PROJECT)
+
+
+# ========== Permission Scheme Fixtures ==========
+
+@pytest.fixture
+def permission_schemes_response():
+    """Sample JIRA API response for permission schemes list."""
+    import copy
+    return copy.deepcopy(PERMISSION_SCHEMES_RESPONSE)
+
+
+@pytest.fixture
+def permission_scheme_detail():
+    """Sample JIRA API response for single permission scheme with grants."""
+    import copy
+    return copy.deepcopy(PERMISSION_SCHEME_DETAIL_RESPONSE)
+
+
+@pytest.fixture
+def minimal_permission_scheme():
+    """Sample permission scheme with minimal grants."""
+    import copy
+    return copy.deepcopy(MINIMAL_SCHEME_RESPONSE)
+
+
+@pytest.fixture
+def created_permission_scheme():
+    """Sample JIRA API response for newly created permission scheme."""
+    import copy
+    return copy.deepcopy(PERMISSION_CREATED_SCHEME_RESPONSE)
+
+
+@pytest.fixture
+def created_scheme_with_grants():
+    """Sample created scheme with initial grants."""
+    import copy
+    return copy.deepcopy(CREATED_SCHEME_WITH_GRANTS_RESPONSE)
+
+
+@pytest.fixture
+def updated_permission_scheme():
+    """Sample JIRA API response for updated permission scheme."""
+    import copy
+    return copy.deepcopy(UPDATED_SCHEME_RESPONSE)
+
+
+@pytest.fixture
+def permission_grants():
+    """Sample permission grants response."""
+    import copy
+    return copy.deepcopy(PERMISSION_GRANTS_RESPONSE)
+
+
+@pytest.fixture
+def created_permission_grant():
+    """Sample JIRA API response for created permission grant."""
+    import copy
+    return copy.deepcopy(CREATED_GRANT_RESPONSE)
+
+
+@pytest.fixture
+def all_permissions():
+    """Sample JIRA API response for all available permissions."""
+    import copy
+    return copy.deepcopy(ALL_PERMISSIONS_RESPONSE)
+
+
+@pytest.fixture
+def project_permission_scheme():
+    """Sample JIRA API response for project's permission scheme."""
+    import copy
+    return copy.deepcopy(PROJECT_PERMISSION_SCHEME_RESPONSE)
+
+
+@pytest.fixture
+def project_roles():
+    """Sample JIRA API response for project roles."""
+    import copy
+    return copy.deepcopy(PROJECT_ROLES_RESPONSE)
+
+
+@pytest.fixture
+def empty_permission_schemes():
+    """Sample empty permission schemes response."""
+    import copy
+    return copy.deepcopy(EMPTY_SCHEMES_RESPONSE)
+
+
+# ========== Workflow Management Fixtures ==========
+
+@pytest.fixture
+def workflows_response():
+    """Sample JIRA API response for workflows list."""
+    import copy
+    return copy.deepcopy(WORKFLOWS_RESPONSE)
+
+
+@pytest.fixture
+def software_workflow():
+    """Sample Software Development Workflow with full details."""
+    import copy
+    return copy.deepcopy(SOFTWARE_WORKFLOW)
+
+
+@pytest.fixture
+def bug_workflow():
+    """Sample Bug Workflow for testing."""
+    import copy
+    return copy.deepcopy(BUG_WORKFLOW)
+
+
+@pytest.fixture
+def workflow_search_response():
+    """Sample workflow search response with transitions."""
+    import copy
+    return copy.deepcopy(WORKFLOW_SEARCH_RESPONSE)
+
+
+@pytest.fixture
+def workflow_schemes_list_response():
+    """Sample workflow schemes list response."""
+    import copy
+    return copy.deepcopy(WORKFLOW_SCHEMES_LIST_RESPONSE)
+
+
+@pytest.fixture
+def software_scheme_detail():
+    """Sample Software Development Scheme with full details."""
+    import copy
+    return copy.deepcopy(SOFTWARE_SCHEME_DETAIL)
+
+
+@pytest.fixture
+def project_workflow_scheme():
+    """Sample project workflow scheme response."""
+    import copy
+    return copy.deepcopy(PROJECT_WORKFLOW_SCHEME)
+
+
+@pytest.fixture
+def assign_scheme_task_response():
+    """Sample async task response for scheme assignment."""
+    import copy
+    return copy.deepcopy(ASSIGN_SCHEME_TASK_RESPONSE)
+
+
+@pytest.fixture
+def task_complete_response():
+    """Sample completed task response."""
+    import copy
+    return copy.deepcopy(TASK_COMPLETE_RESPONSE)
+
+
+@pytest.fixture
+def task_in_progress_response():
+    """Sample in-progress task response."""
+    import copy
+    return copy.deepcopy(TASK_IN_PROGRESS_RESPONSE)
+
+
+@pytest.fixture
+def task_failed_response():
+    """Sample failed task response."""
+    import copy
+    return copy.deepcopy(TASK_FAILED_RESPONSE)
+
+
+@pytest.fixture
+def all_statuses_response():
+    """Sample all statuses response."""
+    import copy
+    return copy.deepcopy(ALL_STATUSES_RESPONSE)
+
+
+@pytest.fixture
+def status_search_response():
+    """Sample status search response."""
+    import copy
+    return copy.deepcopy(STATUS_SEARCH_RESPONSE)
+
+
+@pytest.fixture
+def single_status():
+    """Sample single status object."""
+    import copy
+    return copy.deepcopy(SINGLE_STATUS)
+
+
+@pytest.fixture
+def issue_transitions():
+    """Sample issue transitions response."""
+    import copy
+    return copy.deepcopy(ISSUE_TRANSITIONS)
+
+
+@pytest.fixture
+def issue_with_status():
+    """Sample issue with status information."""
+    import copy
+    return copy.deepcopy(ISSUE_WITH_STATUS)
+
+
+@pytest.fixture
+def schemes_for_workflow():
+    """Sample workflow schemes using a workflow."""
+    import copy
+    return copy.deepcopy(SCHEMES_FOR_WORKFLOW)
+
+
+@pytest.fixture
+def empty_workflows_response():
+    """Empty workflows response for testing."""
+    import copy
+    return copy.deepcopy(EMPTY_WORKFLOWS_RESPONSE)
+
+
+@pytest.fixture
+def empty_workflow_schemes_response():
+    """Empty workflow schemes response for testing."""
+    import copy
+    return copy.deepcopy(WORKFLOW_EMPTY_SCHEMES_RESPONSE)
+
+
+@pytest.fixture
+def empty_statuses_response():
+    """Empty statuses response for testing."""
+    import copy
+    return copy.deepcopy(EMPTY_STATUSES_RESPONSE)
+
+
+@pytest.fixture
+def workflows_page_1():
+    """First page of paginated workflows."""
+    import copy
+    return copy.deepcopy(WORKFLOWS_PAGE_1)
+
+
+@pytest.fixture
+def workflows_page_2():
+    """Second page of paginated workflows."""
+    import copy
+    return copy.deepcopy(WORKFLOWS_PAGE_2)
+
+
+@pytest.fixture
+def task_failed_response():
+    """Sample failed task response for workflow scheme assignment."""
+    import copy
+    return copy.deepcopy(TASK_FAILED_RESPONSE)
+
+
+# ========== Permission Scheme Error Fixtures ==========
+
+@pytest.fixture
+def scheme_not_found_error():
+    """Sample error response when permission scheme is not found."""
+    import copy
+    return copy.deepcopy(SCHEME_NOT_FOUND_ERROR)
+
+
+@pytest.fixture
+def scheme_in_use_error():
+    """Sample error response when permission scheme is in use by projects."""
+    import copy
+    return copy.deepcopy(SCHEME_IN_USE_ERROR)
+
+
+@pytest.fixture
+def permission_denied_error():
+    """Sample error response when user lacks permission to view schemes."""
+    import copy
+    return copy.deepcopy(PERMISSION_DENIED_ERROR)

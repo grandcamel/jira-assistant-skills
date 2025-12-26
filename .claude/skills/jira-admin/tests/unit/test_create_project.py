@@ -76,6 +76,10 @@ class TestCreateProject:
         from create_project import create_project
 
         mock_jira_client.create_project.return_value = sample_project_create_response
+        # Mock search_users to return user when looking up email
+        mock_jira_client.search_users.return_value = [
+            {'accountId': 'alice-account-id', 'emailAddress': 'alice@example.com'}
+        ]
 
         result = create_project(
             key="PROJ",
@@ -89,7 +93,7 @@ class TestCreateProject:
 
         # Verify lead was passed
         call_kwargs = mock_jira_client.create_project.call_args
-        assert 'alice@example.com' in str(call_kwargs) or 'lead' in str(call_kwargs)
+        assert 'alice-account-id' in str(call_kwargs) or 'lead' in str(call_kwargs)
 
     def test_create_project_with_description(self, mock_jira_client, sample_project_create_response):
         """Test creating project with description."""
@@ -118,6 +122,7 @@ class TestCreateProject:
 
         mock_jira_client.create_project.return_value = sample_project_create_response
         mock_jira_client.get_current_user_id.return_value = "557058:test-user-id"
+        mock_jira_client.update_project.return_value = sample_project_create_response
 
         result = create_project(
             key="PROJ",
@@ -129,28 +134,29 @@ class TestCreateProject:
 
         assert result is not None
 
-        # Verify category was passed
-        call_kwargs = mock_jira_client.create_project.call_args
-        assert '10000' in str(call_kwargs) or 'category' in str(call_kwargs).lower()
+        # Verify update_project was called with category
+        mock_jira_client.update_project.assert_called_once()
+        update_call = mock_jira_client.update_project.call_args
+        assert 'category_id' in str(update_call) or '10000' in str(update_call)
 
     def test_create_project_invalid_key(self, mock_jira_client):
         """Test validation of project key (uppercase, starts with letter)."""
         from create_project import create_project
         from error_handler import ValidationError
 
-        # Invalid: lowercase
+        # Test with invalid characters (contains hyphen which is not allowed)
         with pytest.raises(ValidationError) as exc_info:
             create_project(
-                key="proj",  # Will be uppercased, but if invalid format...
+                key="PR-OJ",  # Contains invalid character
                 name="Test Project",
                 project_type="software",
                 client=mock_jira_client
             )
 
-        # Test with invalid characters
+        # Test with too long key
         with pytest.raises(ValidationError) as exc_info:
             create_project(
-                key="PR-OJ",  # Contains invalid character
+                key="VERYLONGPROJECTKEY",  # Too long (>10 chars)
                 name="Test Project",
                 project_type="software",
                 client=mock_jira_client

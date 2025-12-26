@@ -163,13 +163,23 @@ class TestSchemeNotFound:
 class TestShowProjectsUsingScheme:
     """Test showing which projects use this scheme."""
 
-    def test_show_projects_using_scheme(self, mock_jira_client, sample_notification_scheme_detail, sample_project_mappings):
+    def test_show_projects_using_scheme(self, mock_jira_client, sample_notification_scheme_detail):
         """Test showing which projects use this scheme."""
         from get_notification_scheme import get_notification_scheme
 
-        # Setup mock
+        # Setup mock with filtered project mappings (only for scheme 10000)
+        filtered_mappings = {
+            'values': [
+                {'projectId': '10000', 'notificationSchemeId': '10000'},
+                {'projectId': '10001', 'notificationSchemeId': '10000'}
+            ],
+            'startAt': 0,
+            'maxResults': 50,
+            'total': 2,
+            'isLast': True
+        }
         mock_jira_client.get_notification_scheme.return_value = sample_notification_scheme_detail
-        mock_jira_client.get_notification_scheme_projects.return_value = sample_project_mappings
+        mock_jira_client.get_notification_scheme_projects.return_value = filtered_mappings
 
         # Execute with show_projects=True
         result = get_notification_scheme(
