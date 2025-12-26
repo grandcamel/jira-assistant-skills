@@ -24,8 +24,9 @@ class TestCacheWarmProjects:
 
     def test_warm_projects_success(self, jira_client, test_cache):
         """Test warming projects cache from JIRA."""
-        count = warm_projects(jira_client, test_cache, verbose=False)
+        count, error = warm_projects(jira_client, test_cache, verbose=False)
 
+        assert error is None
         assert count > 0
 
         # Verify cache has data
@@ -34,15 +35,16 @@ class TestCacheWarmProjects:
 
     def test_warm_projects_with_verbose(self, jira_client, test_cache, capsys):
         """Test verbose output during cache warming."""
-        count = warm_projects(jira_client, test_cache, verbose=True)
+        count, error = warm_projects(jira_client, test_cache, verbose=True)
 
         captured = capsys.readouterr()
         assert "Fetching projects" in captured.out
+        assert error is None
         assert count > 0
 
     def test_warm_projects_cacheable(self, jira_client, test_cache):
         """Test that projects are properly cached."""
-        count = warm_projects(jira_client, test_cache, verbose=False)
+        count, _ = warm_projects(jira_client, test_cache, verbose=False)
 
         # Get a project from cache
         # Projects are cached by key
@@ -55,8 +57,9 @@ class TestCacheWarmFields:
 
     def test_warm_fields_success(self, jira_client, test_cache):
         """Test warming fields cache from JIRA."""
-        count = warm_fields(jira_client, test_cache, verbose=False)
+        count, error = warm_fields(jira_client, test_cache, verbose=False)
 
+        assert error is None
         assert count > 0
 
         # Verify cache has field data
@@ -65,10 +68,11 @@ class TestCacheWarmFields:
 
     def test_warm_fields_with_verbose(self, jira_client, test_cache, capsys):
         """Test verbose output during field cache warming."""
-        count = warm_fields(jira_client, test_cache, verbose=True)
+        count, error = warm_fields(jira_client, test_cache, verbose=True)
 
         captured = capsys.readouterr()
         assert "Fetching fields" in captured.out
+        assert error is None
         assert count > 0
 
     def test_warm_fields_caches_all_list(self, jira_client, test_cache):
@@ -89,16 +93,18 @@ class TestCacheWarmIssueTypes:
 
     def test_warm_issue_types_success(self, jira_client, test_cache):
         """Test warming issue types cache from JIRA."""
-        count = warm_issue_types(jira_client, test_cache, verbose=False)
+        count, error = warm_issue_types(jira_client, test_cache, verbose=False)
 
+        assert error is None
         assert isinstance(count, int)
         assert count > 0
 
     def test_warm_issue_types_with_verbose(self, jira_client, test_cache, capsys):
         """Test verbose output during issue type cache warming."""
-        count = warm_issue_types(jira_client, test_cache, verbose=True)
+        count, error = warm_issue_types(jira_client, test_cache, verbose=True)
 
         captured = capsys.readouterr()
+        assert error is None
         assert "issue types" in captured.out.lower() or count > 0
 
 
@@ -107,15 +113,17 @@ class TestCacheWarmPrioritiesAndStatuses:
 
     def test_warm_priorities_success(self, jira_client, test_cache):
         """Test warming priorities cache from JIRA."""
-        count = warm_priorities(jira_client, test_cache, verbose=False)
+        count, error = warm_priorities(jira_client, test_cache, verbose=False)
 
+        assert error is None
         assert isinstance(count, int)
         assert count > 0
 
     def test_warm_statuses_success(self, jira_client, test_cache):
         """Test warming statuses cache from JIRA."""
-        count = warm_statuses(jira_client, test_cache, verbose=False)
+        count, error = warm_statuses(jira_client, test_cache, verbose=False)
 
+        assert error is None
         assert isinstance(count, int)
         assert count > 0
 
@@ -247,8 +255,12 @@ class TestCacheIntegration:
     def test_cache_warm_all(self, jira_client, test_cache):
         """Test warming all caches."""
         # Warm all cache types
-        project_count = warm_projects(jira_client, test_cache, verbose=False)
-        field_count = warm_fields(jira_client, test_cache, verbose=False)
+        project_count, project_error = warm_projects(jira_client, test_cache, verbose=False)
+        field_count, field_error = warm_fields(jira_client, test_cache, verbose=False)
+
+        # Verify no errors
+        assert project_error is None
+        assert field_error is None
 
         # Verify caches have data
         stats = test_cache.get_stats()

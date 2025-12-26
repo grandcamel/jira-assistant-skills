@@ -109,11 +109,19 @@ class TestBulkLogTimeJQL:
 
     def test_bulk_log_time_with_jql(self, jira_client, multiple_issues, test_project):
         """Test logging time to issues found via JQL."""
-        # Wait for issues to be indexed
+        # Wait for issues to be indexed with retry loop
         import time
-        time.sleep(1)
-
+        issue_keys = [i['key'] for i in multiple_issues]
         jql = f'project = {test_project["key"]} AND type = Task'
+
+        # Retry loop for eventual consistency
+        max_retries = 10
+        for attempt in range(max_retries):
+            search_result = jira_client.search_issues(jql, fields=['key'], max_results=100)
+            found_keys = [i['key'] for i in search_result.get('issues', [])]
+            if all(key in found_keys for key in issue_keys):
+                break
+            time.sleep(1)
 
         result = bulk_log_time(
             jira_client,
@@ -126,10 +134,19 @@ class TestBulkLogTimeJQL:
 
     def test_bulk_log_time_jql_dry_run(self, jira_client, multiple_issues, test_project):
         """Test dry run with JQL query."""
+        # Wait for issues to be indexed with retry loop
         import time
-        time.sleep(1)
-
+        issue_keys = [i['key'] for i in multiple_issues]
         jql = f'project = {test_project["key"]} AND type = Task'
+
+        # Retry loop for eventual consistency
+        max_retries = 10
+        for attempt in range(max_retries):
+            search_result = jira_client.search_issues(jql, fields=['key'], max_results=100)
+            found_keys = [i['key'] for i in search_result.get('issues', [])]
+            if all(key in found_keys for key in issue_keys):
+                break
+            time.sleep(1)
 
         result = bulk_log_time(
             jira_client,
