@@ -1,6 +1,6 @@
 ---
 name: "JIRA Lifecycle Management"
-description: "Workflow and lifecycle management for JIRA issues - transitions, assignments, versions, components. Use when transitioning issues, assigning users, managing versions, or handling components."
+description: "Manage JIRA issue workflow transitions and status changes. Use when moving issues to a status (In Progress, Done, Closed), changing status, transitioning workflow, reopening, resolving, assigning users, or managing versions and components."
 ---
 
 # jira-lifecycle
