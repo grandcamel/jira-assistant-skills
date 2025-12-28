@@ -44,8 +44,10 @@ jobs:
 
       - name: Run tests
         run: |
-          pip install pytest
-          python -m pytest .claude/skills/*/tests/ -v --ignore=.claude/skills/*/tests/live_integration
+          pip install pytest pytest-asyncio
+          python -m pytest .claude/skills/*/tests/ -v \
+            --ignore=.claude/skills/*/tests/live_integration \
+            --import-mode=importlib
 
       - name: Create release archive
         run: |
