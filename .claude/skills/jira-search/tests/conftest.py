@@ -199,7 +199,7 @@ def sample_filter():
         },
         'jql': 'project = PROJ AND type = Bug AND status != Done',
         'viewUrl': 'https://test.atlassian.net/issues/?filter=10042',
-        'searchUrl': 'https://test.atlassian.net/rest/api/3/search?jql=project+%3D+PROJ+AND+type+%3D+Bug+AND+status+%21%3D+Done',
+        'searchUrl': 'https://test.atlassian.net/rest/api/3/search/jql?jql=project+%3D+PROJ+AND+type+%3D+Bug+AND+status+%21%3D+Done',
         'favourite': True,
         'favouritedCount': 5,
         'sharePermissions': [],

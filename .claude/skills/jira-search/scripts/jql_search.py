@@ -64,7 +64,7 @@ def save_search_as_filter(client, jql: str, name: str,
 
 
 def search_issues(jql: str, fields: list = None, max_results: int = 50,
-                 start_at: int = 0, profile: str = None,
+                 next_page_token: str = None, profile: str = None,
                  include_agile: bool = False, include_links: bool = False,
                  include_time: bool = False) -> dict:
     """
@@ -74,14 +74,14 @@ def search_issues(jql: str, fields: list = None, max_results: int = 50,
         jql: JQL query string
         fields: List of fields to return (default: key, summary, status, priority, issuetype)
         max_results: Maximum results per page
-        start_at: Starting index for pagination
+        next_page_token: Token for fetching next page (from previous response)
         profile: JIRA profile to use
         include_agile: If True, include epic link and story points fields
         include_links: If True, include issue links
         include_time: If True, include time tracking fields
 
     Returns:
-        Search results dictionary
+        Search results dictionary with nextPageToken for pagination
     """
     jql = validate_jql(jql)
 
@@ -95,7 +95,8 @@ def search_issues(jql: str, fields: list = None, max_results: int = 50,
             fields.append('timetracking')
 
     client = get_jira_client(profile)
-    results = client.search_issues(jql, fields=fields, max_results=max_results, start_at=start_at)
+    results = client.search_issues(jql, fields=fields, max_results=max_results,
+                                   next_page_token=next_page_token)
     client.close()
 
     return results
@@ -129,10 +130,8 @@ Examples:
                        type=int,
                        default=50,
                        help='Maximum number of results (default: 50)')
-    parser.add_argument('--start-at', '-s',
-                       type=int,
-                       default=0,
-                       help='Starting index for pagination (default: 0)')
+    parser.add_argument('--page-token', '-p',
+                       help='Next page token from previous response (for pagination)')
     parser.add_argument('--output', '-o',
                        choices=['text', 'json'],
                        default='text',
@@ -185,7 +184,7 @@ Examples:
         # Execute search
         results = client.search_issues(jql, fields=fields,
                                        max_results=args.max_results,
-                                       start_at=args.start_at)
+                                       next_page_token=args.page_token)
 
         issues = results.get('issues', [])
         total = results.get('total', 0)
@@ -216,9 +215,12 @@ Examples:
                                            show_links=args.show_links,
                                            show_time=args.show_time))
 
-                if total > len(issues):
-                    remaining = total - args.start_at - len(issues)
-                    print(f"\nShowing {len(issues)} of {total} results (use --start-at and --max-results for pagination)")
+                # Show pagination info if more results available
+                next_token = results.get('nextPageToken')
+                if next_token:
+                    print(f"\nShowing {len(issues)} of {total} results")
+                    print(f"Next page token: {next_token}")
+                    print("Use --page-token to fetch next page")
 
     except JiraError as e:
         print_error(e)

@@ -53,7 +53,7 @@ class ExportProgress:
     format_type: str
     total_expected: int = 0
     total_exported: int = 0
-    start_at: int = 0
+    next_page_token: Optional[str] = None
     started_at: str = ""
     updated_at: str = ""
     fields: List[str] = None
@@ -191,11 +191,13 @@ def stream_issues(
     fields: List[str],
     max_results: int = DEFAULT_MAX_RESULTS,
     page_size: int = DEFAULT_PAGE_SIZE,
-    start_at: int = 0,
-    progress_callback: Optional[Callable[[int, int], None]] = None
+    next_page_token: Optional[str] = None,
+    progress_callback: Optional[Callable[[int, int, Optional[str]], None]] = None
 ) -> Iterator[Dict[str, Any]]:
     """
-    Stream issues from JIRA API using pagination.
+    Stream issues from JIRA API using token-based pagination.
+
+    Uses nextPageToken per CHANGE-2046 migration requirements.
 
     Args:
         client: JIRA client instance
@@ -203,14 +205,15 @@ def stream_issues(
         fields: List of fields to fetch
         max_results: Maximum total results
         page_size: Results per API call
-        start_at: Starting offset for resume
-        progress_callback: Optional callback(fetched, total)
+        next_page_token: Token to resume from (for checkpoint recovery)
+        progress_callback: Optional callback(fetched, total, next_token)
 
     Yields:
         Issue dictionaries one at a time
     """
     total = None
-    fetched = start_at
+    fetched = 0
+    current_token = next_page_token
 
     while fetched < max_results:
         try:
@@ -218,17 +221,20 @@ def stream_issues(
                 jql,
                 fields=fields,
                 max_results=min(page_size, max_results - fetched),
-                start_at=fetched
+                next_page_token=current_token
             )
 
             if total is None:
                 total = min(result.get('total', 0), max_results)
                 if progress_callback:
-                    progress_callback(fetched, total)
+                    progress_callback(fetched, total, current_token)
 
             issues = result.get('issues', [])
             if not issues:
                 break
+
+            # Get next page token for subsequent requests
+            current_token = result.get('nextPageToken')
 
             for issue in issues:
                 yield issue
@@ -238,14 +244,18 @@ def stream_issues(
                     break
 
             if progress_callback:
-                progress_callback(fetched, total)
+                progress_callback(fetched, total, current_token)
+
+            # No more pages if no nextPageToken
+            if not current_token:
+                break
 
             # Small delay between pages to avoid rate limiting
             if fetched < total:
                 time.sleep(0.1)
 
         except JiraError as e:
-            print_warning(f"Error at offset {fetched}: {e}")
+            print_warning(f"Error after fetching {fetched} issues: {e}")
             raise
 
 
@@ -305,6 +315,8 @@ class StreamingExporter:
         """
         Execute streaming export.
 
+        Uses token-based pagination per CHANGE-2046.
+
         Args:
             resume_from: Optional checkpoint to resume from
             show_progress: Show progress bar
@@ -312,21 +324,22 @@ class StreamingExporter:
         Returns:
             Export statistics
         """
-        start_at = 0
+        resume_token = None
+        resume_count = 0
         mode = 'w'
 
         # Handle resume
         if resume_from:
-            start_at = resume_from.total_exported
+            resume_token = resume_from.next_page_token
+            resume_count = resume_from.total_exported
             mode = 'a'
-            print_info(f"Resuming from offset {start_at}")
+            print_info(f"Resuming from checkpoint (exported: {resume_count})")
 
         # Get total count first
         initial_result = self.client.search_issues(
             self.jql,
             fields=['key'],
-            max_results=1,
-            start_at=0
+            max_results=1
         )
         total_available = initial_result.get('total', 0)
         total_to_export = min(total_available, self.max_results)
@@ -348,13 +361,14 @@ class StreamingExporter:
             output_file=self.output_file,
             format_type=self.format_type,
             total_expected=total_to_export,
-            total_exported=start_at,
-            start_at=start_at,
+            total_exported=resume_count,
+            next_page_token=resume_token,
             started_at=resume_from.started_at if resume_from else datetime.now().isoformat(),
             fields=self.fields
         )
 
-        exported = start_at
+        exported = resume_count
+        current_token = resume_token
         columns = ['key'] + [f for f in self.fields if f != 'key']
 
         # Setup progress tracking
@@ -362,7 +376,7 @@ class StreamingExporter:
         if TQDM_AVAILABLE and show_progress:
             pbar = tqdm(
                 total=total_to_export,
-                initial=start_at,
+                initial=resume_count,
                 desc="Exporting",
                 unit="issue"
             )
@@ -376,13 +390,18 @@ class StreamingExporter:
                     if mode == 'w':
                         self._write_csv_header(writer, columns)
 
+                    def update_token(fetched, total, token):
+                        nonlocal current_token
+                        current_token = token
+
                     for issue in stream_issues(
                         self.client,
                         self.jql,
                         self.fields,
                         max_results=self.max_results,
                         page_size=self.page_size,
-                        start_at=start_at
+                        next_page_token=current_token,
+                        progress_callback=update_token
                     ):
                         row = flatten_issue(issue, self.fields)
                         self._write_csv_row(writer, row, columns)
@@ -394,17 +413,23 @@ class StreamingExporter:
                         # Save checkpoint periodically
                         if self.enable_checkpoint and exported % CHECKPOINT_INTERVAL == 0:
                             progress.total_exported = exported
+                            progress.next_page_token = current_token
                             self.checkpoint_mgr.save(self.operation_id, progress)
 
             elif self.format_type == 'jsonl':
                 with open(self.output_file, mode, encoding='utf-8') as f:
+                    def update_token_jsonl(fetched, total, token):
+                        nonlocal current_token
+                        current_token = token
+
                     for issue in stream_issues(
                         self.client,
                         self.jql,
                         self.fields,
                         max_results=self.max_results,
                         page_size=self.page_size,
-                        start_at=start_at
+                        next_page_token=current_token,
+                        progress_callback=update_token_jsonl
                     ):
                         row = flatten_issue(issue, self.fields)
                         self._write_jsonl_row(f, row)
@@ -416,6 +441,7 @@ class StreamingExporter:
                         # Save checkpoint periodically
                         if self.enable_checkpoint and exported % CHECKPOINT_INTERVAL == 0:
                             progress.total_exported = exported
+                            progress.next_page_token = current_token
                             self.checkpoint_mgr.save(self.operation_id, progress)
 
             elif self.format_type == 'json':
@@ -434,7 +460,7 @@ class StreamingExporter:
                     self.fields,
                     max_results=self.max_results,
                     page_size=self.page_size,
-                    start_at=start_at
+                    next_page_token=current_token
                 ):
                     row = flatten_issue(issue, self.fields)
                     all_rows.append(row)
