@@ -81,6 +81,56 @@ Tell me what you need in natural language. I'll load the appropriate specialized
 
 ---
 
+## Script Execution Guidelines
+
+**IMPORTANT: Always verify command syntax before execution.**
+
+Before running any JIRA script, check the syntax and available options:
+
+```bash
+# Always run --help first to verify syntax
+python script_name.py --help
+```
+
+### Why This Matters
+
+1. **Parameter validation** - Confirm required vs optional arguments
+2. **Correct flags** - Verify exact flag names (e.g., `--issue-key` vs `--issue`)
+3. **Value formats** - Check expected formats (dates, time strings, JQL)
+4. **Avoid failures** - Prevent execution errors from incorrect syntax
+
+### Execution Pattern
+
+Follow this pattern for every script execution:
+
+```bash
+# Step 1: Check syntax first
+python .claude/skills/jira-issue/scripts/create_issue.py --help
+
+# Step 2: Execute with verified parameters
+python .claude/skills/jira-issue/scripts/create_issue.py --project PROJ --type Bug --summary "Issue title"
+```
+
+### Common Parameter Patterns
+
+| Pattern | Example | Notes |
+|---------|---------|-------|
+| Issue key | `PROJ-123` | Positional or `--issue-key` |
+| Project | `--project PROJ` | 2-10 char uppercase |
+| Profile | `--profile development` | JIRA instance to use |
+| Dry run | `--dry-run` | Preview without changes |
+| Output | `--output json` | json, table, or csv |
+
+### Error Prevention
+
+When a script fails:
+1. Re-run with `--help` to verify exact syntax
+2. Check if required parameters are missing
+3. Validate parameter value formats
+4. Verify `--profile` matches configured instance
+
+---
+
 ## Available Skills Summary
 
 ### Core Operations
