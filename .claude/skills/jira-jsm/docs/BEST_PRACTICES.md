@@ -1,5 +1,13 @@
 # Jira Service Management (JSM) Best Practices Guide
 
+**Quick Navigation**:
+- Need to get started? See [QUICK_START.md](QUICK_START.md)
+- Looking for examples? See [USAGE_EXAMPLES.md](USAGE_EXAMPLES.md)
+- Have an error? See [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
+- ITIL workflow patterns? See [ITIL_WORKFLOWS.md](ITIL_WORKFLOWS.md)
+
+---
+
 Comprehensive guide to Jira Service Management best practices for effective IT service management, ITIL compliance, and customer support excellence.
 
 ---
