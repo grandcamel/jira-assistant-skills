@@ -16,9 +16,9 @@ Generate release notes from JIRA issues in a version.
 ### Via API
 
 ```bash
-# Get issues for version
+# Get issues for version (using /search/jql per CHANGE-2046)
 curl -X GET \
-  "https://your-company.atlassian.net/rest/api/3/search?jql=project=PROJ+AND+fixVersion=2.0.0" \
+  "https://your-company.atlassian.net/rest/api/3/search/jql?jql=project=PROJ+AND+fixVersion=2.0.0" \
   -H "Authorization: Bearer ${JIRA_API_TOKEN}"
 ```
 
@@ -34,7 +34,7 @@ PROJECT="$2"
 JQL="project=${PROJECT}+AND+fixVersion=${VERSION}+ORDER+BY+type,priority+DESC"
 
 curl -s -X GET \
-  "https://your-company.atlassian.net/rest/api/3/search?jql=${JQL}" \
+  "https://your-company.atlassian.net/rest/api/3/search/jql?jql=${JQL}" \
   -H "Authorization: Bearer ${JIRA_API_TOKEN}" \
   | jq -r '
     "# Release Notes - '$VERSION'",
@@ -91,7 +91,7 @@ Full changelog: https://your-company.atlassian.net/projects/PROJ/versions/10100
 - name: Generate release notes from JIRA
   run: |
     NOTES=$(curl -s -X GET \
-      "https://your-company.atlassian.net/rest/api/3/search?jql=project=PROJ+AND+fixVersion=${VERSION}" \
+      "https://your-company.atlassian.net/rest/api/3/search/jql?jql=project=PROJ+AND+fixVersion=${VERSION}" \
       -H "Authorization: Bearer ${JIRA_API_TOKEN}" \
       | jq -r '.issues[] | "- **\(.key)**: \(.fields.summary)"')
 

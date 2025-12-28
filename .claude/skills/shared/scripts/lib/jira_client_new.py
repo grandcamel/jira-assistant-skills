@@ -262,18 +262,23 @@ class JiraClient:
                     f.write(chunk)
 
     def search_issues(self, jql: str, fields: Optional[list] = None,
-                      max_results: int = 50, start_at: int = 0) -> Dict[str, Any]:
+                      max_results: int = 50, next_page_token: Optional[str] = None,
+                      start_at: Optional[int] = None) -> Dict[str, Any]:
         """
         Search for issues using JQL.
+
+        Uses the /rest/api/3/search/jql endpoint per CHANGE-2046.
+        Pagination uses nextPageToken (startAt is deprecated).
 
         Args:
             jql: JQL query string
             fields: List of fields to return (default: all)
             max_results: Maximum number of results per page
-            start_at: Starting index for pagination
+            next_page_token: Token for fetching next page of results
+            start_at: DEPRECATED - Starting index (use next_page_token instead)
 
         Returns:
-            Search results with issues, total, etc.
+            Search results with issues, total, nextPageToken, etc.
 
         Raises:
             JiraError or subclass on failure
@@ -281,8 +286,14 @@ class JiraClient:
         params = {
             'jql': jql,
             'maxResults': max_results,
-            'startAt': start_at,
         }
+
+        # Use nextPageToken for pagination (preferred per CHANGE-2046)
+        if next_page_token:
+            params['nextPageToken'] = next_page_token
+        elif start_at is not None and start_at > 0:
+            # Deprecated: startAt still works but should migrate to nextPageToken
+            params['startAt'] = start_at
 
         if fields:
             params['fields'] = ','.join(fields)

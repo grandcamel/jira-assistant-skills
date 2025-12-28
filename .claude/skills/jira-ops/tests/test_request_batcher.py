@@ -57,7 +57,7 @@ class TestBatchCollectRequests:
 
         request_id = batcher.add(
             "GET",
-            "/rest/api/3/search",
+            "/rest/api/3/search/jql",
             params={"jql": "project = PROJ", "maxResults": 50}
         )
 
