@@ -1,0 +1,14 @@
+.git
+.github
+*.md
+!plugins/**/*.md
+proposals/
+docs/
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+**/tests/
+.claude-plugin/
+*.json
+!plugins/**/plugin.json
+!.claude-plugin/marketplace.json

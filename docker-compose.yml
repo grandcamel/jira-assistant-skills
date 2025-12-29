@@ -1,0 +1,13 @@
+services:
+  claude-jira:
+    build: .
+    stdin_open: true
+    tty: true
+    environment:
+      - JIRA_API_TOKEN=${JIRA_API_TOKEN}
+      - JIRA_EMAIL=${JIRA_EMAIL}
+      - JIRA_SITE_URL=${JIRA_SITE_URL}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    volumes:
+      # Mount current directory for testing
+      - .:/workspace/project:ro
