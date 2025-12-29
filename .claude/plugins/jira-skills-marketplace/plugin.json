@@ -1,0 +1,14 @@
+{
+  "name": "jira-skills-marketplace",
+  "version": "1.0.0",
+  "description": "Marketplace for JIRA Assistant Skills - discover, browse, and use 14 specialized skills for complete JIRA automation",
+  "author": "JIRA Assistant Skills",
+  "repository": "https://github.com/grandcamel/jira-assistant-skills",
+  "skills": [
+    "skills/marketplace.md"
+  ],
+  "commands": [
+    "commands/browse-skills.md",
+    "commands/skill-info.md"
+  ]
+}
