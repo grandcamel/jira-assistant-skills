@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/grandcamel/jira-assistant-skills/compare/v1.0.3...v1.1.0) (2025-12-29)
+
+
+### Features
+
+* add jira-skills-marketplace plugin ([07caa1e](https://github.com/grandcamel/jira-assistant-skills/commit/07caa1eae9b4d646e58f0653351bda3e3d74af1d))
+
 ## [1.0.3](https://github.com/grandcamel/jira-assistant-skills/compare/v1.0.2...v1.0.3) (2025-12-28)
 
 
