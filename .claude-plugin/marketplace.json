@@ -8,13 +8,12 @@
     "version": "1.1.0",
     "homepage": "https://github.com/grandcamel/jira-assistant-skills",
     "repository": "https://github.com/grandcamel/jira-assistant-skills",
-    "license": "MIT",
-    "pluginRoot": "../.claude/skills"
+    "license": "MIT"
   },
   "plugins": [
     {
       "name": "jira-assistant",
-      "source": "./jira-assistant",
+      "source": ".claude/skills/jira-assistant",
       "description": "Meta-skill router that automatically routes requests to the appropriate JIRA skill",
       "version": "1.1.0",
       "category": "productivity",
@@ -25,7 +24,7 @@
     },
     {
       "name": "jira-issue",
-      "source": "./jira-issue",
+      "source": ".claude/skills/jira-issue",
       "description": "Core CRUD operations for JIRA issues - create, read, update, delete tickets with full field support",
       "version": "1.1.0",
       "category": "productivity",
@@ -33,7 +32,7 @@
     },
     {
       "name": "jira-lifecycle",
-      "source": "./jira-lifecycle",
+      "source": ".claude/skills/jira-lifecycle",
       "description": "Workflow and transition management - control issue status changes, assignments, versions, and components",
       "version": "1.1.0",
       "category": "productivity",
@@ -41,7 +40,7 @@
     },
     {
       "name": "jira-search",
-      "source": "./jira-search",
+      "source": ".claude/skills/jira-search",
       "description": "JQL queries, saved filters, JQL builder/validator, and bulk search operations with export support",
       "version": "1.1.0",
       "category": "productivity",
@@ -49,7 +48,7 @@
     },
     {
       "name": "jira-collaborate",
-      "source": "./jira-collaborate",
+      "source": ".claude/skills/jira-collaborate",
       "description": "Comments, attachments, and watchers for issue collaboration and team communication",
       "version": "1.1.0",
       "category": "productivity",
@@ -57,7 +56,7 @@
     },
     {
       "name": "jira-agile",
-      "source": "./jira-agile",
+      "source": ".claude/skills/jira-agile",
       "description": "Agile/Scrum workflows - epics, sprints, backlog management, story points, and velocity tracking",
       "version": "1.1.0",
       "category": "productivity",
@@ -65,7 +64,7 @@
     },
     {
       "name": "jira-relationships",
-      "source": "./jira-relationships",
+      "source": ".claude/skills/jira-relationships",
       "description": "Issue linking and dependency management - blockers, clones, relationships, and dependency chain analysis",
       "version": "1.1.0",
       "category": "productivity",
@@ -73,7 +72,7 @@
     },
     {
       "name": "jira-time",
-      "source": "./jira-time",
+      "source": ".claude/skills/jira-time",
       "description": "Time tracking, worklogs, estimates, and time reports with billing integration support",
       "version": "1.1.0",
       "category": "productivity",
@@ -81,7 +80,7 @@
     },
     {
       "name": "jira-jsm",
-      "source": "./jira-jsm",
+      "source": ".claude/skills/jira-jsm",
       "description": "Jira Service Management - service desks, requests, SLAs, queues, customers, approvals, and knowledge base",
       "version": "1.1.0",
       "category": "productivity",
@@ -89,7 +88,7 @@
     },
     {
       "name": "jira-bulk",
-      "source": "./jira-bulk",
+      "source": ".claude/skills/jira-bulk",
       "description": "Bulk operations at scale - transitions, assignments, priorities, and cloning with dry-run preview and rollback safety",
       "version": "1.1.0",
       "category": "productivity",
@@ -97,7 +96,7 @@
     },
     {
       "name": "jira-dev",
-      "source": "./jira-dev",
+      "source": ".claude/skills/jira-dev",
       "description": "Developer workflow integration - Git branch names, commit parsing, PR descriptions, and CI/CD integration",
       "version": "1.1.0",
       "category": "productivity",
@@ -105,7 +104,7 @@
     },
     {
       "name": "jira-fields",
-      "source": "./jira-fields",
+      "source": ".claude/skills/jira-fields",
       "description": "Custom field management, Agile field configuration, and project field discovery",
       "version": "1.1.0",
       "category": "productivity",
@@ -113,7 +112,7 @@
     },
     {
       "name": "jira-ops",
-      "source": "./jira-ops",
+      "source": ".claude/skills/jira-ops",
       "description": "Cache management, request batching, and operational utilities for performance optimization",
       "version": "1.1.0",
       "category": "productivity",
@@ -121,7 +120,7 @@
     },
     {
       "name": "jira-admin",
-      "source": "./jira-admin",
+      "source": ".claude/skills/jira-admin",
       "description": "Project administration - permissions, schemes, users, and project configuration management",
       "version": "1.1.0",
       "category": "productivity",
