@@ -1,73 +1,80 @@
 {
-  "name": "JIRA Assistant Skills",
-  "image": "mcr.microsoft.com/devcontainers/python:3.11",
-
-  "features": {
-    "ghcr.io/devcontainers/features/git:1": {
-      "version": "latest",
-      "ppa": true
-    },
-    "ghcr.io/devcontainers/features/github-cli:1": {
-      "version": "latest"
+  "name": "JIRA Assistant Skills Sandbox",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "..",
+    "args": {
+      "TZ": "${localEnv:TZ:America/Los_Angeles}",
+      "CLAUDE_CODE_VERSION": "latest",
+      "GIT_DELTA_VERSION": "0.18.2",
+      "ZSH_IN_DOCKER_VERSION": "1.2.0"
     }
   },
-
+  "runArgs": [
+    "--cap-add=NET_ADMIN",
+    "--cap-add=NET_RAW"
+  ],
   "customizations": {
     "vscode": {
-      "settings": {
-        "python.defaultInterpreterPath": "/usr/local/bin/python",
-        "python.linting.enabled": true,
-        "python.linting.pylintEnabled": true,
-        "python.formatting.provider": "black",
-        "terminal.integrated.defaultProfile.linux": "bash",
-        "terminal.integrated.cwd": "/workspaces/jira-assistant-skills",
-        "files.trimTrailingWhitespace": true,
-        "files.insertFinalNewline": true,
-        "editor.formatOnSave": true,
-        "editor.rulers": [100]
-      },
       "extensions": [
+        "anthropic.claude-code",
         "ms-python.python",
         "ms-python.vscode-pylance",
         "ms-python.black-formatter",
         "charliermarsh.ruff",
         "eamodio.gitlens",
-        "GitHub.copilot"
-      ]
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/bin/python3",
+        "python.linting.enabled": true,
+        "editor.formatOnSave": true,
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "terminal.integrated.profiles.linux": {
+          "bash": {
+            "path": "bash",
+            "icon": "terminal-bash"
+          },
+          "zsh": {
+            "path": "zsh"
+          }
+        },
+        "files.trimTrailingWhitespace": true,
+        "files.insertFinalNewline": true,
+        "editor.rulers": [100]
+      }
     },
     "codespaces": {
       "openFiles": [
         "README.md",
-        ".claude/skills/jira-issue/SKILL.md"
+        "plugins/jira-assistant-skills/skills/jira-issue/SKILL.md"
       ]
     }
   },
-
-  "postCreateCommand": "bash .devcontainer/post-create.sh",
-
-  "postStartCommand": "echo '\\n=== JIRA Assistant Skills Ready ===\\nRun: python .claude/skills/jira-issue/scripts/get_issue.py --help\\n'",
-
+  "remoteUser": "node",
+  "mounts": [
+    "source=jira-skills-bashhistory-${devcontainerId},target=/commandhistory,type=volume",
+    "source=jira-skills-config-${devcontainerId},target=/home/node/.claude,type=volume"
+  ],
   "containerEnv": {
+    "NODE_OPTIONS": "--max-old-space-size=4096",
+    "CLAUDE_CONFIG_DIR": "/home/node/.claude",
+    "POWERLEVEL9K_DISABLE_GITSTATUS": "true",
     "JIRA_SITE_URL": "${localEnv:JIRA_SITE_URL}",
     "JIRA_EMAIL": "${localEnv:JIRA_EMAIL}",
     "JIRA_API_TOKEN": "${localEnv:JIRA_API_TOKEN}",
-    "JIRA_PROFILE": "development"
+    "JIRA_PROFILE": "development",
+    "PYTHONPATH": "/workspace/plugins/jira-assistant-skills/skills/shared/scripts/lib"
   },
-
-  "remoteEnv": {
-    "PYTHONPATH": "/workspaces/jira-assistant-skills/.claude/skills/shared/scripts/lib"
-  },
-
-  "mounts": [],
-  "forwardPorts": [],
-
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=delegated",
+  "workspaceFolder": "/workspace",
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "postStartCommand": "sudo /usr/local/bin/init-firewall.sh",
+  "waitFor": "postStartCommand",
   "hostRequirements": {
     "cpus": 2,
     "memory": "4gb",
     "storage": "16gb"
-  },
-
-  "updateContentCommand": "pip install --upgrade pip && pip install -r .claude/skills/shared/scripts/lib/requirements.txt",
-
-  "waitFor": "updateContentCommand"
+  }
 }

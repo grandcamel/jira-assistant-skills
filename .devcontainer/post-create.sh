@@ -1,28 +1,34 @@
 #!/bin/bash
-# Post-create script for JIRA Assistant Skills Codespace
+# Post-create script for JIRA Assistant Skills Sandbox
 # This script runs after the container is created
 
 set -e
 
+SKILLS_PATH="plugins/jira-assistant-skills/skills"
+
 echo "========================================"
-echo "  JIRA Assistant Skills Setup"
+echo "  JIRA Assistant Skills Sandbox Setup"
 echo "========================================"
 echo ""
 
-# Install Python dependencies
-echo "[1/4] Installing Python dependencies..."
-pip install --upgrade pip --quiet
-pip install -r .claude/skills/shared/scripts/lib/requirements.txt --quiet
-echo "      Done."
-
 # Install development dependencies
-echo "[2/4] Installing development tools..."
-pip install pytest pytest-cov black ruff --quiet
+echo "[1/4] Installing development tools..."
+pip3 install --break-system-packages pytest pytest-cov black ruff --quiet 2>/dev/null || \
+pip3 install pytest pytest-cov black ruff --quiet
 echo "      Done."
 
 # Verify installation
-echo "[3/4] Verifying installation..."
-python -c "import requests, tabulate, colorama, tqdm; print('      All dependencies verified.')"
+echo "[2/4] Verifying Python dependencies..."
+python3 -c "import requests, tabulate, colorama, tqdm; print('      All dependencies verified.')"
+
+# Install Claude Code plugin
+echo "[3/4] Installing JIRA Assistant Skills plugin..."
+if command -v claude &> /dev/null; then
+    claude plugin install ./plugins/jira-assistant-skills 2>/dev/null || echo "      Plugin install skipped (may already be installed)"
+    echo "      Done."
+else
+    echo "      Claude Code not found, skipping plugin install."
+fi
 
 # Check for JIRA credentials
 echo "[4/4] Checking JIRA configuration..."
@@ -32,27 +38,30 @@ if [ -z "$JIRA_API_TOKEN" ] || [ -z "$JIRA_EMAIL" ] || [ -z "$JIRA_SITE_URL" ]; 
     echo "  JIRA Credentials Not Configured"
     echo "========================================"
     echo ""
-    echo "To use JIRA Assistant Skills, configure these secrets in your Codespace:"
+    echo "To use JIRA Assistant Skills, configure these environment variables:"
     echo ""
-    echo "  1. Go to: https://github.com/settings/codespaces"
-    echo "  2. Add these secrets (scoped to this repository):"
+    echo "  Option A: Codespace Secrets (https://github.com/settings/codespaces)"
+    echo "  Option B: Export in terminal:"
     echo ""
-    echo "     JIRA_SITE_URL    Your JIRA Cloud URL (e.g., https://company.atlassian.net)"
-    echo "     JIRA_EMAIL       Your Atlassian account email"
-    echo "     JIRA_API_TOKEN   API token from https://id.atlassian.com/manage-profile/security/api-tokens"
+    echo "     export JIRA_SITE_URL=\"https://company.atlassian.net\""
+    echo "     export JIRA_EMAIL=\"you@company.com\""
+    echo "     export JIRA_API_TOKEN=\"your-token\""
     echo ""
-    echo "  3. Restart your Codespace to apply the secrets"
+    echo "  Get your API token: https://id.atlassian.com/manage-profile/security/api-tokens"
     echo ""
     echo "For now, you can explore the skills without a JIRA connection:"
     echo ""
     echo "  # View available scripts"
-    echo "  ls .claude/skills/*/scripts/"
+    echo "  ls $SKILLS_PATH/*/scripts/"
     echo ""
     echo "  # Read skill documentation"
-    echo "  cat .claude/skills/jira-issue/SKILL.md"
+    echo "  cat $SKILLS_PATH/jira-issue/SKILL.md"
     echo ""
     echo "  # View script help"
-    echo "  python .claude/skills/jira-issue/scripts/get_issue.py --help"
+    echo "  python3 $SKILLS_PATH/jira-issue/scripts/get_issue.py --help"
+    echo ""
+    echo "  # Ask Claude about JIRA"
+    echo "  claude \"What JIRA skills are available?\""
     echo ""
 else
     echo "      JIRA credentials configured."
@@ -63,16 +72,28 @@ else
     echo ""
     echo "  Try these commands:"
     echo ""
-    echo "    # Search for issues"
-    echo "    python .claude/skills/jira-search/scripts/jql_search.py \"project = YOUR_PROJECT\""
+    echo "    # Use Claude with natural language"
+    echo "    claude \"Show my open JIRA issues\""
+    echo "    claude \"Create a bug: Login button broken\""
     echo ""
-    echo "    # Get issue details"
-    echo "    python .claude/skills/jira-issue/scripts/get_issue.py PROJ-123"
+    echo "    # Or use scripts directly"
+    echo "    python3 $SKILLS_PATH/jira-search/scripts/jql_search.py \"assignee = currentUser()\""
+    echo "    python3 $SKILLS_PATH/jira-issue/scripts/get_issue.py PROJ-123"
     echo ""
-    echo "    # View all skills"
-    echo "    ls .claude/skills/"
+    echo "    # Run Claude in dangerously-skip-permissions mode (sandbox is secure)"
+    echo "    claude --dangerously-skip-permissions"
     echo ""
 fi
 
 echo "========================================"
+echo "  Sandbox Security Active"
+echo "========================================"
+echo ""
+echo "  This container has firewall restrictions."
+echo "  Only whitelisted domains are accessible:"
+echo "    - GitHub, npm, Claude API"
+echo "    - Atlassian/JIRA Cloud"
+echo "    - VS Code marketplace"
+echo ""
+echo "  You can safely use: claude --dangerously-skip-permissions"
 echo ""
