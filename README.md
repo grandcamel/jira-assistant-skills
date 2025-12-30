@@ -467,6 +467,22 @@ One-click cloud environment with all dependencies pre-installed.
 
 ---
 
+## E2E Testing
+
+### Run E2E Tests
+
+E2E tests validate the plugin with the Claude Code CLI:
+
+```bash
+# Requires ANTHROPIC_API_KEY
+./scripts/run-e2e-tests.sh           # Docker
+./scripts/run-e2e-tests.sh --local   # Local
+```
+
+See [tests/e2e/README.md](tests/e2e/README.md) for details.
+
+---
+
 ## Contributing
 
 Contributions are welcome! See our [Contributing Guide](CONTRIBUTING.md).

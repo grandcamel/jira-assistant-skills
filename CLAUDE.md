@@ -398,3 +398,13 @@ pytest .claude/skills/jira-jsm/tests/live_integration/test_request_lifecycle.py 
 - **Profile-aware**: All scripts must support `--profile` override
 - **Validation first**: Call validators before API operations to fail fast
 - **HTTP client reuse**: Use get_jira_client() which handles session management and retry
+
+
+### Run E2E Tests
+
+```bash
+# Requires ANTHROPIC_API_KEY
+./scripts/run-e2e-tests.sh           # Docker
+./scripts/run-e2e-tests.sh --local   # Local
+./scripts/run-e2e-tests.sh --verbose # Verbose
+```
