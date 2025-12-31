@@ -3,6 +3,8 @@ Shared pytest fixtures for jira-ops skill tests.
 
 Provides fixtures for testing caching, rate limiting, and other
 robustness features without hitting real JIRA instance.
+
+Note: Common markers (unit, integration, ops, asyncio) are defined in the root pytest.ini.
 """
 
 import copy
@@ -14,13 +16,6 @@ import shutil
 from pathlib import Path
 from unittest.mock import Mock
 
-
-def pytest_configure(config):
-    """Register custom markers."""
-    config.addinivalue_line("markers", "ops: mark test as ops skill test")
-    config.addinivalue_line("markers", "unit: mark test as unit test")
-    config.addinivalue_line("markers", "integration: mark test as integration test")
-    config.addinivalue_line("markers", "asyncio: mark test as async test")
 
 # Add shared lib to path so imports work in tests (use resolve for absolute paths)
 shared_lib_path = str(Path(__file__).resolve().parent.parent.parent / 'shared' / 'scripts' / 'lib')

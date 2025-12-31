@@ -4,6 +4,8 @@ Live Integration Test Configuration
 Pytest fixtures for running integration tests against a real JIRA instance.
 Creates a temporary project, runs tests, and cleans up all resources.
 
+Note: Common markers (integration, shared, slow, api) are defined in the root pytest.ini.
+
 Usage:
     pytest plugins/jira-assistant-skills/skills/shared/tests/live_integration/ --profile development -v
 
@@ -20,13 +22,6 @@ import pytest
 from pathlib import Path
 from typing import Generator, Dict, Any
 
-
-def pytest_configure(config):
-    """Register custom markers."""
-    config.addinivalue_line("markers", "integration: mark test as integration test")
-    config.addinivalue_line("markers", "shared: mark test as shared library test")
-    config.addinivalue_line("markers", "slow: mark test as slow running")
-    config.addinivalue_line("markers", "api: mark test as requiring API access")
 
 # Add shared lib to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'scripts' / 'lib'))

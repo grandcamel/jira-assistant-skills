@@ -3,17 +3,11 @@ Shared pytest fixtures for jira-issue skill tests.
 
 Provides mock JIRA API responses and client fixtures for testing
 issue CRUD operations.
+
+Note: Common markers (unit, integration, slow) are defined in the root pytest.ini.
 """
 
 import pytest
-
-
-def pytest_configure(config):
-    """Register custom markers."""
-    config.addinivalue_line("markers", "unit: mark test as unit test")
-    config.addinivalue_line("markers", "integration: mark test as integration test")
-
-
 from unittest.mock import Mock, MagicMock
 from copy import deepcopy
 import sys

@@ -3,16 +3,11 @@ Shared pytest fixtures for jira-admin skill tests.
 
 Provides mock JIRA API responses and client fixtures for testing
 issue type and issue type scheme management.
+
+Note: Common markers (unit, integration, admin) are defined in the root pytest.ini.
 """
 
 import pytest
-
-
-def pytest_configure(config):
-    """Register custom markers."""
-    config.addinivalue_line("markers", "admin: mark test as admin skill test")
-    config.addinivalue_line("markers", "unit: mark test as unit test")
-    config.addinivalue_line("markers", "integration: mark test as integration test")
 from unittest.mock import Mock, MagicMock
 import sys
 from pathlib import Path

@@ -3,6 +3,8 @@ Shared pytest fixtures for jira-jsm skill tests.
 
 Provides mock JIRA Service Management API responses and client fixtures
 for testing JSM functionality without hitting real JIRA instance.
+
+Note: Common markers (unit, integration, jsm, jsm_*) are defined in the root pytest.ini.
 """
 
 import pytest
@@ -10,18 +12,6 @@ from unittest.mock import Mock, patch
 import sys
 from pathlib import Path
 
-
-def pytest_configure(config):
-    """Register custom markers."""
-    config.addinivalue_line("markers", "jsm: mark test as JSM skill test")
-    config.addinivalue_line("markers", "unit: mark test as unit test")
-    config.addinivalue_line("markers", "integration: mark test as integration test")
-    config.addinivalue_line("markers", "jsm_requests: mark test as request management")
-    config.addinivalue_line("markers", "jsm_customers: mark test as customer/org management")
-    config.addinivalue_line("markers", "jsm_approvals: mark test as approval workflow")
-    config.addinivalue_line("markers", "jsm_sla: mark test as SLA management")
-    config.addinivalue_line("markers", "jsm_queues: mark test as queue management")
-    config.addinivalue_line("markers", "jsm_kb: mark test as knowledge base")
 
 # Add shared lib to path so imports work in tests
 shared_lib_path = str(Path(__file__).parent.parent.parent.parent / 'shared' / 'scripts' / 'lib')

@@ -4,6 +4,8 @@ Live Integration Test Configuration for jira-time skill.
 Pytest fixtures for running time tracking integration tests against a real JIRA instance.
 Creates a temporary project, runs tests, and cleans up all resources.
 
+Note: Common markers (integration, time, worklog, estimate, bulk) are defined in the root pytest.ini.
+
 Usage:
     pytest plugins/jira-assistant-skills/skills/jira-time/tests/live_integration/ --profile development -v
 
@@ -19,15 +21,6 @@ import time
 import pytest
 from pathlib import Path
 from typing import Generator, Dict, Any, List
-
-
-def pytest_configure(config):
-    """Register custom markers."""
-    config.addinivalue_line("markers", "integration: mark test as integration test")
-    config.addinivalue_line("markers", "time: mark test as time tracking test")
-    config.addinivalue_line("markers", "worklog: mark test as worklog test")
-    config.addinivalue_line("markers", "estimate: mark test as estimate test")
-    config.addinivalue_line("markers", "bulk: mark test as bulk operation test")
 
 
 from jira_assistant_skills_lib import get_jira_client

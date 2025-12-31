@@ -1,16 +1,11 @@
 """
 Pytest fixtures for jira-collaborate comment, notification, and activity tests.
+
+Note: Common markers (unit, integration, collaborate) are defined in the root pytest.ini.
 """
 
 import pytest
 from unittest.mock import MagicMock
-
-
-def pytest_configure(config):
-    """Register custom markers."""
-    config.addinivalue_line("markers", "collaborate: mark test as collaborate skill test")
-    config.addinivalue_line("markers", "unit: mark test as unit test")
-    config.addinivalue_line("markers", "integration: mark test as integration test")
 
 
 @pytest.fixture

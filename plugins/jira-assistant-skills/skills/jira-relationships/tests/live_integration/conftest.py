@@ -4,6 +4,8 @@ Live Integration Test Configuration for jira-relationships skill.
 Pytest fixtures for running relationship integration tests against a real JIRA instance.
 Creates a temporary project, runs tests, and cleans up all resources.
 
+Note: Common markers (integration, relationships, links, blockers, clone) are defined in the root pytest.ini.
+
 Usage:
     pytest plugins/jira-assistant-skills/skills/jira-relationships/tests/live_integration/ --profile development -v
 
@@ -19,15 +21,6 @@ import time
 import pytest
 from pathlib import Path
 from typing import Generator, Dict, Any, List
-
-
-def pytest_configure(config):
-    """Register custom markers."""
-    config.addinivalue_line("markers", "integration: mark test as integration test")
-    config.addinivalue_line("markers", "relationships: mark test as relationships test")
-    config.addinivalue_line("markers", "links: mark test as link test")
-    config.addinivalue_line("markers", "blockers: mark test as blocker test")
-    config.addinivalue_line("markers", "clone: mark test as clone test")
 
 
 from jira_assistant_skills_lib import get_jira_client

@@ -4,6 +4,8 @@ Live Integration Test Configuration for jira-lifecycle skill.
 Pytest fixtures for running lifecycle integration tests against a real JIRA instance.
 Creates a temporary project, runs tests, and cleans up all resources.
 
+Note: Common markers (integration, lifecycle, transition, version, component) are defined in the root pytest.ini.
+
 Usage:
     pytest plugins/jira-assistant-skills/skills/jira-lifecycle/tests/live_integration/ --profile development -v
 
@@ -19,15 +21,6 @@ import time
 import pytest
 from pathlib import Path
 from typing import Generator, Dict, Any, List
-
-
-def pytest_configure(config):
-    """Register custom markers."""
-    config.addinivalue_line("markers", "integration: mark test as integration test")
-    config.addinivalue_line("markers", "lifecycle: mark test as lifecycle test")
-    config.addinivalue_line("markers", "transition: mark test as transition test")
-    config.addinivalue_line("markers", "version: mark test as version test")
-    config.addinivalue_line("markers", "component: mark test as component test")
 
 
 from jira_assistant_skills_lib import get_jira_client

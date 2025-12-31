@@ -59,32 +59,8 @@ def pytest_addoption(parser):
     )
 
 
-def pytest_configure(config):
-    """Configure custom markers."""
-    config.addinivalue_line(
-        "markers", "jsm: mark test as JSM-specific"
-    )
-    config.addinivalue_line(
-        "markers", "jsm_premium: mark test as requiring JSM Premium license"
-    )
-    config.addinivalue_line(
-        "markers", "jsm_requests: mark test as request management"
-    )
-    config.addinivalue_line(
-        "markers", "jsm_customers: mark test as customer/org management"
-    )
-    config.addinivalue_line(
-        "markers", "jsm_approvals: mark test as approval workflow"
-    )
-    config.addinivalue_line(
-        "markers", "jsm_sla: mark test as SLA management"
-    )
-    config.addinivalue_line(
-        "markers", "jsm_queues: mark test as queue management"
-    )
-    config.addinivalue_line(
-        "markers", "jsm_kb: mark test as knowledge base"
-    )
+# Note: Common markers (jsm, jsm_premium, jsm_requests, jsm_customers, jsm_approvals,
+#       jsm_sla, jsm_queues, jsm_kb) are defined in the root pytest.ini.
 
 
 def pytest_collection_modifyitems(config, items):

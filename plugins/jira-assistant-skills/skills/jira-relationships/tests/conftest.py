@@ -3,6 +3,8 @@ Shared pytest fixtures for jira-relationships skill tests.
 
 Provides mock JIRA API responses and client fixtures for testing
 issue linking operations without hitting real JIRA instance.
+
+Note: Common markers (unit, integration, relationships) are defined in the root pytest.ini.
 """
 
 import copy
@@ -20,13 +22,6 @@ if shared_lib_path not in sys.path:
 scripts_path = str(Path(__file__).parent.parent / 'scripts')
 if scripts_path not in sys.path:
     sys.path.insert(0, scripts_path)
-
-
-def pytest_configure(config):
-    """Register custom markers."""
-    config.addinivalue_line("markers", "relationships: mark test as relationships skill test")
-    config.addinivalue_line("markers", "unit: mark test as unit test")
-    config.addinivalue_line("markers", "integration: mark test as integration test")
 
 
 @pytest.fixture

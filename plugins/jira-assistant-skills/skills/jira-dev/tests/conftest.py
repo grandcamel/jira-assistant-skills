@@ -1,5 +1,7 @@
 """
 Pytest configuration and shared fixtures for jira-dev tests.
+
+Note: Common markers (unit, integration, dev) are defined in the root pytest.ini.
 """
 
 import copy
@@ -11,13 +13,6 @@ import pytest
 # Add lib path for imports
 lib_path = Path(__file__).parent.parent.parent / 'shared' / 'scripts' / 'lib'
 sys.path.insert(0, str(lib_path))
-
-
-def pytest_configure(config):
-    """Register custom markers."""
-    config.addinivalue_line("markers", "dev: mark test as jira-dev skill test")
-    config.addinivalue_line("markers", "unit: mark test as unit test")
-    config.addinivalue_line("markers", "integration: mark test as integration test")
 
 # Add scripts path for imports
 scripts_path = Path(__file__).parent.parent / 'scripts'

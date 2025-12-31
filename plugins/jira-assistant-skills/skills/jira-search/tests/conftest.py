@@ -1,17 +1,12 @@
 """
 Pytest fixtures for jira-search JQL and filter tests.
+
+Note: Common markers (unit, integration, search) are defined in the root pytest.ini.
 """
 
 import copy
 import pytest
 from unittest.mock import MagicMock
-
-
-def pytest_configure(config):
-    """Register custom markers."""
-    config.addinivalue_line("markers", "search: mark test as search skill test")
-    config.addinivalue_line("markers", "unit: mark test as unit test")
-    config.addinivalue_line("markers", "integration: mark test as integration test")
 
 
 @pytest.fixture

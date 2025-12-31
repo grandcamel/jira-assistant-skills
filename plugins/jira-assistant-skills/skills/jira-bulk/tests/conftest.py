@@ -1,20 +1,13 @@
 """
 Pytest fixtures for jira-bulk tests.
+
+Note: Common markers (unit, integration, bulk) are defined in the root pytest.ini.
 """
 
 import sys
 from pathlib import Path
 from unittest.mock import patch
 import pytest
-
-# Add shared lib to path
-
-
-def pytest_configure(config):
-    """Register custom markers."""
-    config.addinivalue_line("markers", "bulk: mark test as bulk operations skill test")
-    config.addinivalue_line("markers", "unit: mark test as unit test")
-    config.addinivalue_line("markers", "integration: mark test as integration test")
 
 
 @pytest.fixture

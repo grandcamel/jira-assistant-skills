@@ -3,6 +3,8 @@ Shared pytest fixtures for jira-lifecycle skill tests.
 
 Provides mock JIRA API responses and client fixtures for testing
 workflow and lifecycle operations without hitting real JIRA instance.
+
+Note: Common markers (unit, integration, lifecycle) are defined in the root pytest.ini.
 """
 
 import copy
@@ -11,12 +13,6 @@ from unittest.mock import Mock
 import sys
 from pathlib import Path
 
-
-def pytest_configure(config):
-    """Register custom markers."""
-    config.addinivalue_line("markers", "lifecycle: mark test as lifecycle skill test")
-    config.addinivalue_line("markers", "unit: mark test as unit test")
-    config.addinivalue_line("markers", "integration: mark test as integration test")
 
 # Add shared lib to path so imports work in tests
 shared_lib_path = str(Path(__file__).parent.parent.parent.parent / 'shared' / 'scripts' / 'lib')

@@ -4,6 +4,9 @@ Live Integration Test Configuration for jira-collaborate skill.
 Pytest fixtures for running collaboration integration tests against a real JIRA instance.
 Creates a temporary project, runs tests, and cleans up all resources.
 
+Note: Common markers (integration, collaborate, comments, notifications, attachments, watchers)
+      are defined in the root pytest.ini.
+
 Usage:
     pytest plugins/jira-assistant-skills/skills/jira-collaborate/tests/live_integration/ --profile development -v
 
@@ -19,16 +22,6 @@ import time
 import pytest
 from pathlib import Path
 from typing import Generator, Dict, Any
-
-
-def pytest_configure(config):
-    """Register custom markers."""
-    config.addinivalue_line("markers", "integration: mark test as integration test")
-    config.addinivalue_line("markers", "collaborate: mark test as collaboration test")
-    config.addinivalue_line("markers", "comments: mark test as comment test")
-    config.addinivalue_line("markers", "notifications: mark test as notification test")
-    config.addinivalue_line("markers", "attachments: mark test as attachment test")
-    config.addinivalue_line("markers", "watchers: mark test as watcher test")
 
 
 from jira_assistant_skills_lib import get_jira_client

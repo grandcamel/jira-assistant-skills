@@ -4,6 +4,8 @@ Unit Test Configuration for jira-fields skill.
 Provides mock JIRA API responses and client fixtures for testing
 custom field management operations.
 
+Note: Common markers (unit, integration, fields) are defined in the root pytest.ini.
+
 Usage:
     pytest plugins/jira-assistant-skills/skills/jira-fields/tests/unit/ -v
 """
@@ -25,13 +27,6 @@ _shared_lib_dir = _jira_fields_dir.parent / 'shared' / 'scripts' / 'lib'
 for path in [str(_shared_lib_dir), str(_scripts_dir)]:
     if path not in sys.path:
         sys.path.insert(0, path)
-
-
-def pytest_configure(config):
-    """Register custom markers."""
-    config.addinivalue_line("markers", "fields: mark test as fields skill test")
-    config.addinivalue_line("markers", "unit: mark test as unit test")
-    config.addinivalue_line("markers", "integration: mark test as integration test")
 
 
 # ========== Sample API Responses ==========
