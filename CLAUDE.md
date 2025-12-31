@@ -487,6 +487,24 @@ All commands support these global options:
 - **Validation first**: Call validators before API operations to fail fast
 - **HTTP client reuse**: Use get_jira_client() which handles session management and retry
 
+## Version Management
+
+When releasing a new version, update version numbers in ALL of these files to stay in sync:
+
+| File | Field | Purpose |
+|------|-------|---------|
+| `VERSION` | entire file | Release-please source of truth |
+| `plugins/jira-assistant-skills/plugin.json` | `"version"` | Plugin manifest for marketplace |
+| `.claude-plugin/marketplace.json` | `"metadata.version"` and `"plugins[0].version"` | Marketplace listing |
+
+**Release workflow**:
+1. Release-please automatically updates `VERSION` and creates a release PR
+2. After merging the release PR, manually update `plugin.json` and `marketplace.json` to match
+3. Commit with: `chore: sync plugin version to X.Y.Z`
+
+**Why this matters**: Users installing via marketplace (`/plugin marketplace update`) rely on `plugin.json` version to detect updates. If versions are out of sync, users won't receive updates.
+
+**Automation opportunity**: Consider adding a GitHub Action or pre-commit hook to sync versions automatically.
 
 ### Environment Setup
 
