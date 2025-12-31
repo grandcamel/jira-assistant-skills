@@ -55,6 +55,8 @@ if [[ "$USE_DOCKER" == "true" ]]; then
 else
     echo -e "${YELLOW}Running locally...${NC}"
     pip install -q -r requirements-e2e.txt
+    # Install the CLI package in editable mode
+    pip install -q -e .
     if [[ "$VERBOSE" == "true" ]]; then
         python -m pytest tests/e2e/ -v --e2e-verbose --tb=short
     else

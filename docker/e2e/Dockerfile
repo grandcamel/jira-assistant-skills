@@ -32,6 +32,9 @@ RUN pip install --no-cache-dir -r /tmp/requirements-e2e.txt
 # Copy the plugin source
 COPY . /workspace/plugin-source
 
+# Install the CLI package in editable mode
+RUN pip install --no-cache-dir -e /workspace/plugin-source
+
 # Environment variables
 ENV CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
 ENV CLAUDE_CODE_SKIP_OOBE=1

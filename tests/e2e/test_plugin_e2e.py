@@ -120,7 +120,7 @@ class TestCoreOperations:
         output = result["output"].lower()
 
         assert "create" in output
-        assert any(w in output for w in ["issue", "bug", "--type"])
+        assert any(w in output for w in ["issue", "bug", "--type", "jira issue create"])
 
     def test_search_guidance(self, claude_runner, installed_plugin, e2e_enabled):
         """Test JQL search guidance."""
@@ -145,7 +145,7 @@ class TestCoreOperations:
         )
         output = result["output"].lower()
 
-        assert any(w in output for w in ["sprint", "create_sprint"])
+        assert any(w in output for w in ["sprint", "jira agile sprint"])
         assert any(w in output for w in ["story point", "estimate"])
 
 
@@ -222,5 +222,5 @@ class TestIntegration:
         )
         output = result["output"].lower()
 
-        assert any(w in output for w in ["epic", "create_epic"])
+        assert any(w in output for w in ["epic", "jira agile epic"])
         assert any(w in output for w in ["sprint", "move"])

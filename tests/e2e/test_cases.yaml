@@ -51,7 +51,7 @@ suites:
         prompt: How do I get details for a specific JIRA issue?
         expect:
           output_contains_any:
-            - get_issue
+            - jira issue get
             - issue key
             - PROJ-123
           no_crashes: true
@@ -61,7 +61,7 @@ suites:
         prompt: How do I create a new bug in JIRA?
         expect:
           output_contains_any:
-            - create_issue
+            - jira issue create
             - --type Bug
             - --project
           no_crashes: true
@@ -95,8 +95,8 @@ suites:
         expect:
           output_contains_any:
             - filter
-            - create_filter
-            - run_filter
+            - jira search filter
+            - saved filter
           no_crashes: true
 
   jira_agile:
@@ -118,8 +118,8 @@ suites:
         prompt: How do I create a new sprint and move issues into it?
         expect:
           output_contains_any:
-            - create_sprint
-            - move_to_sprint
+            - jira agile sprint
+            - sprint create
             - board
           no_crashes: true
 
@@ -128,8 +128,8 @@ suites:
         prompt: How do I create an epic and add issues to it?
         expect:
           output_contains_any:
-            - create_epic
-            - add_to_epic
+            - jira agile epic
+            - epic create
             - Epic Name
           no_crashes: true
 
@@ -174,9 +174,9 @@ suites:
         prompt: How do I add a comment to an issue with markdown formatting?
         expect:
           output_contains_any:
-            - add_comment
+            - jira collaborate comment
+            - comment add
             - markdown
-            - ADF
           no_crashes: true
 
   jira_relationships:
@@ -220,9 +220,9 @@ suites:
         prompt: How do I log 2 hours of work on an issue?
         expect:
           output_contains_any:
-            - add_worklog
+            - jira time log
+            - time log
             - 2h
-            - time
           no_crashes: true
 
   jira_jsm:
@@ -394,8 +394,8 @@ suites:
         prompt: How would I find all bugs assigned to me and update their priority?
         expect:
           output_contains_any:
-            - jql_search
-            - update_issue
+            - jira search
+            - jira issue update
             - assignee
           no_crashes: true
 
