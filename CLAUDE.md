@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Claude Code Skills project providing JIRA automation through twelve modular skills:
+This is a Claude Code Skills project providing JIRA automation through fourteen modular skills:
 - **jira-issue**: Core CRUD operations on issues
 - **jira-lifecycle**: Workflow/transition management
 - **jira-search**: JQL queries, saved filters, JQL builder/validator, and bulk operations
@@ -17,6 +17,8 @@ This is a Claude Code Skills project providing JIRA automation through twelve mo
 - **jira-dev**: Developer workflow integration (Git branch names, commit parsing, PR descriptions)
 - **jira-fields**: Custom field management, Agile field configuration, project field discovery
 - **jira-ops**: Cache management, request batching, and operational utilities
+- **jira-admin**: Project, permission, notification, screen, issue type, and workflow administration
+- **jira-assistant**: Hub skill for routing and skill discovery
 
 Each skill is designed for autonomous discovery and use by Claude Code.
 
@@ -81,23 +83,27 @@ Scripts accept `--format` flag: text (default), markdown, or adf (raw JSON).
 
 ## Testing Scripts
 
-All scripts are executable and support `--help`. Test with existing JIRA credentials:
+All scripts are executable via the unified `jira` CLI. Test with existing JIRA credentials:
 
 ```bash
 # Setup
+pip install -e .  # Install CLI in editable mode
 pip install jira-assistant-skills-lib
 export JIRA_API_TOKEN="token-from-id.atlassian.com"
 export JIRA_EMAIL="your@email.com"
 export JIRA_SITE_URL="https://your-company.atlassian.net"
 
-# Test basic connectivity
-python plugins/jira-assistant-skills/skills/jira-issue/scripts/get_issue.py EXISTING-ISSUE-KEY
+# Test basic connectivity (via CLI)
+jira issue get EXISTING-ISSUE-KEY
 
 # Test search
-python plugins/jira-assistant-skills/skills/jira-search/scripts/jql_search.py "project = PROJ"
+jira search query "project = PROJ"
 
 # Test with specific profile
-python plugins/jira-assistant-skills/skills/jira-issue/scripts/get_issue.py PROJ-123 --profile development
+jira issue get PROJ-123 --profile development
+
+# Direct script execution is also supported for development:
+python plugins/jira-assistant-skills/skills/jira-issue/scripts/get_issue.py EXISTING-ISSUE-KEY
 ```
 
 ## Adding New Scripts
@@ -164,10 +170,11 @@ import sys
 from jira_assistant_skills_lib import get_jira_client, print_error, JiraError
 from jira_assistant_skills_lib.validators import validate_issue_key
 
-def main():
+def main(argv: list[str] | None = None):
+    """Main function with argv parameter for CLI integration."""
     parser = argparse.ArgumentParser(...)
     parser.add_argument('--profile', help='JIRA profile to use')
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     try:
         # Validate inputs
