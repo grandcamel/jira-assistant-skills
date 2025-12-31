@@ -1,3 +1,16 @@
+[project]
+name = "jira-assistant-skills"
+version = "1.0.0"
+description = "A collection of CLI-based assistant skills for interacting with Jira."
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "click>=8.0"
+]
+
+[project.scripts]
+jira = "jira_assistant_skills.cli.main:cli"
+
 [tool.pytest.ini_options]
 minversion = "7.0"
 pythonpath = ["."]
