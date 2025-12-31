@@ -106,9 +106,10 @@ When adding scripts to existing skills:
 Skills must follow this structure:
 
 ```
-.claude/skills/new-skill/
+plugins/jira-assistant-skills/skills/new-skill/
 ├── SKILL.md              # Description for autonomous discovery
 ├── scripts/              # Executable Python scripts
+├── tests/                # Unit and integration tests
 ├── references/           # API docs, guides (optional)
 └── assets/templates/     # JSON templates (optional)
 ```
@@ -146,26 +147,29 @@ When modifying configuration schema:
 **Script template**:
 ```python
 #!/usr/bin/env python3
+import argparse
 import sys
-from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'shared' / 'scripts' / 'lib'))
 
-from config_manager import get_jira_client
-from error_handler import print_error, JiraError
-from validators import validate_issue_key
+from jira_assistant_skills_lib import get_jira_client, print_error, JiraError
+from jira_assistant_skills_lib.validators import validate_issue_key
 
 def main():
     parser = argparse.ArgumentParser(...)
+    parser.add_argument('--profile', help='JIRA profile to use')
     args = parser.parse_args()
 
     try:
         # Validate inputs
         # Get client
+        client = get_jira_client(profile=args.profile)
         # Perform operation
         # Print success
     except JiraError as e:
         print_error(e)
         sys.exit(1)
+
+if __name__ == '__main__':
+    main()
 ```
 
 **Transition matching**: Use transition_issue.py's `find_transition_by_name()` pattern - exact match first, then partial match, raise ValidationError if ambiguous.
@@ -334,10 +338,10 @@ When developing features using Test-Driven Development (TDD), follow this commit
 4. **Run tests before committing**: Always verify all tests pass before creating a commit:
    ```bash
    # Run specific skill tests
-   pytest .claude/skills/jira-search/tests/ -v
+   pytest plugins/jira-assistant-skills/skills/jira-search/tests/ -v
 
    # Run all tests
-   pytest .claude/skills/*/tests/ -v
+   pytest plugins/jira-assistant-skills/skills/*/tests/ -v
    ```
 
 5. **Never commit failing tests**: If tests are failing, either fix the implementation or fix the tests before committing. The main branch should always have passing tests.
@@ -348,20 +352,20 @@ The project includes comprehensive live integration tests against real JIRA inst
 
 ```bash
 # Run all shared/core live integration tests
-pytest .claude/skills/shared/tests/live_integration/ --profile development -v
+pytest plugins/jira-assistant-skills/skills/shared/tests/live_integration/ --profile development -v
 
 # Run JSM live integration tests
-pytest .claude/skills/jira-jsm/tests/live_integration/ --profile development --skip-premium -v
+pytest plugins/jira-assistant-skills/skills/jira-jsm/tests/live_integration/ --profile development --skip-premium -v
 
 # Run new skill live integration tests
-pytest .claude/skills/jira-bulk/tests/live_integration/ --profile development -v
-pytest .claude/skills/jira-dev/tests/live_integration/ --profile development -v
-pytest .claude/skills/jira-fields/tests/live_integration/ --profile development -v
-pytest .claude/skills/jira-ops/tests/live_integration/ --profile development -v
+pytest plugins/jira-assistant-skills/skills/jira-bulk/tests/live_integration/ --profile development -v
+pytest plugins/jira-assistant-skills/skills/jira-dev/tests/live_integration/ --profile development -v
+pytest plugins/jira-assistant-skills/skills/jira-fields/tests/live_integration/ --profile development -v
+pytest plugins/jira-assistant-skills/skills/jira-ops/tests/live_integration/ --profile development -v
 
 # Run specific test modules
-pytest .claude/skills/shared/tests/live_integration/test_issue_lifecycle.py -v
-pytest .claude/skills/jira-jsm/tests/live_integration/test_request_lifecycle.py -v
+pytest plugins/jira-assistant-skills/skills/shared/tests/live_integration/test_issue_lifecycle.py -v
+pytest plugins/jira-assistant-skills/skills/jira-jsm/tests/live_integration/test_request_lifecycle.py -v
 ```
 
 **Test structure**: Tests use session-scoped fixtures that create a test project/service desk at the start and clean up all test data at the end.
@@ -400,10 +404,25 @@ pytest .claude/skills/jira-jsm/tests/live_integration/test_request_lifecycle.py 
 - **HTTP client reuse**: Use get_jira_client() which handles session management and retry
 
 
+### Environment Setup
+
+Use the interactive setup script to configure environment variables:
+
+```bash
+./scripts/setup-env.sh
+```
+
+This script:
+- Prompts for JIRA credentials (site URL, email, API token)
+- Optionally configures Anthropic API key for E2E tests
+- Validates input and tests connections
+- Saves to `~/.env` with secure permissions (chmod 600)
+- Adds environment loader to shell config (~/.zshrc or ~/.bashrc)
+
 ### Run E2E Tests
 
 ```bash
-# Requires ANTHROPIC_API_KEY
+# Requires ANTHROPIC_API_KEY (configure via ./scripts/setup-env.sh)
 ./scripts/run-e2e-tests.sh           # Docker
 ./scripts/run-e2e-tests.sh --local   # Local
 ./scripts/run-e2e-tests.sh --verbose # Verbose
