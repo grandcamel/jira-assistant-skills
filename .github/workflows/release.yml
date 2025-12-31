@@ -58,20 +58,17 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r .claude/skills/shared/scripts/lib/requirements.txt
+          pip install jira-assistant-skills-lib pytest pytest-asyncio
 
       - name: Run tests
         run: |
-          pip install pytest pytest-asyncio
           # Run tests per skill to avoid conftest.py conflicts
-          # TODO: Fix test_get_blockers.py tests (broken mocks)
-          for skill_dir in .claude/skills/*/tests/; do
+          for skill_dir in plugins/jira-assistant-skills/skills/*/tests/; do
             if [ -d "$skill_dir" ]; then
               skill_name=$(basename $(dirname $skill_dir))
               echo "Testing $skill_name..."
               python -m pytest "$skill_dir" -v \
                 --ignore="${skill_dir}live_integration" \
-                --ignore="${skill_dir}test_get_blockers.py" \
                 || exit 1
             fi
           done
@@ -80,13 +77,13 @@ jobs:
         run: |
           VERSION=${{ needs.release-please.outputs.version }}
           mkdir -p dist
-          # Create skills archive (excludes tests and docs)
+          # Create plugin archive (excludes tests and docs)
           tar -czvf dist/jira-assistant-skills-${VERSION}.tar.gz \
             --exclude='*/tests/*' \
             --exclude='*/docs/*' \
             --exclude='__pycache__' \
             --exclude='*.pyc' \
-            .claude/skills/ \
+            plugins/jira-assistant-skills/ \
             CLAUDE.md \
             README.md \
             VERSION
