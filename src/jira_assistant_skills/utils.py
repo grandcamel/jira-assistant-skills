@@ -1,4 +1,5 @@
 import click
+from click.exceptions import Exit
 import subprocess
 import sys
 import os
@@ -62,6 +63,9 @@ def run_skill_script_subprocess(script_path: Path, args: list[str], ctx: click.C
             env=env
         )
         ctx.exit(result.returncode)
+    except Exit:
+        # Re-raise Click's Exit exception (raised by ctx.exit)
+        raise
     except Exception as e:
         click.echo(f"Error executing script {script_path.name}: {e}", err=True)
         ctx.exit(1) # General error
