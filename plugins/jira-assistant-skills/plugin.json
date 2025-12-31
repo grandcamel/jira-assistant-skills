@@ -24,6 +24,8 @@
     "./skills/marketplace.md"
   ],
   "commands": [
+    "./commands/jira-assistant-setup.md",
+    "./commands/jira-discover-project.md",
     "./commands/browse-skills.md",
     "./commands/skill-info.md"
   ],
