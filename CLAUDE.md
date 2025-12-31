@@ -418,6 +418,60 @@ pytest plugins/jira-assistant-skills/skills/jira-jsm/tests/live_integration/test
 - `--service-desk-id N`: Use existing service desk instead of creating one
 - `--keep-project`: Keep test service desk after tests (for debugging)
 
+## CLI Usage
+
+The project provides a unified `jira` CLI entry point for all operations:
+
+```bash
+# Install the CLI (editable mode for development)
+pip install -e .
+
+# View all available command groups
+jira --help
+
+# Available command groups:
+# - jira issue      - CRUD operations for issues
+# - jira search     - JQL queries and filters
+# - jira lifecycle  - Workflow transitions, versions, components
+# - jira agile      - Epics, sprints, backlog management
+# - jira collaborate - Comments, attachments, watchers
+# - jira relationships - Issue links and dependencies
+# - jira time       - Time tracking and worklogs
+# - jira bulk       - Bulk operations
+# - jira dev        - Git/PR integration
+# - jira fields     - Custom field management
+# - jira ops        - Cache and operational utilities
+# - jira jsm        - Jira Service Management
+
+# Get help for any command
+jira issue --help
+jira issue get --help
+```
+
+### Shell Completion
+
+Enable tab-completion for the `jira` CLI:
+
+```bash
+# Bash (add to ~/.bashrc)
+eval "$(_JIRA_COMPLETE=bash_source jira)"
+
+# Zsh (add to ~/.zshrc)
+eval "$(_JIRA_COMPLETE=zsh_source jira)"
+
+# Fish (add to ~/.config/fish/completions/jira.fish)
+_JIRA_COMPLETE=fish_source jira | source
+```
+
+### Global Options
+
+All commands support these global options:
+- `--profile, -p`: JIRA profile to use (from config)
+- `--output, -o`: Output format (text, json, table)
+- `--verbose, -v`: Enable verbose output
+- `--quiet, -q`: Suppress non-essential output
+- `--help`: Show help for any command
+
 ## Key Constraints
 
 - **Python 3.8+**: Minimum version for type hints and pathlib
