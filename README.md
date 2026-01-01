@@ -11,7 +11,7 @@
 <sub>More context-efficient<br>than MCP servers</sub>
 </td>
 <td align="center">
-<h2>15</h2>
+<h2>14</h2>
 <sub>Specialized skills<br>one conversation</sub>
 </td>
 <td align="center">
@@ -28,15 +28,15 @@
 <p align="center">
   <a href="https://pypi.org/project/jira-assistant-skills-lib/"><img src="https://img.shields.io/pypi/v/jira-assistant-skills-lib?logo=pypi&logoColor=white" alt="PyPI"></a>
   <img src="https://img.shields.io/badge/tests-1644%20passing-brightgreen?logo=pytest" alt="Tests">
-  <img src="https://img.shields.io/badge/python-3.8+-3776AB?logo=python&logoColor=white" alt="Python 3.8+">
-  <img src="https://img.shields.io/badge/skills-15-FF6B6B" alt="Skills">
+  <img src="https://img.shields.io/badge/python-3.10+-3776AB?logo=python&logoColor=white" alt="Python 3.10+">
+  <img src="https://img.shields.io/badge/skills-14-FF6B6B" alt="Skills">
   <img src="https://img.shields.io/github/stars/grandcamel/jira-assistant-skills?style=social" alt="GitHub Stars">
   <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT License">
 </p>
 
 <p align="center">
   <strong>Natural language JIRA automation for Claude Code</strong><br>
-  <sub>From sprint planning to incident response—15 skills, 245 scripts, zero JQL memorization.</sub>
+  <sub>From sprint planning to incident response—14 skills, 245 scripts, zero JQL memorization.</sub>
 </p>
 
 <div align="center">
