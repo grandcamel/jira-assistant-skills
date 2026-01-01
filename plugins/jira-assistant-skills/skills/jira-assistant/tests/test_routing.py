@@ -59,6 +59,9 @@ except ImportError:
     record_test_session_summary = None
     otel_shutdown = None
 
+# Import model config from conftest
+from conftest import get_test_model
+
 # Path to the golden test set
 GOLDEN_FILE = TESTS_DIR / "routing_golden.yaml"
 DEBUG_DIR = Path.home() / ".claude" / "debug"
@@ -194,15 +197,23 @@ def run_claude_routing(
             tool_use=None
         )
 
+    # Build command with optional model
+    cmd = [
+        "claude",
+        "--print",
+        "--permission-mode", "dontAsk",
+        "--output-format", "json",
+        "--debug",
+    ]
+
+    # Add model flag if specified (e.g., --model haiku for faster tests)
+    model = get_test_model()
+    if model:
+        cmd.extend(["--model", model])
+
     # Run Claude non-interactively
     result = subprocess.run(
-        [
-            "claude",
-            "--print",
-            "--permission-mode", "dontAsk",
-            "--output-format", "json",
-            "--debug",
-        ],
+        cmd,
         input=input_text,
         capture_output=True,
         text=True,

@@ -42,6 +42,12 @@ def pytest_addoption(parser):
         default="http://localhost:4318",
         help="OTLP HTTP endpoint (default: http://localhost:4318)"
     )
+    parser.addoption(
+        "--model",
+        action="store",
+        default=None,
+        help="Claude model to use (e.g., 'haiku' for fast iteration, 'sonnet' for production)"
+    )
 
 
 def pytest_configure(config):
@@ -100,6 +106,29 @@ def pytest_collection_modifyitems(config, items):
 def otel_enabled(request):
     """Check if OpenTelemetry is enabled for this session."""
     return getattr(request.config, '_otel_enabled', False)
+
+
+@pytest.fixture(scope="session")
+def claude_model(request):
+    """Get the Claude model to use for tests."""
+    return request.config.getoption("--model")
+
+
+# Module-level config storage for access from test_routing.py
+_test_config = {}
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _store_test_config(request):
+    """Store test config for module-level access."""
+    _test_config["model"] = request.config.getoption("--model")
+    yield
+    _test_config.clear()
+
+
+def get_test_model() -> str | None:
+    """Get the configured model for tests. Called from test_routing.py."""
+    return _test_config.get("model")
 
 
 @pytest.fixture(scope="session")
