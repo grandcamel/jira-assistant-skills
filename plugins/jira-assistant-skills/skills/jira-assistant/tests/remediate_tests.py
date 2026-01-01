@@ -105,7 +105,8 @@ class RemediationEngine:
         max_attempts: int = 5,
         fast_model: str = "haiku",
         production_model: str = "sonnet",
-        parallel: int = 1,
+        parallel: int = 4,
+        suite_timeout: int = 2400,
         log_file: Path | None = None,
         verbose: bool = False,
     ):
@@ -116,6 +117,7 @@ class RemediationEngine:
             fast_model: Model for fast iteration tests
             production_model: Model for production validation
             parallel: Number of parallel test workers
+            suite_timeout: Timeout in seconds for full test suite
             log_file: Path to log file
             verbose: Enable verbose logging
         """
@@ -123,6 +125,7 @@ class RemediationEngine:
         self.fast_model = fast_model
         self.production_model = production_model
         self.parallel = parallel
+        self.suite_timeout = suite_timeout
 
         self.logger = setup_logging(log_file, verbose)
         self.otel_enabled = setup_otel()
@@ -191,6 +194,7 @@ class RemediationEngine:
             suite_result = self.test_runner.run_full_suite(
                 model=self.fast_model,
                 parallel=self.parallel,
+                timeout=self.suite_timeout,
             )
 
             if suite_result.error:
@@ -243,6 +247,7 @@ class RemediationEngine:
         final_result = self.test_runner.run_full_suite(
             model=self.production_model,
             parallel=self.parallel,
+            timeout=self.suite_timeout,
         )
 
         self._print_summary(final_result)
@@ -368,6 +373,7 @@ class RemediationEngine:
         regression_result = self.test_runner.run_full_suite(
             model=self.fast_model,
             parallel=self.parallel,
+            timeout=self.suite_timeout,
         )
 
         baseline_passing = self.state_tracker.state.baseline_passing
@@ -511,6 +517,7 @@ class RemediationEngine:
         regression_result = self.test_runner.run_full_suite(
             model=self.fast_model,
             parallel=self.parallel,
+            timeout=self.suite_timeout,
         )
 
         baseline = self.state_tracker.state.baseline_passing
@@ -652,7 +659,7 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Run full remediation
+  # Run full remediation (default: 4 parallel workers)
   python remediate_tests.py
 
   # Resume a previous run
@@ -661,8 +668,8 @@ Examples:
   # Use more attempts and verbose logging
   python remediate_tests.py --max-attempts 10 --verbose
 
-  # Use parallel testing
-  python remediate_tests.py --parallel 4
+  # Use 8 parallel workers with longer timeout
+  python remediate_tests.py --parallel 8 --suite-timeout 3600
 """,
     )
 
@@ -685,8 +692,14 @@ Examples:
     parser.add_argument(
         "--parallel",
         type=int,
-        default=1,
-        help="Number of parallel test workers (default: 1)",
+        default=4,
+        help="Number of parallel test workers (default: 4)",
+    )
+    parser.add_argument(
+        "--suite-timeout",
+        type=int,
+        default=2400,
+        help="Timeout in seconds for full test suite (default: 2400 = 40 min)",
     )
     parser.add_argument(
         "--resume",
@@ -712,6 +725,7 @@ Examples:
         fast_model=args.fast_model,
         production_model=args.production_model,
         parallel=args.parallel,
+        suite_timeout=args.suite_timeout,
         log_file=args.log_file,
         verbose=args.verbose,
     )

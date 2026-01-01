@@ -54,13 +54,15 @@ class TestRunner:
     TESTS_DIR = Path(__file__).parent
     TEST_FILE = TESTS_DIR / "test_routing.py"
 
-    def __init__(self, tests_dir: Path | None = None):
+    def __init__(self, tests_dir: Path | None = None, otel: bool = True):
         """Initialize test runner.
 
         Args:
             tests_dir: Directory containing test files. If None, uses default.
+            otel: Whether to enable OpenTelemetry export (default: True)
         """
         self.tests_dir = tests_dir or self.TESTS_DIR
+        self.otel = otel
 
     def run_single_test(
         self,
@@ -87,6 +89,9 @@ class TestRunner:
             "--tb=short",
             "-x",  # Stop on first failure
         ]
+
+        if self.otel:
+            cmd.append("--otel")
 
         logger.info(f"Running test {test_id} with model {model}")
         logger.debug(f"Command: {' '.join(cmd)}")
@@ -151,6 +156,9 @@ class TestRunner:
             "--tb=short",
         ]
 
+        if self.otel:
+            cmd.append("--otel")
+
         if test_ids:
             # Build filter expression
             filter_expr = " or ".join(test_ids)
@@ -180,7 +188,7 @@ class TestRunner:
         self,
         model: str = "haiku",
         parallel: int = 1,
-        timeout: int = 1200,
+        timeout: int = 2400,
     ) -> TestSuiteResult:
         """Run the full test suite.
 
@@ -239,27 +247,49 @@ class TestRunner:
         """Parse pytest output to extract all test results."""
         suite_result = TestSuiteResult()
 
-        # Parse individual test results
-        # Format: test_routing.py::test_routing[TC001-...] PASSED
-        # or: test_routing.py::test_routing[TC001-...] FAILED
-        test_pattern = re.compile(
-            r"test_routing\.py::test_routing\[(\w+)-[^\]]+\]\s+(PASSED|FAILED|SKIPPED)"
-        )
+        # Parse individual test results - multiple formats to handle
+        # Sequential: test_routing.py::test_routing[TC001-...] PASSED
+        # Parallel (xdist): [gw0] PASSED test_routing.py::test_routing[TC001-...]
+        # Parallel (xdist): test_routing.py::test_routing[TC001-...]
+        # followed by PASSED/FAILED on same or next line
 
-        for match in test_pattern.finditer(output):
-            test_id = match.group(1)
-            status = match.group(2)
+        test_patterns = [
+            # Standard pytest verbose format: test_routing.py::test_direct_routing[TC001] PASSED
+            re.compile(
+                r"test_routing\.py::test_\w+\[(\w+)\]\s+(PASSED|FAILED|SKIPPED)"
+            ),
+            # pytest-xdist format: [gwN] [NN%] STATUS test_routing.py::test_direct_routing[TC001]
+            re.compile(
+                r"\[gw\d+\]\s+\[\s*\d+%\]\s+(PASSED|FAILED|SKIPPED)\s+test_routing\.py::test_\w+\[(\w+)\]"
+            ),
+        ]
 
-            if status == "PASSED":
-                suite_result.passed.append(TestResult(test_id=test_id, passed=True))
-            elif status == "FAILED":
-                # Try to extract error for this test
-                error = self._extract_test_error(output, test_id)
-                suite_result.failed.append(
-                    TestResult(test_id=test_id, passed=False, error_message=error)
-                )
-            elif status == "SKIPPED":
-                suite_result.skipped.append(test_id)
+        found_tests = set()
+
+        for pattern in test_patterns:
+            for match in pattern.finditer(output):
+                groups = match.groups()
+                # Handle different group orders
+                if groups[0] in ("PASSED", "FAILED", "SKIPPED"):
+                    status, test_id = groups[0], groups[1]
+                else:
+                    test_id, status = groups[0], groups[1]
+
+                # Avoid duplicates
+                if test_id in found_tests:
+                    continue
+                found_tests.add(test_id)
+
+                if status == "PASSED":
+                    suite_result.passed.append(TestResult(test_id=test_id, passed=True))
+                elif status == "FAILED":
+                    # Try to extract error for this test
+                    error = self._extract_test_error(output, test_id)
+                    suite_result.failed.append(
+                        TestResult(test_id=test_id, passed=False, error_message=error)
+                    )
+                elif status == "SKIPPED":
+                    suite_result.skipped.append(test_id)
 
         # Parse summary line if available
         # Format: === 38 passed, 31 failed, 10 skipped in 123.45s ===
@@ -280,13 +310,38 @@ class TestRunner:
 
     def _extract_test_error(self, output: str, test_id: str) -> str:
         """Extract error message for a specific test from suite output."""
-        # Look for the FAILED section for this test
-        pattern = rf"FAILED test_routing\.py::test_routing\[{test_id}-[^\]]+\] - (.+?)(?:\n|$)"
-        match = re.search(pattern, output)
-        if match:
-            return match.group(1).strip()
+        # Look for the FAILED section for this test - multiple formats
+        patterns = [
+            rf"FAILED test_routing\.py::test_\w+\[{test_id}\] - (.+?)(?:\n|$)",
+            rf"FAILED test_routing\.py::test_\w+\[{test_id}-[^\]]+\] - (.+?)(?:\n|$)",
+        ]
+
+        for pattern in patterns:
+            match = re.search(pattern, output)
+            if match:
+                return match.group(1).strip()
 
         return "Unknown error"
+
+    def _get_golden_test_set(self) -> list[dict]:
+        """Import and return the GOLDEN_TEST_SET."""
+        import sys
+
+        # Add tests directory to path if not already there
+        tests_dir = str(self.tests_dir)
+        if tests_dir not in sys.path:
+            sys.path.insert(0, tests_dir)
+
+        try:
+            # Force reimport to pick up latest changes
+            if "test_routing" in sys.modules:
+                del sys.modules["test_routing"]
+
+            from test_routing import GOLDEN_TESTS
+            return GOLDEN_TESTS
+        except ImportError as e:
+            logger.warning(f"Could not import test data: {e}")
+            return []
 
     def get_test_info(self, test_id: str) -> dict | None:
         """Get test case information from test data.
@@ -297,14 +352,7 @@ class TestRunner:
         Returns:
             Dictionary with test info or None if not found
         """
-        # Import test data
-        try:
-            from test_routing import GOLDEN_TEST_SET
-        except ImportError:
-            logger.warning("Could not import test data")
-            return None
-
-        for test in GOLDEN_TEST_SET:
+        for test in self._get_golden_test_set():
             if test.get("id") == test_id:
                 return test
 
@@ -312,12 +360,7 @@ class TestRunner:
 
     def get_all_test_ids(self) -> list[str]:
         """Get list of all test IDs."""
-        try:
-            from test_routing import GOLDEN_TEST_SET
-            return [test["id"] for test in GOLDEN_TEST_SET]
-        except ImportError:
-            logger.warning("Could not import test data")
-            return []
+        return [test["id"] for test in self._get_golden_test_set()]
 
     def detect_regressions(
         self,
