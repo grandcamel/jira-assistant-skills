@@ -122,8 +122,11 @@ class ClaudeAnalyzer:
 
         raise ValueError(f"Could not extract JSON from response: {response[:500]}...")
 
-    def _get_skill_context(self, skill_name: str) -> str:
+    def _get_skill_context(self, skill_name: str | None) -> str:
         """Get the SKILL.md content for a skill."""
+        if not skill_name:
+            return "(No skill specified)"
+
         try:
             skill = self.skill_editor.parse_skill(skill_name)
             return f"""SKILL.md for {skill_name}:

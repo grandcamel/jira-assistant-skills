@@ -54,8 +54,11 @@ class SkillEditor:
         self.skills_base_path = skills_base_path or self.SKILLS_BASE_PATH
         self.backup_stack: list[tuple[str, Path]] = []  # (skill_name, backup_path)
 
-    def get_skill_path(self, skill_name: str) -> Path:
+    def get_skill_path(self, skill_name: str | None) -> Path:
         """Get the path to a skill's SKILL.md file."""
+        if not skill_name:
+            raise FileNotFoundError("No skill name provided")
+
         # Handle skill names with or without 'jira-' prefix
         if not skill_name.startswith("jira-"):
             skill_name = f"jira-{skill_name}"
