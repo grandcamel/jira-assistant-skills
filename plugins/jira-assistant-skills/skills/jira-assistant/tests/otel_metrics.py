@@ -30,6 +30,7 @@ import re
 import socket
 import subprocess
 import sys
+import time
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Optional
@@ -421,9 +422,16 @@ def record_test_result(
             "model": model
         })
 
-    # Create detailed trace span
+    # Create detailed trace span with correct duration
+    # Backdate the span start time so spanmetrics captures the actual test duration
     if _tracer:
-        with _tracer.start_as_current_span(f"routing_test_{test_id}") as span:
+        end_time_ns = time.time_ns()
+        start_time_ns = end_time_ns - (duration_ms * 1_000_000)  # Convert ms to ns
+
+        with _tracer.start_as_current_span(
+            f"routing_test_{test_id}",
+            start_time=start_time_ns,
+        ) as span:
             # Test identification
             span.set_attribute("test.id", test_id)
             span.set_attribute("test.category", category)
