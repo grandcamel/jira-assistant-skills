@@ -465,6 +465,12 @@ def record_test_result(
             if error_message:
                 span.set_attribute("error.message", error_message[:500])
 
+            # Version control context (from resource attributes, added as span attributes for filtering)
+            resource_attrs = get_resource_attributes()
+            span.set_attribute("skill.version", resource_attrs.get("skill.version", "unknown"))
+            span.set_attribute("vcs.branch", resource_attrs.get("vcs.branch", "unknown"))
+            span.set_attribute("vcs.commit.sha", resource_attrs.get("vcs.commit.sha", "unknown"))
+
             # Tool use accuracy context
             if tool_use_accuracy is not None:
                 span.set_attribute("tool_use.accuracy", tool_use_accuracy)
