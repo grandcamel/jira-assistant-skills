@@ -80,6 +80,89 @@ Recovery:
 
 ---
 
+## Error Response Templates
+
+Use these templates when reporting errors to users:
+
+### Skill Not Found
+```
+"I don't have a skill called '{name}'. Available skills for JIRA:
+- jira-issue, jira-search, jira-agile, jira-lifecycle, jira-collaborate,
+  jira-relationships, jira-time, jira-jsm, jira-bulk, jira-dev,
+  jira-fields, jira-ops, jira-admin
+
+Did you mean one of these?"
+```
+
+### Permission Denied
+```
+"You don't have permission to {operation} in project {PROJECT}.
+You may need to:
+- Request access from your JIRA administrator
+- Use a different project where you have access
+
+Would you like me to check your permissions with jira-admin?"
+```
+
+### Rate Limited
+```
+"JIRA is rate limiting requests. Please wait {X} seconds before retrying.
+For bulk operations, consider using jira-bulk with smaller batch sizes."
+```
+
+### Entity Not Found
+```
+"Issue {KEY} doesn't exist. Possible causes:
+- Typo in the issue key
+- Issue was deleted
+- You don't have access to view it
+
+Would you like me to search for similar issues?"
+```
+
+### Skill Execution Failed
+```
+"The {skill_name} operation failed: {error_message}
+
+Suggestions:
+- {recovery_option_1}
+- {recovery_option_2}
+
+Try a different approach with {alternative_skill}?"
+```
+
+---
+
+## Error Escalation Paths
+
+When an error occurs, escalate to the appropriate skill:
+
+| From Skill | Escalate To | When |
+|------------|-------------|------|
+| jira-issue | jira-bulk | >10 issues to modify |
+| jira-lifecycle | jira-admin | Workflow/permission issues |
+| jira-search | jira-fields | Unknown field errors |
+| Any skill | jira-ops | Cache/connectivity issues |
+| Any skill | jira-admin | Permission denied errors |
+
+---
+
+## Partial Workflow Failure
+
+When a multi-step workflow fails partway:
+
+1. **Stop immediately** - Don't attempt remaining steps
+2. **Report what succeeded**: "Created epic TES-100 and story TES-101"
+3. **Explain the failure**: "Story 2 failed: field 'customfield_123' is required"
+4. **Offer options**:
+   - "Fix the issue and continue with remaining stories?"
+   - "Keep what was created and stop here?"
+   - "Delete TES-100 and TES-101 to start fresh?"
+
+**Default behavior**: Keep successful items. Deletion requires explicit confirmation.
+
+---
+
 ## Best Practices
 
 ### Before Bulk Operations

@@ -1,7 +1,8 @@
 ---
 name: "jira-assistant"
 description: "JIRA automation hub routing to 14 specialized skills for any JIRA task: issues, workflows, agile, search, time tracking, service management, and more."
-version: "2.0.0"
+version: "2.1.0"
+# Implements: SKILLS_ROUTER_SKILL_PROPOSAL v2.1
 author: "jira-assistant-skills"
 license: "MIT"
 allowed-tools: ["Bash", "Read", "Glob", "Grep"]
@@ -9,162 +10,192 @@ allowed-tools: ["Bash", "Read", "Glob", "Grep"]
 
 # JIRA Assistant
 
-Complete JIRA automation hub that routes to 14 specialized skills.
+This hub routes requests to specialized JIRA skills. It does not execute JIRA operations directly—it helps find the right skill.
 
-## Quick Start
+## Quick Reference
 
-Tell me what you need in natural language:
+| I want to... | Use this skill | Risk |
+|--------------|----------------|:----:|
+| Create/edit/delete a single issue | jira-issue | ⚠️ |
+| Search with JQL, export results | jira-search | - |
+| Change status, assign, set versions | jira-lifecycle | ⚠️ |
+| Manage sprints, epics, story points | jira-agile | - |
+| Add comments, attachments, watchers | jira-collaborate | - |
+| Link issues, view dependencies | jira-relationships | - |
+| Log time, manage worklogs | jira-time | - |
+| Handle service desk requests | jira-jsm | - |
+| Update 10+ issues at once | jira-bulk | ⚠️⚠️ |
+| Generate Git branch names, PR descriptions | jira-dev | - |
+| Find custom field IDs | jira-fields | - |
+| Manage cache, diagnostics | jira-ops | - |
+| Project settings, permissions | jira-admin | ⚠️⚠️ |
 
-- "Create a bug in TES for login issues and assign to me"
-- "Move PROJ-123 to In Progress"
-- "Find all open bugs assigned to me"
-- "Log 2 hours on PROJ-456"
-- "What's blocking PROJ-789?"
-
----
-
-## Skill Registry
-
-| Skill | Purpose | Triggers |
-|-------|---------|----------|
-| `jira-issue` | Create, read, update, delete issues | create, get, update, delete, new bug/task/story |
-| `jira-lifecycle` | Workflow transitions, versions | transition, move to, close, reopen, resolve |
-| `jira-search` | JQL queries, filters, export | search, find, JQL, filter, list issues |
-| `jira-collaborate` | Comments, attachments, watchers | comment, attach, upload, watch |
-| `jira-agile` | Sprints, epics, backlog | sprint, epic, backlog, story points |
-| `jira-relationships` | Links, dependencies, cloning | link, blocks, depends on, clone |
-| `jira-time` | Worklogs, estimates | log time, worklog, estimate |
-| `jira-jsm` | Service desks, SLAs | service desk, request, SLA, customer |
-| `jira-bulk` | Mass operations (50+) | bulk, batch, mass update |
-| `jira-dev` | Git branches, commits, PRs | branch name, commit, PR description |
-| `jira-fields` | Custom field discovery | custom field, field ID |
-| `jira-ops` | Cache, diagnostics | cache, discover project |
-| `jira-admin` | Projects, permissions, workflows | project settings, permissions, workflow |
-
-**Capability Matrix:**
-
-|  | Create | Read | Update | Delete | Search | Bulk |
-|--|:------:|:----:|:------:|:------:|:------:|:----:|
-| jira-issue | X | X | X | X | - | - |
-| jira-search | - | X | - | - | X | - |
-| jira-bulk | - | - | X | X | - | X |
-| jira-admin | X | X | X | X | - | - |
+**Risk Legend**: `-` Read-only/safe | `⚠️` Has destructive ops (confirm) | `⚠️⚠️` High-risk (confirm + dry-run)
 
 ---
 
-## Routing Logic
+## Routing Rules
 
-### Disambiguation
-
-When multiple skills match, use these precedence rules:
-
-1. **Explicit skill mention wins**: "use jira-bulk to..." → `jira-bulk`
-2. **Quantity determines bulk**: 5+ issues → `jira-bulk`
-3. **Recent context**: Just created issue + "assign it" → `jira-issue`
-4. **Destructive caution**: Prefer read-only when ambiguous
-
-### Common Ambiguities
-
-| Query | Resolution |
-|-------|------------|
-| "Show me the sprint" | Ask: sprint details (`jira-agile`) or issues in sprint (`jira-search`)? |
-| "Link the PR" | Check context: GitHub PR (`jira-dev`) or issue link (`jira-relationships`)? |
-| "Update the issues" | Ask: how many? 1-4 (`jira-issue`), 5+ (`jira-bulk`) |
-
-### Entity Extraction
-
-Automatically extract from queries:
-- **Issue keys**: `TES-123`, `PROJ-1` → `[A-Z][A-Z0-9]+-[0-9]+`
-- **Project keys**: `TES`, `PROJ` → context: "in TES", "TES project"
-- **Users**: `@username`, `me`, emails → resolve to accountId
-- **Time**: `2h`, `1d 4h`, `last week` → duration or JQL
-- **Quantities**: `all`, `first 10`, `5 issues` → limit, is_bulk flag
+1. **Explicit skill mention wins** - If user says "use jira-agile", use it
+2. **Entity signals** - Issue key present → likely jira-issue or jira-lifecycle
+3. **Quantity determines bulk** - More than 10 issues → jira-bulk
+4. **Keywords drive routing**:
+   - "search", "find", "JQL", "filter" → jira-search
+   - "sprint", "epic", "backlog", "story points" → jira-agile
+   - "transition", "move to", "assign", "close" → jira-lifecycle
+   - "comment", "attach", "watch" → jira-collaborate
+   - "link", "blocks", "depends on", "clone" → jira-relationships
+   - "log time", "worklog", "estimate" → jira-time
+   - "service desk", "SLA", "customer", "request" → jira-jsm
+   - "branch name", "commit", "PR" → jira-dev
+   - "custom field", "field ID" → jira-fields
+   - "cache", "warm cache" → jira-ops
+   - "permissions", "project settings" → jira-admin
 
 ---
 
-## Multi-Skill Operations
+## Negative Triggers
 
-### Automatic Chaining
-
-| Pattern | Chain | Example |
-|---------|-------|---------|
-| Search + Bulk | `jira-search` → `jira-bulk` | "Find P1 bugs and close them" |
-| Create + Link | `jira-issue` → `jira-relationships` | "Create bug blocking TES-50" |
-| Create + Sprint | `jira-issue` → `jira-agile` | "Create task and add to sprint" |
-
-### Composite Queries
-
-For multi-intent requests like:
-```
-"Create a bug, assign to me, link to TES-100, add to sprint"
-```
-
-Execute in dependency order:
-1. Create issue → get new key
-2. Assign (depends on 1)
-3. Link (depends on 1)
-4. Add to sprint (depends on 1)
+| Skill | Does NOT handle | Route to instead |
+|-------|-----------------|------------------|
+| jira-issue | Bulk (>10), transitions, comments, sprints, time | jira-bulk, jira-lifecycle, jira-collaborate, jira-agile, jira-time |
+| jira-search | Single issue lookup, issue modifications | jira-issue, jira-bulk |
+| jira-lifecycle | Field updates, bulk transitions | jira-issue, jira-bulk |
+| jira-agile | Issue CRUD (except epic), JQL, time tracking | jira-issue, jira-search, jira-time |
+| jira-bulk | Single issue ops, sprint management | jira-issue, jira-agile |
+| jira-collaborate | Field updates, bulk comments | jira-issue, jira-bulk |
+| jira-relationships | Field updates, epic/sprint linking | jira-issue, jira-agile |
+| jira-time | SLA tracking, date-based searches | jira-jsm, jira-search |
+| jira-jsm | Standard project issues, non-service-desk searches | jira-issue, jira-search |
+| jira-dev | Issue field updates, commit searching | jira-issue, jira-search |
+| jira-fields | Field value searching, field value updates | jira-search, jira-issue |
+| jira-ops | Project configuration, issue operations | jira-admin, jira-issue |
+| jira-admin | Issue CRUD, bulk operations | jira-issue, jira-bulk |
 
 ---
 
-## Safeguards
+## When to Clarify First
 
-### Destructive Operations
+Ask the user before routing when:
+- Request matches 2+ skills with similar likelihood
+- Request is vague or could be interpreted multiple ways
+- Destructive operations are implied
 
-| Risk | Operations | Safeguard |
-|:----:|------------|-----------|
-| HIGH | delete issue, bulk transition | Require `--confirm` or dry-run |
-| CRITICAL | delete project, bulk delete | Double confirmation |
+### Disambiguation Examples
 
-**Always suggest dry-run for bulk operations:**
+**"Show me the sprint"**
+Could mean:
+1. Sprint metadata (dates, goals, capacity) → jira-agile
+2. Issues in the current sprint → jira-search
+
+Ask: "Do you want sprint details or the issues in the sprint?"
+
+**"Update the issue"**
+Could mean:
+1. Change fields on one issue → jira-issue
+2. Transition status → jira-lifecycle
+3. Update multiple issues → jira-bulk
+
+Ask: "What would you like to update - fields, status, or multiple issues?"
+
+**"Create an issue in the epic"**
+Context determines:
+- Epic context explicit → jira-agile
+- Just issue creation → jira-issue
+
+---
+
+## Context Awareness
+
+### Pronoun Resolution
+
+When user says "it" or "that issue":
+- If exactly one issue mentioned in last 3 messages → use it
+- If multiple issues mentioned → ask: "Which issue - TES-123 or TES-456?"
+- If no issue in last 5 messages → ask: "Which issue are you referring to?"
+
+**After CREATE**:
 ```
-jira bulk transition "project=TES AND type=Bug" --to Done --dry-run
+User: "create a bug in TES" → TES-789 created
+User: "assign it to me"
+→ "it" = TES-789 (the issue just created)
 ```
 
-### Quick Error Recovery
+**After SEARCH**:
+```
+User: "find all open bugs" → Found TES-100, TES-101, TES-102
+User: "close them"
+→ "them" = the search results (use jira-bulk)
+```
 
-| Error | Recovery |
-|-------|----------|
-| "Issue not found" | Verify key format and project access |
-| "Transition unavailable" | Check valid transitions with `jira-lifecycle` |
-| "Permission denied" | Check permissions with `jira-admin` |
-| "Field not found" | Discover fields with `jira-fields` |
+### Project Scope
+
+When user mentions a project:
+- Remember it for subsequent requests in this conversation
+- "Create a bug in TES" → TES is now the active project
+- "Create another bug" → Use TES implicitly
+- Explicit project mention updates the active project
+
+### Context Expiration
+
+After 5+ messages or 5+ minutes since last reference:
+- Re-confirm rather than assume: "Do you mean TES-123 from earlier?"
+- Don't guess when context is stale
+
+---
+
+## Common Workflows
+
+### Create Epic with Stories
+1. Use jira-agile to create the epic → Note epic key (e.g., TES-100)
+2. Use jira-issue to create each story → Link to TES-100
+3. Confirm: "Created epic TES-100 with N stories"
+
+### Bulk Close from Search
+1. Use jira-search to find matching issues
+2. Use jira-bulk with --dry-run to preview
+3. Confirm count with user before executing
+
+### Data Passing Between Steps
+When one skill's output feeds another:
+- Capture entity IDs from responses (e.g., epic key from jira-agile)
+- State this explicitly: "Created EPIC-123. Now creating stories..."
+- Reference captured data in subsequent operations
+
+---
+
+## Error Handling
+
+If a skill fails:
+- Report the error clearly
+- Suggest recovery options from docs/SAFEGUARDS.md
+- Offer alternative approaches
+
+If a skill is not available:
+- Acknowledge the limitation
+- Suggest alternatives from the Quick Reference table
+
+### Permission Awareness
+Before operations that might fail due to access:
+- Check if user has mentioned permission issues before
+- Suggest `jira-admin` for permission checks when blocked
 
 ---
 
 ## Discoverability
 
-- `/jira-assistant-skills:browse-skills` - List all skills
-- `/jira-assistant-skills:skill-info <name>` - Skill details
+- `/jira-assistant-skills:browse-skills` - List all skills with descriptions
+- `/jira-assistant-skills:skill-info <name>` - Detailed skill information
 
-### "Did You Mean?"
-
-```
-User: "Show me the roadmap"
-→ JIRA has no native roadmap. Did you mean:
-  - jira-agile: View epics?
-  - jira-search: Find by fix version?
-```
+If user asks "what can you do?" or similar:
+- Show the Quick Reference table
+- Offer to explain specific skills
 
 ---
 
-## Configuration
+## What This Hub Does NOT Do
 
-```bash
-export JIRA_SITE_URL="https://company.atlassian.net"
-export JIRA_EMAIL="you@company.com"
-export JIRA_API_TOKEN="your-token"
-export JIRA_PROFILE="production"  # optional
-```
-
----
-
-## Reference Documentation
-
-| Document | Content |
-|----------|---------|
-| [ROUTING_REFERENCE.md](docs/ROUTING_REFERENCE.md) | Entity patterns, composite parsing, chaining, normalization |
-| [SAFEGUARDS.md](docs/SAFEGUARDS.md) | Destructive ops, error handling, rollback |
-| [QUICK_REFERENCE.md](docs/QUICK_REFERENCE.md) | JQL patterns, time formats, issue types |
-| [BEST_PRACTICES.md](docs/BEST_PRACTICES.md) | Workflow design, estimation, organization |
-| [SCRIPT_EXECUTION.md](docs/SCRIPT_EXECUTION.md) | Command syntax, parameter patterns |
+- Execute JIRA operations directly (always delegates)
+- Guess when uncertain (asks instead)
+- Perform destructive operations without confirmation
+- Route to deprecated or unavailable skills without warning

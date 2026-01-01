@@ -198,9 +198,37 @@ User: "Link it to the epic"
 → Ambiguous: which epic? Ask or check parent.
 ```
 
+### Context Expiration
+
+After 5+ messages or 5+ minutes since last entity reference:
+- Re-confirm rather than assume: "Do you mean TES-123 from earlier?"
+- Don't guess when context is stale
+
+**Triggers for re-confirmation**:
+- 5+ messages since entity was last mentioned
+- 5+ minutes elapsed since last reference
+- User topic has shifted significantly
+
 ### Context Reset
 
 Clear context when:
 - User switches projects explicitly
 - User says "start fresh" or "new task"
-- Conversation idle > 10 minutes
+- Session ends or restarts
+
+### Conflicting Context
+
+When recent mentions conflict, most recent explicit mention wins:
+
+```
+User: "Search for bugs in TES" → Found TES-100, TES-101
+User: "Show me TES-456"  [different issue]
+User: "Close it"
+→ "it" = TES-456 (most recent explicit mention wins)
+```
+
+**Resolution priority**:
+1. Most recent explicit issue key
+2. Last created/modified issue
+3. Search result set (if "them" or plural)
+4. Ask for clarification if ambiguous
