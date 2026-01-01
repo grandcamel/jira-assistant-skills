@@ -74,7 +74,9 @@ _test_counter = None
 _duration_histogram = None
 _cost_histogram = None
 _accuracy_gauge = None
+_tool_use_accuracy_gauge = None
 _accuracy_value = {"value": 0.0}
+_tool_use_accuracy_value = {"value": 0.0}
 
 
 def _get_git_info() -> dict:
@@ -282,6 +284,15 @@ def init_telemetry() -> bool:
             ]]
         )
 
+        _tool_use_accuracy_gauge = _meter.create_observable_gauge(
+            name="tool_use_accuracy_percent",
+            description="Current tool use accuracy percentage (expected commands matched)",
+            unit="%",
+            callbacks=[lambda options: [
+                metrics.Observation(_tool_use_accuracy_value["value"], {})
+            ]]
+        )
+
         _metrics_initialized = True
         print(f"OpenTelemetry initialized. Exporting to {OTLP_HTTP_ENDPOINT}")
         return True
@@ -294,6 +305,30 @@ def init_telemetry() -> bool:
 def _hash_input(text: str) -> str:
     """Create a privacy-safe hash of input text."""
     return hashlib.sha256(text.encode()).hexdigest()[:16]
+
+
+def _extract_code_blocks(text: str) -> list[str]:
+    """
+    Extract code blocks from markdown text.
+
+    Returns a list of code block contents (including the ``` markers).
+    """
+    # Match fenced code blocks: ```language\n...\n```
+    pattern = r'```[\w]*\n.*?```'
+    matches = re.findall(pattern, text, re.DOTALL)
+    return matches
+
+
+def update_tool_use_accuracy(matched: int, total: int):
+    """
+    Update the tool use accuracy gauge.
+
+    Args:
+        matched: Number of matched patterns
+        total: Total number of patterns
+    """
+    if total > 0:
+        _tool_use_accuracy_value["value"] = (matched / total) * 100
 
 
 def record_test_result(
@@ -313,7 +348,12 @@ def record_test_result(
     retry_count: int = 0,
     disambiguation_options: Optional[list] = None,
     error_type: Optional[str] = None,
-    error_message: Optional[str] = None
+    error_message: Optional[str] = None,
+    # New parameters for tool use accuracy
+    response_text: str = "",
+    tool_use_accuracy: Optional[float] = None,
+    tool_use_matched: Optional[int] = None,
+    tool_use_total: Optional[int] = None,
 ):
     """
     Record a single test result with comprehensive context.
@@ -336,6 +376,10 @@ def record_test_result(
         disambiguation_options: Skills offered for disambiguation
         error_type: Type of error if failed
         error_message: Error message if failed
+        response_text: Full response text from Claude
+        tool_use_accuracy: Accuracy of expected command matching (0.0-1.0)
+        tool_use_matched: Number of expected command patterns matched
+        tool_use_total: Total number of expected command patterns
     """
     if not _metrics_initialized:
         return
@@ -420,6 +464,52 @@ def record_test_result(
                 span.set_attribute("error.type", error_type)
             if error_message:
                 span.set_attribute("error.message", error_message[:500])
+
+            # Tool use accuracy context
+            if tool_use_accuracy is not None:
+                span.set_attribute("tool_use.accuracy", tool_use_accuracy)
+                span.set_attribute("tool_use.accuracy_percent", tool_use_accuracy * 100)
+            if tool_use_matched is not None:
+                span.set_attribute("tool_use.matched_patterns", tool_use_matched)
+            if tool_use_total is not None:
+                span.set_attribute("tool_use.total_patterns", tool_use_total)
+            if tool_use_total and tool_use_total > 0:
+                span.set_attribute("tool_use.passed", tool_use_accuracy >= 0.5 if tool_use_accuracy else False)
+
+            # Add span events for prompt and response (for detailed tracing)
+            span.add_event(
+                "prompt",
+                attributes={
+                    "prompt.text": input_text[:2000],  # Truncate for size
+                    "prompt.length": len(input_text),
+                    "prompt.word_count": len(input_text.split()),
+                }
+            )
+
+            if response_text:
+                # Extract code blocks from response for analysis
+                code_blocks = _extract_code_blocks(response_text)
+                span.add_event(
+                    "response",
+                    attributes={
+                        "response.text": response_text[:4000],  # Larger limit for response
+                        "response.length": len(response_text),
+                        "response.word_count": len(response_text.split()),
+                        "response.code_block_count": len(code_blocks),
+                        "response.has_bash_command": any("```bash" in b or "```sh" in b for b in code_blocks),
+                    }
+                )
+
+                # Add separate event for each code block (up to 5)
+                for i, block in enumerate(code_blocks[:5]):
+                    span.add_event(
+                        f"code_block_{i}",
+                        attributes={
+                            "code_block.index": i,
+                            "code_block.content": block[:1000],
+                            "code_block.length": len(block),
+                        }
+                    )
 
             # Set span status
             if passed:
