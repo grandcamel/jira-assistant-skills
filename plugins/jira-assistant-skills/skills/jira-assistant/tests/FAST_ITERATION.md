@@ -215,7 +215,10 @@ For isolated, reproducible test environments, use the Docker-based test runner.
 # Build container (first time only)
 ./run_container_tests.sh --build
 
-# Run with OAuth token (uses your Claude subscription - free)
+# RECOMMENDED: Token server mode for long jobs (auto-refreshing OAuth)
+./run_container_tests.sh --token-server --parallel 4
+
+# Quick test with static OAuth token (5-min TTL)
 export ANTHROPIC_AUTH_TOKEN=$(security find-generic-password -a $USER -s 'Claude Code-credentials' -w | jq -r .claudeAiOauth.accessToken)
 ./run_container_tests.sh
 
@@ -224,36 +227,81 @@ export ANTHROPIC_API_KEY="sk-ant-..."
 ./run_container_tests.sh --api-key
 
 # Run with options
-./run_container_tests.sh --parallel 4 --model haiku
+./run_container_tests.sh --token-server --parallel 4 --model haiku
 ./run_container_tests.sh -- -k "TC001" -v  # Pass pytest args
 ```
 
 ### Authentication Options
 
-| Method | Environment Variable | Cost | Use Case |
-|--------|---------------------|------|----------|
-| OAuth Token | `ANTHROPIC_AUTH_TOKEN` | Free (subscription) | Local dev, CI with subscription |
-| API Key | `ANTHROPIC_API_KEY` | Pay per token | CI without subscription |
+| Method | Flag | Cost | TTL | Use Case |
+|--------|------|------|-----|----------|
+| **Token Server** | `--token-server` | Free (subscription) | Auto-refresh | Long jobs (>5 min) |
+| Static OAuth | (default) | Free (subscription) | 5 minutes | Quick tests |
+| API Key | `--api-key` | Pay per token | Unlimited | CI without subscription |
 
-**Getting your OAuth token (macOS):**
+### Token Server Mode (Recommended for Long Jobs)
+
+The `--token-server` flag enables automatic OAuth token refresh:
+
+1. Starts a local HTTP server on host (port 9876)
+2. Server reads fresh tokens from macOS Keychain on each request
+3. Container uses `apiKeyHelper` to fetch tokens every 4 minutes
+4. Automatically cleans up on exit
+
 ```bash
-export ANTHROPIC_AUTH_TOKEN=$(security find-generic-password -a $USER -s 'Claude Code-credentials' -w | jq -r .claudeAiOauth.accessToken)
+# Long running job with auto-refresh
+./run_container_tests.sh --token-server --parallel 4
+
+# Full test suite (20+ minutes) with auto-refresh
+./run_container_tests.sh --token-server
 ```
 
-**Note:** Token has 5-minute TTL. Refresh before long test runs.
+**Architecture:**
+```
+┌──────────────────────────────────────────────────────────┐
+│  macOS Host                                               │
+│  ┌────────────────────────────────────────────────────┐  │
+│  │  token-server.sh (Python HTTP server)               │  │
+│  │  • Listens on localhost:9876                        │  │
+│  │  • Reads from macOS Keychain on each request        │  │
+│  │  • Returns fresh OAuth token                        │  │
+│  └───────────────────────┬────────────────────────────┘  │
+│                          │ http://host.docker.internal    │
+│  ┌───────────────────────┴────────────────────────────┐  │
+│  │  Docker Container                                   │  │
+│  │  apiKeyHelper: "curl http://host.docker.internal"   │  │
+│  │  TTL: 240000ms (4 min, before 5 min expiry)         │  │
+│  └─────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────┘
+```
+
+### Static OAuth Token (Quick Tests Only)
+
+For quick tests under 5 minutes, use static token:
+
+```bash
+export ANTHROPIC_AUTH_TOKEN=$(security find-generic-password -a $USER -s 'Claude Code-credentials' -w | jq -r .claudeAiOauth.accessToken)
+./run_container_tests.sh -- -k "TC001"  # Single test
+```
+
+**Warning:** Token expires after 5 minutes. Use `--token-server` for longer jobs.
 
 ### Container Options
 
 ```bash
 ./run_container_tests.sh [options] [-- pytest-args...]
 
+Authentication:
+  --token-server  Auto-refresh OAuth via host server (recommended for long jobs)
+  --api-key       Use ANTHROPIC_API_KEY (paid)
+  (default)       Use static ANTHROPIC_AUTH_TOKEN (5-min TTL)
+
 Options:
-  --api-key      Use API key instead of OAuth token
-  --build        Rebuild Docker image before running
-  --parallel N   Run N tests in parallel
-  --model NAME   Use specific model (sonnet, haiku, opus)
-  --keep         Don't remove container after run
-  --help         Show help message
+  --build         Rebuild Docker image before running
+  --parallel N    Run N tests in parallel
+  --model NAME    Use specific model (sonnet, haiku, opus)
+  --keep          Don't remove container after run
+  --help          Show help message
 ```
 
 ### Environment Variables
@@ -264,6 +312,7 @@ The container automatically sets these for optimal operation:
 |----------|-------|---------|
 | `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` | `1` | No telemetry/updates |
 | `CLAUDE_CODE_ACTION` | `bypassPermissions` | Automated testing |
+| `CLAUDE_CODE_API_KEY_HELPER_TTL_MS` | `240000` | Token refresh every 4 min |
 | `CHOKIDAR_USEPOLLING` | `true` | Docker file watching |
 
 ## Next Steps
