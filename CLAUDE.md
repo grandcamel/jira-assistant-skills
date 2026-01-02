@@ -471,12 +471,26 @@ The `fast_test.sh` script optimizes the fix-test-pass/fail cycle:
 Enable metrics export for test analysis:
 
 ```bash
-# Start local collector (requires Docker)
+# Option 1: Simple collector
 docker run -p 4318:4318 otel/opentelemetry-collector
+
+# Option 2: Full LGTM stack (Loki, Grafana, Tempo, Mimir, Pyroscope)
+# Clone and start: https://github.com/grafana/docker-otel-lgtm
+cd ~/docker-otel-lgtm && docker compose up -d
 
 # Run tests with OTel export
 pytest test_routing.py --otel --otlp-endpoint http://localhost:4318 -v
+
+# Container tests automatically export to host.docker.internal:4318
+./run_container_tests.sh --parallel 4
 ```
+
+The full LGTM stack provides:
+- **Grafana** (localhost:3000): Dashboards and visualization
+- **Tempo**: Distributed tracing
+- **Loki**: Log aggregation
+- **Mimir/Prometheus**: Metrics storage
+- **Pyroscope**: Continuous profiling
 
 ### Documenting Testing Insights
 
@@ -493,7 +507,7 @@ After debugging a non-obvious test failure, document the root cause in:
 
 **Format example:**
 ```
-**Discovered:** 2026-01-02
+**Discovered:** YYYY-MM-DD
 **Test case:** TC001 ("create a bug in TES")
 **Root cause:** Working directory `/workspace/tests` caused Claude to interpret "TES" as a file reference
 **Fix:** Changed container working directory to `/tmp`
@@ -501,13 +515,51 @@ After debugging a non-obvious test failure, document the root cause in:
 
 See `plugins/jira-assistant-skills/skills/jira-assistant/tests/FAST_ITERATION.md` for detailed documentation.
 
-### Sandboxed Container Testing
+## Container Testing
 
-Run tests in Docker containers with restricted tool access for safe demos and focused testing:
+The project includes comprehensive Docker-based testing infrastructure for isolated, reproducible test execution.
+
+### Container Test Runners
+
+All container scripts are located in `plugins/jira-assistant-skills/skills/jira-assistant/tests/`:
+
+| Script | Purpose |
+|--------|---------|
+| `run_container_tests.sh` | Standard routing test execution in Docker |
+| `run_sandboxed.sh` | Restricted tool access with profiles |
+| `run_workspace.sh` | Hybrid file + JIRA workflows |
+| `run_devcontainer.sh` | Batteries-included developer environment |
+
+All scripts share common functions via `lib_container.sh` and support:
+- **OAuth** (default): Uses macOS Keychain credentials
+- **`--api-key`**: Uses `ANTHROPIC_API_KEY` environment variable
+- **`--api-key-from-config`**: Reads `primaryApiKey` from `~/.claude.json`
+- **`--build`**: Rebuild Docker image before running
+- **`--model`**: Select model (haiku, sonnet, opus)
+
+### Standard Container Tests
 
 ```bash
 cd plugins/jira-assistant-skills/skills/jira-assistant/tests
 
+# Run all routing tests in container
+./run_container_tests.sh
+
+# Run with parallel workers
+./run_container_tests.sh --parallel 4
+
+# Run specific test
+./run_container_tests.sh -- -k "TC001"
+
+# Use API key from .claude.json (Windows/Linux)
+./run_container_tests.sh --api-key-from-config
+```
+
+### Sandboxed Container Testing
+
+Run tests with restricted tool access for safe demos and focused testing:
+
+```bash
 # List available sandbox profiles
 ./run_sandboxed.sh --list-profiles
 
@@ -521,7 +573,7 @@ cd plugins/jira-assistant-skills/skills/jira-assistant/tests
 ./run_sandboxed.sh --profile search-only -- -k "TC005"
 ```
 
-**Available profiles:**
+**Sandbox profiles:**
 
 | Profile | Use Case | Allowed Operations |
 |---------|----------|-------------------|
@@ -531,6 +583,79 @@ cd plugins/jira-assistant-skills/skills/jira-assistant/tests
 | `full` | Full testing | No restrictions |
 
 The sandbox uses Claude's `--allowedTools` flag with patterns like `Bash(jira issue get:*)` to restrict tool access.
+
+### Workspace Runner
+
+For hybrid workflows combining file operations with JIRA automation:
+
+```bash
+# Organize docs and close JIRA ticket
+./run_workspace.sh --project ~/myproject \
+  --prompt "Organize docs/ and close TES-123"
+
+# Code review with JIRA comment
+./run_workspace.sh --project ~/myproject --profile code-review \
+  --prompt "Review src/auth.py and comment on TES-456"
+
+# Read-only exploration
+./run_workspace.sh --project ~/myproject --readonly \
+  --prompt "What documentation is missing?"
+```
+
+**Workspace profiles:**
+
+| Profile | Use Case | Allowed Operations |
+|---------|----------|-------------------|
+| `docs-jira` | Default | File ops + `jira issue` + `jira lifecycle` |
+| `code-review` | Reviews | Read files + `jira collaborate` |
+| `docs-only` | File work | File operations only, no JIRA |
+| `full-access` | Everything | No restrictions |
+
+### Developer Container
+
+A batteries-included development environment for onboarding and consistent tooling:
+
+```bash
+# Interactive shell with current directory
+./run_devcontainer.sh
+
+# Mount specific project
+./run_devcontainer.sh --project ~/myproject
+
+# Full setup with Docker and port forwarding
+./run_devcontainer.sh --project ~/app --docker --port 3000:3000
+
+# Persist caches for faster subsequent runs
+./run_devcontainer.sh --persist-cache
+
+# Named container (reattach with: docker exec -it mydev bash)
+./run_devcontainer.sh --name mydev --detach
+```
+
+**Included toolchains:**
+
+| Category | Tools |
+|----------|-------|
+| Languages | Python 3.11, Node.js 20, Go 1.22, Rust 1.92 |
+| Cloud CLI | AWS CLI, GitHub CLI, Docker |
+| CLI Tools | jq, yq, ripgrep, fd, fzf, httpie, shellcheck |
+| Python | black, ruff, mypy, pytest, poetry, uv, ipython |
+| Node.js | TypeScript, ESLint, Prettier, yarn, pnpm |
+| Databases | PostgreSQL, MySQL, Redis, SQLite clients |
+
+### Corporate Proxy Support (Zscaler)
+
+All container images support optional CA certificate injection for corporate proxies:
+
+```bash
+# Build with Zscaler certificate
+docker build --build-arg EXTRA_CA_CERT=zscaler.crt -f Dockerfile .
+
+# Or for dev container
+docker build --build-arg EXTRA_CA_CERT=zscaler.crt -f Dockerfile.dev .
+```
+
+Place your certificate file in the tests directory. The build works with or without the certificate.
 
 ## CLI Usage
 
