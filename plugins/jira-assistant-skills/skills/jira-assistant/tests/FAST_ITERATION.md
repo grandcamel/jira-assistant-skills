@@ -216,7 +216,7 @@ For isolated, reproducible test environments, use the Docker-based test runner.
 ./run_container_tests.sh --build
 
 # Run with OAuth token (uses your Claude subscription - free)
-export ANTHROPIC_AUTH_TOKEN="$(claude --print-auth-token)"
+export ANTHROPIC_AUTH_TOKEN=$(security find-generic-password -a $USER -s 'Claude Code-credentials' -w | jq -r .claudeAiOauth.accessToken)
 ./run_container_tests.sh
 
 # Run with API key (uses API credits - paid)
@@ -235,10 +235,12 @@ export ANTHROPIC_API_KEY="sk-ant-..."
 | OAuth Token | `ANTHROPIC_AUTH_TOKEN` | Free (subscription) | Local dev, CI with subscription |
 | API Key | `ANTHROPIC_API_KEY` | Pay per token | CI without subscription |
 
-**Getting your OAuth token:**
+**Getting your OAuth token (macOS):**
 ```bash
-claude --print-auth-token
+export ANTHROPIC_AUTH_TOKEN=$(security find-generic-password -a $USER -s 'Claude Code-credentials' -w | jq -r .claudeAiOauth.accessToken)
 ```
+
+**Note:** Token has 5-minute TTL. Refresh before long test runs.
 
 ### Container Options
 

@@ -117,10 +117,10 @@ validate_auth() {
         if [[ -z "${ANTHROPIC_AUTH_TOKEN:-}" ]]; then
             echo_error "ANTHROPIC_AUTH_TOKEN is not set"
             echo ""
-            echo "To get your OAuth token:"
-            echo "  1. Open Claude Code in a terminal"
-            echo "  2. Run: claude --print-auth-token"
-            echo "  3. Export: export ANTHROPIC_AUTH_TOKEN='<token>'"
+            echo "To get your OAuth token (macOS):"
+            echo "  export ANTHROPIC_AUTH_TOKEN=\$(security find-generic-password -a \$USER -s 'Claude Code-credentials' -w | jq -r .claudeAiOauth.accessToken)"
+            echo ""
+            echo "Note: Token has 5-minute TTL, refresh before long test runs"
             echo ""
             echo "Or use --api-key flag with ANTHROPIC_API_KEY"
             exit 1
