@@ -70,6 +70,7 @@ PIP_PACKAGES=()
 NPM_PACKAGES=()
 APT_PACKAGES=()
 ENHANCED_MODE=false
+CLAUDE_VERSION=""
 
 # =============================================================================
 # Argument Parsing
@@ -145,6 +146,10 @@ while [[ $# -gt 0 ]]; do
             ENHANCED_MODE=true
             shift
             ;;
+        --claude-version)
+            CLAUDE_VERSION="$2"
+            shift 2
+            ;;
         --help|-h)
             echo "Usage: $0 [options] [-- command...]"
             echo ""
@@ -170,6 +175,7 @@ while [[ $# -gt 0 ]]; do
             echo "  --detach, -d          Run in background"
             echo "  --build               Rebuild Docker image before running"
             echo "  --model NAME          Claude model (sonnet, haiku, opus)"
+            echo "  --claude-version VER  Use specific Claude Code version (e.g., 2.0.69)"
             echo ""
             echo "Additional Packages (installed at container start):"
             echo "  --pip PKG[,PKG,...]   Install Python packages (can be used multiple times)"
@@ -216,6 +222,9 @@ while [[ $# -gt 0 ]]; do
             echo "  # Enhanced mode with modern CLI tools"
             echo "  $0 --enhanced"
             echo "  $0 --enhanced --project ~/myproject --persist-cache"
+            echo ""
+            echo "  # Use specific Claude Code version"
+            echo "  $0 --claude-version 2.0.69"
             exit 0
             ;;
         --)
@@ -307,6 +316,10 @@ run_devcontainer() {
 
     if [[ "$ENHANCED_MODE" == "true" ]]; then
         echo_status "DEV" "Enhanced mode: starship, eza, bat, delta, zoxide, btop, lazygit, tmux, neovim, direnv"
+    fi
+
+    if [[ -n "$CLAUDE_VERSION" ]]; then
+        echo_status "DEV" "Claude Code version: $CLAUDE_VERSION"
     fi
     echo ""
 
@@ -437,6 +450,13 @@ run_devcontainer() {
         local npm_list="${NPM_PACKAGES[*]}"
         init_commands+=("echo '📦 Installing npm packages: $npm_list'")
         init_commands+=("npm install -g --silent ${NPM_PACKAGES[*]}")
+    fi
+
+    # Claude Code version override
+    if [[ -n "$CLAUDE_VERSION" ]]; then
+        init_commands+=("echo '🤖 Installing Claude Code v$CLAUDE_VERSION'")
+        init_commands+=("sudo npm uninstall -g @anthropic-ai/claude-code 2>/dev/null || true")
+        init_commands+=("sudo npm install -g @anthropic-ai/claude-code@$CLAUDE_VERSION")
     fi
 
     # Command to run (default: interactive bash with login shell)
