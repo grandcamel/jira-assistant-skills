@@ -1,0 +1,379 @@
+#!/usr/bin/env bash
+#
+# Run a batteries-included developer container with Claude Code and common toolchains
+#
+# Provides a fully-loaded development environment with:
+#   Languages:  Python 3, Node.js 20, Go 1.22, Rust (stable)
+#   Tools:      git, jq, yq, ripgrep, fd, fzf, httpie, shellcheck
+#   Cloud:      AWS CLI, GitHub CLI
+#   Databases:  PostgreSQL, MySQL, Redis, SQLite clients
+#   Build:      make, cmake, gcc
+#   Containers: Docker CLI (mount socket for Docker-in-Docker)
+#
+# Authentication modes:
+# 1. OAuth (default) - Uses credentials from macOS Keychain (free with subscription)
+# 2. API Key (--api-key) - Uses ANTHROPIC_API_KEY environment variable (paid)
+# 3. API Key from config (--api-key-from-config) - Reads from ~/.claude.json (paid)
+#
+# Usage:
+#   ./run_devcontainer.sh [options] [-- command...]
+#
+# Examples:
+#   # Interactive shell with current directory mounted
+#   ./run_devcontainer.sh
+#
+#   # Mount specific project
+#   ./run_devcontainer.sh --project ~/myproject
+#
+#   # Run a command
+#   ./run_devcontainer.sh -- python3 --version
+#
+#   # Enable Docker-in-Docker
+#   ./run_devcontainer.sh --docker
+#
+#   # Persist caches across sessions
+#   ./run_devcontainer.sh --persist-cache
+#
+
+set -e
+
+# Source shared library
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/lib_container.sh"
+
+# Override image name for dev container
+DEV_IMAGE_NAME="jira-skills-dev"
+DEV_IMAGE_TAG="latest"
+
+# =============================================================================
+# Script-specific Configuration
+# =============================================================================
+
+PROJECT_PATH=""
+USE_API_KEY=false
+USE_API_KEY_FROM_CONFIG=false
+BUILD_IMAGE=false
+MOUNT_DOCKER=false
+PERSIST_CACHE=false
+PORTS=()
+ENV_VARS=()
+VOLUMES=()
+MODEL=""
+CONTAINER_NAME=""
+DETACH=false
+COMMAND_ARGS=()
+
+# =============================================================================
+# Argument Parsing
+# =============================================================================
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --project|-p)
+            PROJECT_PATH="$2"
+            shift 2
+            ;;
+        --api-key)
+            USE_API_KEY=true
+            shift
+            ;;
+        --api-key-from-config)
+            USE_API_KEY_FROM_CONFIG=true
+            USE_API_KEY=true
+            shift
+            ;;
+        --build)
+            BUILD_IMAGE=true
+            shift
+            ;;
+        --docker)
+            MOUNT_DOCKER=true
+            shift
+            ;;
+        --persist-cache)
+            PERSIST_CACHE=true
+            shift
+            ;;
+        --port|-P)
+            PORTS+=("$2")
+            shift 2
+            ;;
+        --env|-e)
+            ENV_VARS+=("$2")
+            shift 2
+            ;;
+        --volume|-v)
+            VOLUMES+=("$2")
+            shift 2
+            ;;
+        --model)
+            MODEL="$2"
+            shift 2
+            ;;
+        --name)
+            CONTAINER_NAME="$2"
+            shift 2
+            ;;
+        --detach|-d)
+            DETACH=true
+            shift
+            ;;
+        --help|-h)
+            echo "Usage: $0 [options] [-- command...]"
+            echo ""
+            echo "Run a batteries-included developer container with Claude Code."
+            echo ""
+            echo "Included Tools:"
+            echo "  Languages:    Python 3, Node.js 20, Go 1.22, Rust (stable)"
+            echo "  CLI Tools:    git, jq, yq, ripgrep, fd, fzf, httpie, shellcheck, tree"
+            echo "  Cloud:        AWS CLI, GitHub CLI"
+            echo "  Databases:    PostgreSQL, MySQL, Redis, SQLite clients"
+            echo "  Build:        make, cmake, gcc, pkg-config"
+            echo "  Node.js:      TypeScript, ESLint, Prettier, yarn, pnpm"
+            echo "  Python:       pytest, black, ruff, mypy, poetry, uv, ipython"
+            echo ""
+            echo "Options:"
+            echo "  --project, -p PATH    Mount project directory (default: current directory)"
+            echo "  --docker              Mount Docker socket for Docker-in-Docker"
+            echo "  --persist-cache       Persist Go, Cargo, npm caches across sessions"
+            echo "  --port, -P PORT       Expose port (can be used multiple times)"
+            echo "  --env, -e VAR=VAL     Set environment variable (can be used multiple times)"
+            echo "  --volume, -v SRC:DST  Mount additional volume (can be used multiple times)"
+            echo "  --name NAME           Container name (for reattaching)"
+            echo "  --detach, -d          Run in background"
+            echo "  --build               Rebuild Docker image before running"
+            echo "  --model NAME          Claude model (sonnet, haiku, opus)"
+            echo ""
+            echo "Authentication (choose one):"
+            echo "  (default)              Use OAuth from macOS Keychain (free with subscription)"
+            echo "  --api-key              Use ANTHROPIC_API_KEY environment variable (paid)"
+            echo "  --api-key-from-config  Use primaryApiKey from ~/.claude.json (paid)"
+            echo ""
+            echo "Examples:"
+            echo "  # Interactive shell with current directory"
+            echo "  $0"
+            echo ""
+            echo "  # Mount specific project"
+            echo "  $0 --project ~/myproject"
+            echo ""
+            echo "  # Run a command"
+            echo "  $0 -- python3 --version"
+            echo ""
+            echo "  # Full development setup with Docker and port forwarding"
+            echo "  $0 --project ~/app --docker --port 3000:3000 --port 8080:8080"
+            echo ""
+            echo "  # Persist caches for faster subsequent runs"
+            echo "  $0 --persist-cache --project ~/myproject"
+            echo ""
+            echo "  # Named container (can reattach with: docker exec -it mydev bash)"
+            echo "  $0 --name mydev --detach"
+            exit 0
+            ;;
+        --)
+            shift
+            COMMAND_ARGS=("$@")
+            break
+            ;;
+        *)
+            COMMAND_ARGS+=("$1")
+            shift
+            ;;
+    esac
+done
+
+# Default to current directory if no project specified
+if [[ -z "$PROJECT_PATH" ]]; then
+    PROJECT_PATH="$(pwd)"
+fi
+
+# Resolve to absolute path
+PROJECT_PATH="$(cd "$PROJECT_PATH" 2>/dev/null && pwd)" || {
+    echo_error "Project path does not exist: $PROJECT_PATH"
+    exit 1
+}
+
+# =============================================================================
+# Image Management
+# =============================================================================
+
+build_dev_image() {
+    echo_info "Building developer container image: $DEV_IMAGE_NAME:$DEV_IMAGE_TAG"
+    docker build \
+        -t "$DEV_IMAGE_NAME:$DEV_IMAGE_TAG" \
+        -f "$SCRIPT_DIR/Dockerfile.dev" \
+        "$SCRIPT_DIR"
+    echo_info "Image built successfully"
+}
+
+check_dev_image() {
+    if ! docker image inspect "$DEV_IMAGE_NAME:$DEV_IMAGE_TAG" &>/dev/null; then
+        echo_warn "Dev image not found, building (this may take several minutes)..."
+        build_dev_image
+    fi
+}
+
+ensure_dev_image() {
+    local force_build="$1"
+    if [[ "$force_build" == "true" ]]; then
+        build_dev_image
+    else
+        check_dev_image
+    fi
+}
+
+# =============================================================================
+# Main Runner
+# =============================================================================
+
+run_devcontainer() {
+    local project_name
+    project_name=$(basename "$PROJECT_PATH")
+
+    echo_status "DEV" "Project: $project_name"
+    echo_status "DEV" "Path: $PROJECT_PATH"
+
+    if [[ "$MOUNT_DOCKER" == "true" ]]; then
+        echo_status "DEV" "Docker: enabled (socket mounted)"
+    fi
+
+    if [[ "$PERSIST_CACHE" == "true" ]]; then
+        echo_status "DEV" "Cache: persistent volumes enabled"
+    fi
+
+    if [[ ${#PORTS[@]} -gt 0 ]]; then
+        echo_status "DEV" "Ports: ${PORTS[*]}"
+    fi
+    echo ""
+
+    echo_info "Starting developer container..."
+
+    # Build docker run command
+    local docker_args=("run")
+
+    # Interactive or detached mode
+    if [[ "$DETACH" == "true" ]]; then
+        docker_args+=("-d")
+    else
+        docker_args+=("-it" "--rm")
+    fi
+
+    # Container name
+    if [[ -n "$CONTAINER_NAME" ]]; then
+        docker_args+=("--name" "$CONTAINER_NAME")
+    fi
+
+    # Mount plugin directory read-only
+    docker_args+=(
+        "-v" "$PLUGIN_ROOT:/workspace/plugin:ro"
+    )
+
+    # Mount project directory
+    docker_args+=("-v" "$PROJECT_PATH:/workspace/project")
+
+    # Set working directory to project
+    docker_args+=("-w" "/workspace/project")
+
+    # Authentication configuration
+    if [[ "$USE_API_KEY" == "true" ]]; then
+        docker_args+=("-e" "ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}")
+    else
+        docker_args+=("-v" "$CREDS_TMP_DIR:/home/devuser/.claude")
+    fi
+
+    # Enable host.docker.internal
+    docker_args+=("--add-host" "host.docker.internal:host-gateway")
+
+    # Docker socket for Docker-in-Docker
+    if [[ "$MOUNT_DOCKER" == "true" ]]; then
+        if [[ -S /var/run/docker.sock ]]; then
+            docker_args+=("-v" "/var/run/docker.sock:/var/run/docker.sock")
+        else
+            echo_warn "Docker socket not found at /var/run/docker.sock"
+        fi
+    fi
+
+    # Persistent cache volumes
+    if [[ "$PERSIST_CACHE" == "true" ]]; then
+        # Create named volumes for caches
+        docker_args+=(
+            "-v" "devcontainer-go-cache:/home/devuser/go"
+            "-v" "devcontainer-cargo-cache:/usr/local/cargo/registry"
+            "-v" "devcontainer-npm-cache:/home/devuser/.npm"
+            "-v" "devcontainer-pip-cache:/home/devuser/.cache/pip"
+        )
+    fi
+
+    # Port forwarding
+    for port in "${PORTS[@]}"; do
+        docker_args+=("-p" "$port")
+    done
+
+    # Additional environment variables
+    for env_var in "${ENV_VARS[@]}"; do
+        docker_args+=("-e" "$env_var")
+    done
+
+    # Additional volumes
+    for vol in "${VOLUMES[@]}"; do
+        docker_args+=("-v" "$vol")
+    done
+
+    # Container-specific environment
+    docker_args+=(
+        "-e" "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1"
+        "-e" "CLAUDE_CODE_ACTION=bypassPermissions"
+        "-e" "OTLP_HTTP_ENDPOINT=http://host.docker.internal:4318"
+        "-e" "CLAUDE_PLUGIN_DIR=/workspace/plugin"
+        "-e" "TERM=xterm-256color"
+    )
+
+    # Model selection
+    if [[ -n "$MODEL" ]]; then
+        docker_args+=("-e" "$(get_model_env "$MODEL")")
+    fi
+
+    # Image name
+    docker_args+=("$DEV_IMAGE_NAME:$DEV_IMAGE_TAG")
+
+    # Command to run (default: interactive bash)
+    if [[ ${#COMMAND_ARGS[@]} -gt 0 ]]; then
+        docker_args+=("${COMMAND_ARGS[@]}")
+    fi
+
+    # Run container
+    echo_info "Running: docker ${docker_args[*]}"
+    docker "${docker_args[@]}"
+}
+
+# =============================================================================
+# Main
+# =============================================================================
+
+main() {
+    echo "=============================================="
+    echo "JIRA Skills Developer Container"
+    echo "=============================================="
+    echo ""
+    echo "Batteries included: Python, Node.js, Go, Rust, AWS CLI, GitHub CLI,"
+    echo "                    PostgreSQL/MySQL/Redis clients, and more."
+    echo ""
+
+    setup_cleanup_trap
+    validate_auth "$USE_API_KEY" "$USE_API_KEY_FROM_CONFIG"
+    ensure_dev_image "$BUILD_IMAGE"
+    run_devcontainer
+
+    if [[ "$DETACH" != "true" ]]; then
+        echo ""
+        echo_info "Developer container session ended"
+    else
+        echo ""
+        echo_info "Developer container started in background"
+        if [[ -n "$CONTAINER_NAME" ]]; then
+            echo_info "Attach with: docker exec -it $CONTAINER_NAME bash"
+            echo_info "Stop with:   docker stop $CONTAINER_NAME"
+        fi
+    fi
+}
+
+main "$@"
