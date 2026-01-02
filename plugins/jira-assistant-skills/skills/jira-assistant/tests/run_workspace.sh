@@ -387,11 +387,11 @@ run_workspace() {
     # Determine run mode: interactive prompt or pytest
     local full_cmd
     if [[ -n "$INTERACTIVE_PROMPT" ]]; then
-        # Interactive mode: run Claude with the prompt
-        # Escape the prompt for shell
+        # Interactive mode: run Claude with the prompt via stdin
+        # Escape the prompt for shell and pipe to claude
         local escaped_prompt
         escaped_prompt=$(printf '%s' "$INTERACTIVE_PROMPT" | sed "s/'/'\\\\''/g")
-        full_cmd="claude --print --permission-mode dontAsk --plugin-dir /workspace/plugin '$escaped_prompt'"
+        full_cmd="echo '$escaped_prompt' | claude --print --permission-mode dontAsk --plugin-dir /workspace/plugin"
     else
         # Test mode: run pytest
         full_cmd="pytest /workspace/tests/test_routing.py -v"
