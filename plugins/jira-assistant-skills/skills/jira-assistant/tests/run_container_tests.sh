@@ -231,10 +231,14 @@ run_tests() {
         docker_args+=("-v" "$CREDS_TMP_DIR:/home/testrunner/.claude")
     fi
 
+    # Enable host.docker.internal for container to reach host services (e.g., OTLP collector)
+    docker_args+=("--add-host" "host.docker.internal:host-gateway")
+
     # Container-specific environment
     docker_args+=(
         "-e" "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1"
         "-e" "CLAUDE_CODE_ACTION=bypassPermissions"
+        "-e" "OTLP_HTTP_ENDPOINT=http://host.docker.internal:4318"
     )
 
     # Model selection
