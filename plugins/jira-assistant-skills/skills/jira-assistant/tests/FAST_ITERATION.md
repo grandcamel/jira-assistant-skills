@@ -200,6 +200,16 @@ For pull request validation:
 
 For isolated, reproducible test environments, use the Docker-based test runner.
 
+### Important: Authentication Limitation
+
+**OAuth tokens do NOT work in containers.** Claude Code on macOS uses native Keychain integration
+that cannot be replicated in Linux containers. The Anthropic API does not directly accept OAuth
+tokens - they must be exchanged through Claude Code's native auth flow.
+
+**Container tests require an API key (paid).**
+
+For free testing with OAuth subscription, run tests directly on the host instead.
+
 ### Benefits
 
 | Feature | Benefit |
@@ -207,7 +217,7 @@ For isolated, reproducible test environments, use the Docker-based test runner.
 | Isolation | Tests run in clean environment |
 | Reproducibility | Same container = same results |
 | CI/CD Ready | Easy integration with pipelines |
-| Cost Options | OAuth (subscription) or API key |
+| Parallel Safety | No interference between test runs |
 
 ### Quick Start
 
@@ -215,88 +225,34 @@ For isolated, reproducible test environments, use the Docker-based test runner.
 # Build container (first time only)
 ./run_container_tests.sh --build
 
-# RECOMMENDED: Token server mode for long jobs (auto-refreshing OAuth)
-./run_container_tests.sh --token-server --parallel 4
-
-# Quick test with static OAuth token (5-min TTL)
-export ANTHROPIC_AUTH_TOKEN=$(security find-generic-password -a $USER -s 'Claude Code-credentials' -w | jq -r .claudeAiOauth.accessToken)
-./run_container_tests.sh
-
-# Run with API key (uses API credits - paid)
-export ANTHROPIC_API_KEY="sk-ant-..."
+# Run with API key (required for container tests)
+export ANTHROPIC_API_KEY="sk-ant-api03-..."
 ./run_container_tests.sh --api-key
 
 # Run with options
-./run_container_tests.sh --token-server --parallel 4 --model haiku
-./run_container_tests.sh -- -k "TC001" -v  # Pass pytest args
+./run_container_tests.sh --api-key --parallel 4 --model haiku
+./run_container_tests.sh --api-key -- -k "TC001" -v  # Pass pytest args
 ```
 
-### Authentication Options
+### Host vs Container Testing
 
-| Method | Flag | Cost | TTL | Use Case |
-|--------|------|------|-----|----------|
-| **Token Server** | `--token-server` | Free (subscription) | Auto-refresh | Long jobs (>5 min) |
-| Static OAuth | (default) | Free (subscription) | 5 minutes | Quick tests |
-| API Key | `--api-key` | Pay per token | Unlimited | CI without subscription |
+| Aspect | Host (Recommended) | Container |
+|--------|-------------------|-----------|
+| Auth | OAuth (free with subscription) | API key (paid) |
+| Isolation | Shared environment | Clean per-run |
+| Speed | Fast startup | Container overhead |
+| Use Case | Development iteration | CI/CD pipelines |
 
-### Token Server Mode (Recommended for Long Jobs)
-
-The `--token-server` flag enables automatic OAuth token refresh:
-
-1. Starts a local HTTP server on host (port 9876)
-2. Server reads fresh tokens from macOS Keychain on each request
-3. Container uses `apiKeyHelper` to fetch tokens every 4 minutes
-4. Automatically cleans up on exit
-
-```bash
-# Long running job with auto-refresh
-./run_container_tests.sh --token-server --parallel 4
-
-# Full test suite (20+ minutes) with auto-refresh
-./run_container_tests.sh --token-server
-```
-
-**Architecture:**
-```
-┌──────────────────────────────────────────────────────────┐
-│  macOS Host                                               │
-│  ┌────────────────────────────────────────────────────┐  │
-│  │  token-server.sh (Python HTTP server)               │  │
-│  │  • Listens on localhost:9876                        │  │
-│  │  • Reads from macOS Keychain on each request        │  │
-│  │  • Returns fresh OAuth token                        │  │
-│  └───────────────────────┬────────────────────────────┘  │
-│                          │ http://host.docker.internal    │
-│  ┌───────────────────────┴────────────────────────────┐  │
-│  │  Docker Container                                   │  │
-│  │  apiKeyHelper: "curl http://host.docker.internal"   │  │
-│  │  TTL: 240000ms (4 min, before 5 min expiry)         │  │
-│  └─────────────────────────────────────────────────────┘  │
-└──────────────────────────────────────────────────────────┘
-```
-
-### Static OAuth Token (Quick Tests Only)
-
-For quick tests under 5 minutes, use static token:
-
-```bash
-export ANTHROPIC_AUTH_TOKEN=$(security find-generic-password -a $USER -s 'Claude Code-credentials' -w | jq -r .claudeAiOauth.accessToken)
-./run_container_tests.sh -- -k "TC001"  # Single test
-```
-
-**Warning:** Token expires after 5 minutes. Use `--token-server` for longer jobs.
+**Recommendation:** Use host-based testing during development (free with OAuth subscription).
+Use container-based testing for CI/CD pipelines where you have an API key budget.
 
 ### Container Options
 
 ```bash
 ./run_container_tests.sh [options] [-- pytest-args...]
 
-Authentication:
-  --token-server  Auto-refresh OAuth via host server (recommended for long jobs)
-  --api-key       Use ANTHROPIC_API_KEY (paid)
-  (default)       Use static ANTHROPIC_AUTH_TOKEN (5-min TTL)
-
 Options:
+  --api-key       Use ANTHROPIC_API_KEY (required)
   --build         Rebuild Docker image before running
   --parallel N    Run N tests in parallel
   --model NAME    Use specific model (sonnet, haiku, opus)
@@ -312,59 +268,29 @@ The container automatically sets these for optimal operation:
 |----------|-------|---------|
 | `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` | `1` | No telemetry/updates |
 | `CLAUDE_CODE_ACTION` | `bypassPermissions` | Automated testing |
-| `CLAUDE_CODE_API_KEY_HELPER_TTL_MS` | `240000` | Token refresh every 4 min |
 | `CHOKIDAR_USEPOLLING` | `true` | Docker file watching |
 
-## Iterative Refinement Loop
+## Iterative Refinement Loop (Host-Based)
 
-The container setup supports a fast edit-test cycle for improving SKILL.md descriptions:
-
-### How It Works
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│  1. Host: Claude edits SKILL.md                              │
-│     vim plugins/.../skills/jira-agile/SKILL.md               │
-└──────────────────────────┬──────────────────────────────────┘
-                           │ Volume mount
-                           ▼
-┌─────────────────────────────────────────────────────────────┐
-│  2. Container: Plugin installed from mount                   │
-│     claude plugins add /workspace/plugin --local             │
-│     (runs automatically at container start)                  │
-└──────────────────────────┬──────────────────────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────────────┐
-│  3. Container: Tests run with updated SKILL.md               │
-│     pytest test_routing.py -v -k "agile"                     │
-│     (Claude reads SKILL.md fresh each invocation)            │
-└──────────────────────────┬──────────────────────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────────────┐
-│  4. Review results, repeat from step 1                       │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Workflow Example
+For development iteration with OAuth (free), use host-based testing:
 
 ```bash
 # Terminal 1: Edit SKILL.md
 vim plugins/jira-assistant-skills/skills/jira-agile/SKILL.md
 
-# Terminal 2: Run tests (sees changes immediately via volume mount)
-./run_container_tests.sh --token-server -- -k "agile" -v
+# Terminal 2: Run tests directly on host
+cd plugins/jira-assistant-skills/skills/jira-assistant/tests
+./fast_test.sh --skill agile --fast
 
 # Repeat until tests pass
 ```
 
-### Why This Works
+### Why Host-Based Works
 
-1. **Volume mount** - Plugin directory is mounted into container (`-v $PLUGIN_ROOT:/workspace/plugin`)
-2. **Fresh install** - Container installs plugin from mount on each run
-3. **No caching** - Claude Code reads SKILL.md content fresh each invocation
-4. **Hot reload** - Changes on host are immediately visible in container
+1. **OAuth support** - Host Claude Code uses macOS Keychain for free subscription auth
+2. **No overhead** - No container startup time
+3. **Immediate feedback** - SKILL.md changes are picked up immediately
+4. **Fast iteration** - Use `--fast` for haiku model, `--parallel` for concurrency
 
 ## Next Steps
 

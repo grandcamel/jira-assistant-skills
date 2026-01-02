@@ -38,10 +38,6 @@ RUN mkdir -p $CLAUDE_CONFIG_DIR
 ENV CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
 ENV CHOKIDAR_USEPOLLING=true
 
-# Token refresh configuration (4 min TTL, before 5 min OAuth expiry)
-# Used when apiKeyHelper is configured via mounted settings.json
-ENV CLAUDE_CODE_API_KEY_HELPER_TTL_MS=240000
-
 # Working directory for tests
 WORKDIR /workspace
 
