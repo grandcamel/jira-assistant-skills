@@ -196,6 +196,74 @@ For pull request validation:
 - run: ./fast_test.sh --production
 ```
 
+## Container-Based Testing
+
+For isolated, reproducible test environments, use the Docker-based test runner.
+
+### Benefits
+
+| Feature | Benefit |
+|---------|---------|
+| Isolation | Tests run in clean environment |
+| Reproducibility | Same container = same results |
+| CI/CD Ready | Easy integration with pipelines |
+| Cost Options | OAuth (subscription) or API key |
+
+### Quick Start
+
+```bash
+# Build container (first time only)
+./run_container_tests.sh --build
+
+# Run with OAuth token (uses your Claude subscription - free)
+export ANTHROPIC_AUTH_TOKEN="$(claude --print-auth-token)"
+./run_container_tests.sh
+
+# Run with API key (uses API credits - paid)
+export ANTHROPIC_API_KEY="sk-ant-..."
+./run_container_tests.sh --api-key
+
+# Run with options
+./run_container_tests.sh --parallel 4 --model haiku
+./run_container_tests.sh -- -k "TC001" -v  # Pass pytest args
+```
+
+### Authentication Options
+
+| Method | Environment Variable | Cost | Use Case |
+|--------|---------------------|------|----------|
+| OAuth Token | `ANTHROPIC_AUTH_TOKEN` | Free (subscription) | Local dev, CI with subscription |
+| API Key | `ANTHROPIC_API_KEY` | Pay per token | CI without subscription |
+
+**Getting your OAuth token:**
+```bash
+claude --print-auth-token
+```
+
+### Container Options
+
+```bash
+./run_container_tests.sh [options] [-- pytest-args...]
+
+Options:
+  --api-key      Use API key instead of OAuth token
+  --build        Rebuild Docker image before running
+  --parallel N   Run N tests in parallel
+  --model NAME   Use specific model (sonnet, haiku, opus)
+  --keep         Don't remove container after run
+  --help         Show help message
+```
+
+### Environment Variables
+
+The container automatically sets these for optimal operation:
+
+| Variable | Value | Purpose |
+|----------|-------|---------|
+| `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` | `1` | No telemetry/updates |
+| `CLAUDE_CODE_ACTION` | `bypassPermissions` | Automated testing |
+| `CHOKIDAR_USEPOLLING` | `true` | Docker file watching |
+
 ## Next Steps
 
 See [ROUTING_ACCURACY_PROPOSAL.md](ROUTING_ACCURACY_PROPOSAL.md) for specific skill description changes to improve routing accuracy.
