@@ -519,6 +519,24 @@ See `plugins/jira-assistant-skills/skills/jira-assistant/tests/FAST_ITERATION.md
 
 The project includes comprehensive Docker-based testing infrastructure for isolated, reproducible test execution.
 
+### Claude DevContainer Submodule
+
+The container infrastructure uses the [claude-devcontainer](https://github.com/grandcamel/claude-devcontainer) submodule, providing reusable Docker images for Claude Code development environments:
+
+```bash
+# Initialize submodule (first time only)
+git submodule update --init --recursive
+
+# Update submodule to latest
+git submodule update --remote claude-devcontainer
+```
+
+The submodule is located at `plugins/jira-assistant-skills/skills/jira-assistant/tests/claude-devcontainer/`.
+
+Docker images are published to Docker Hub:
+- `grandcamel/claude-devcontainer:latest` - Base image
+- `grandcamel/claude-devcontainer:enhanced` - Pre-built with enhanced CLI tools
+
 ### Container Test Runners
 
 All container scripts are located in `plugins/jira-assistant-skills/skills/jira-assistant/tests/`:
@@ -529,6 +547,7 @@ All container scripts are located in `plugins/jira-assistant-skills/skills/jira-
 | `run_sandboxed.sh` | Restricted tool access with profiles |
 | `run_workspace.sh` | Hybrid file + JIRA workflows |
 | `run_devcontainer.sh` | Batteries-included developer environment |
+| `run_jira_devcontainer.sh` | JIRA-specific wrapper using submodule |
 
 All scripts share common functions via `lib_container.sh` and support:
 - **OAuth** (default): Uses macOS Keychain credentials
