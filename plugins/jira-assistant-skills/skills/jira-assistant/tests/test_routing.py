@@ -211,6 +211,11 @@ def run_claude_routing(
     if plugin_dir:
         cmd.extend(["--plugin-dir", plugin_dir])
 
+    # Add allowed tools if specified via environment (for sandboxed testing)
+    allowed_tools = os.environ.get("CLAUDE_ALLOWED_TOOLS")
+    if allowed_tools:
+        cmd.extend(["--allowedTools", allowed_tools])
+
     # Add model flag if specified (e.g., --model haiku for faster tests)
     model = get_test_model()
     if model:

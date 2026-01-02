@@ -1,0 +1,401 @@
+#!/usr/bin/env bash
+#
+# Run routing tests in a sandboxed Docker container with tool restrictions
+#
+# Profiles control which Claude tools and JIRA CLI commands are allowed:
+#   - read-only:   View/search only, no modifications
+#   - search-only: JQL search operations only
+#   - issue-only:  JIRA issue CRUD operations only
+#   - full:        All tools and commands (default)
+#
+# Usage:
+#   ./run_sandboxed.sh --profile <profile> [options] [-- pytest-args...]
+#
+# Examples:
+#   ./run_sandboxed.sh --profile read-only              # Safe demo mode
+#   ./run_sandboxed.sh --profile search-only -- -k TC005  # Test JQL routing
+#   ./run_sandboxed.sh --profile issue-only --validate  # Run with validation tests
+#   ./run_sandboxed.sh --profile full                   # Same as run_container_tests.sh
+#
+# Environment Variables:
+#   ANTHROPIC_API_KEY     - API key (only needed with --api-key)
+#
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PLUGIN_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+IMAGE_NAME="jira-skills-test-runner"
+IMAGE_TAG="latest"
+CREDS_TMP_DIR=""
+
+# Default options
+USE_API_KEY=false
+BUILD_IMAGE=false
+PARALLEL=""
+MODEL=""
+KEEP_CONTAINER=false
+PROFILE="full"
+RUN_VALIDATION=false
+PYTEST_ARGS=()
+
+# =============================================================================
+# Profile Definitions
+# =============================================================================
+# Each profile defines:
+#   - ALLOWED_TOOLS: Claude built-in tools (Read, Glob, Grep, Bash, Edit, Write, etc.)
+#   - BASH_PATTERNS: Allowed Bash command patterns (for jira CLI restrictions)
+#
+# Bash pattern syntax: Bash(command:*) allows commands matching the pattern
+# Example: Bash(jira issue get:*) allows "jira issue get TES-123"
+# =============================================================================
+
+declare -A PROFILE_TOOLS
+declare -A PROFILE_DESCRIPTION
+
+# read-only: View and search, no modifications
+PROFILE_TOOLS["read-only"]="Read Glob Grep WebFetch WebSearch Bash(jira issue get:*) Bash(jira search:*) Bash(jira fields list:*) Bash(jira fields get:*)"
+PROFILE_DESCRIPTION["read-only"]="View/search only - no create, update, or delete operations"
+
+# search-only: Just JQL search operations
+PROFILE_TOOLS["search-only"]="Read Glob Grep Bash(jira search:*)"
+PROFILE_DESCRIPTION["search-only"]="JQL search operations only"
+
+# issue-only: JIRA issue CRUD operations
+PROFILE_TOOLS["issue-only"]="Read Glob Grep Bash(jira issue:*)"
+PROFILE_DESCRIPTION["issue-only"]="JIRA issue operations only (get, create, update, delete)"
+
+# full: Everything allowed (default)
+PROFILE_TOOLS["full"]=""
+PROFILE_DESCRIPTION["full"]="All tools and commands allowed (no restrictions)"
+
+# =============================================================================
+# Argument Parsing
+# =============================================================================
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --profile)
+            PROFILE="$2"
+            shift 2
+            ;;
+        --validate)
+            RUN_VALIDATION=true
+            shift
+            ;;
+        --api-key)
+            USE_API_KEY=true
+            shift
+            ;;
+        --build)
+            BUILD_IMAGE=true
+            shift
+            ;;
+        --parallel)
+            PARALLEL="$2"
+            shift 2
+            ;;
+        --model)
+            MODEL="$2"
+            shift 2
+            ;;
+        --keep)
+            KEEP_CONTAINER=true
+            shift
+            ;;
+        --list-profiles)
+            echo "Available profiles:"
+            echo ""
+            for p in "${!PROFILE_DESCRIPTION[@]}"; do
+                printf "  %-12s %s\n" "$p" "${PROFILE_DESCRIPTION[$p]}"
+            done
+            echo ""
+            echo "Tool restrictions per profile:"
+            echo ""
+            for p in "${!PROFILE_TOOLS[@]}"; do
+                tools="${PROFILE_TOOLS[$p]}"
+                if [[ -z "$tools" ]]; then
+                    tools="(no restrictions)"
+                fi
+                printf "  %-12s %s\n" "$p:" "$tools"
+            done
+            exit 0
+            ;;
+        --help|-h)
+            echo "Usage: $0 --profile <profile> [options] [-- pytest-args...]"
+            echo ""
+            echo "Run routing tests in a sandboxed Docker container."
+            echo ""
+            echo "Profiles:"
+            echo "  --profile NAME    Sandbox profile (read-only, search-only, issue-only, full)"
+            echo "  --list-profiles   Show available profiles and their restrictions"
+            echo "  --validate        Also run sandbox validation tests"
+            echo ""
+            echo "Authentication (choose one):"
+            echo "  (default)         Use OAuth from macOS Keychain (free with subscription)"
+            echo "  --api-key         Use ANTHROPIC_API_KEY environment variable (paid)"
+            echo ""
+            echo "Options:"
+            echo "  --build           Rebuild Docker image before running"
+            echo "  --parallel N      Run N tests in parallel (requires pytest-xdist)"
+            echo "  --model NAME      Use specific model (sonnet, haiku, opus)"
+            echo "  --keep            Don't remove container after run"
+            echo "  --help            Show this help message"
+            echo ""
+            echo "Examples:"
+            echo "  $0 --profile read-only                    # Safe demo mode"
+            echo "  $0 --profile search-only -- -k 'TC005'    # Test JQL routing"
+            echo "  $0 --profile issue-only --validate        # With validation tests"
+            echo "  $0 --list-profiles                        # Show all profiles"
+            exit 0
+            ;;
+        --)
+            shift
+            PYTEST_ARGS=("$@")
+            break
+            ;;
+        *)
+            PYTEST_ARGS+=("$1")
+            shift
+            ;;
+    esac
+done
+
+# Validate profile
+if [[ -z "${PROFILE_TOOLS[$PROFILE]+isset}" ]]; then
+    echo "Error: Unknown profile '$PROFILE'"
+    echo "Use --list-profiles to see available profiles"
+    exit 1
+fi
+
+# =============================================================================
+# Helper Functions
+# =============================================================================
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
+NC='\033[0m'
+
+echo_info() { echo -e "${GREEN}[INFO]${NC} $1"; }
+echo_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
+echo_error() { echo -e "${RED}[ERROR]${NC} $1"; }
+echo_profile() { echo -e "${CYAN}[PROFILE]${NC} $1"; }
+
+cleanup() {
+    local exit_code=$?
+    if [[ -n "$CREDS_TMP_DIR" && -d "$CREDS_TMP_DIR" ]]; then
+        rm -rf "$CREDS_TMP_DIR"
+    fi
+    exit $exit_code
+}
+
+trap cleanup EXIT INT TERM
+
+get_oauth_credentials() {
+    if [[ "$(uname)" != "Darwin" ]]; then
+        echo_error "OAuth mode requires macOS (for Keychain access)"
+        echo "Use --api-key mode on Linux, or run tests on macOS."
+        return 1
+    fi
+
+    local creds
+    creds=$(security find-generic-password -a "$USER" -s 'Claude Code-credentials' -w 2>/dev/null) || {
+        echo_error "Cannot access Claude Code credentials in Keychain"
+        echo ""
+        echo "Make sure you're logged into Claude Code:"
+        echo "  claude login"
+        return 1
+    }
+
+    if ! echo "$creds" | jq -e '.claudeAiOauth.accessToken' >/dev/null 2>&1; then
+        echo_error "Invalid credentials format in Keychain"
+        echo "Try logging in again: claude login"
+        return 1
+    fi
+
+    echo "$creds"
+}
+
+create_credentials_dir() {
+    CREDS_TMP_DIR=$(mktemp -d)
+    local creds
+    creds=$(get_oauth_credentials) || return 1
+    echo "$creds" > "$CREDS_TMP_DIR/.credentials.json"
+    chmod 600 "$CREDS_TMP_DIR/.credentials.json"
+    echo_info "OAuth credentials prepared for container"
+    return 0
+}
+
+validate_auth() {
+    if [[ "$USE_API_KEY" == "true" ]]; then
+        if [[ -z "${ANTHROPIC_API_KEY:-}" ]]; then
+            echo_error "ANTHROPIC_API_KEY is not set"
+            echo ""
+            echo "Export your API key:"
+            echo "  export ANTHROPIC_API_KEY='sk-ant-api03-...'"
+            echo ""
+            echo "Or use OAuth mode (default) on macOS."
+            exit 1
+        fi
+        echo_info "Using API key authentication"
+    else
+        if ! create_credentials_dir; then
+            exit 1
+        fi
+        echo_info "Using OAuth authentication (free with subscription)"
+    fi
+}
+
+build_image() {
+    echo_info "Building Docker image: $IMAGE_NAME:$IMAGE_TAG"
+    docker build \
+        -t "$IMAGE_NAME:$IMAGE_TAG" \
+        -f "$SCRIPT_DIR/Dockerfile" \
+        "$SCRIPT_DIR"
+    echo_info "Image built successfully"
+}
+
+check_image() {
+    if ! docker image inspect "$IMAGE_NAME:$IMAGE_TAG" &>/dev/null; then
+        echo_warn "Image not found, building..."
+        build_image
+    fi
+}
+
+# =============================================================================
+# Main Test Runner
+# =============================================================================
+
+run_tests() {
+    echo_profile "Profile: $PROFILE"
+    echo_profile "Description: ${PROFILE_DESCRIPTION[$PROFILE]}"
+
+    local allowed_tools="${PROFILE_TOOLS[$PROFILE]}"
+    if [[ -n "$allowed_tools" ]]; then
+        echo_profile "Allowed tools: $allowed_tools"
+    else
+        echo_profile "Allowed tools: (no restrictions)"
+    fi
+    echo ""
+
+    echo_info "Starting sandboxed container tests..."
+
+    local docker_args=(
+        "run"
+    )
+
+    if [[ "$KEEP_CONTAINER" != "true" ]]; then
+        docker_args+=("--rm")
+    fi
+
+    # Mount plugin directory read-only
+    docker_args+=(
+        "-v" "$PLUGIN_ROOT:/workspace/plugin:ro"
+        "-v" "$SCRIPT_DIR:/workspace/tests:ro"
+    )
+
+    # Set working directory (use /tmp to avoid semantic confusion)
+    docker_args+=("-w" "/tmp")
+
+    # Authentication configuration
+    if [[ "$USE_API_KEY" == "true" ]]; then
+        docker_args+=("-e" "ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}")
+    else
+        docker_args+=("-v" "$CREDS_TMP_DIR:/home/testrunner/.claude")
+    fi
+
+    # Enable host.docker.internal for container to reach host services
+    docker_args+=("--add-host" "host.docker.internal:host-gateway")
+
+    # Container-specific environment
+    docker_args+=(
+        "-e" "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1"
+        "-e" "CLAUDE_CODE_ACTION=bypassPermissions"
+        "-e" "OTLP_HTTP_ENDPOINT=http://host.docker.internal:4318"
+        "-e" "CLAUDE_PLUGIN_DIR=/workspace/plugin"
+        "-e" "SANDBOX_PROFILE=$PROFILE"
+    )
+
+    # Pass allowed tools if profile has restrictions
+    if [[ -n "$allowed_tools" ]]; then
+        docker_args+=("-e" "CLAUDE_ALLOWED_TOOLS=$allowed_tools")
+    fi
+
+    # Model selection
+    if [[ -n "$MODEL" ]]; then
+        case "$MODEL" in
+            haiku)
+                docker_args+=("-e" "ANTHROPIC_MODEL=claude-haiku-3-5-20241022")
+                ;;
+            sonnet)
+                docker_args+=("-e" "ANTHROPIC_MODEL=claude-sonnet-4-20250514")
+                ;;
+            opus)
+                docker_args+=("-e" "ANTHROPIC_MODEL=claude-opus-4-20250514")
+                ;;
+            *)
+                docker_args+=("-e" "ANTHROPIC_MODEL=$MODEL")
+                ;;
+        esac
+    fi
+
+    # Build pytest command
+    local pytest_cmd="pytest /workspace/tests/test_routing.py -v"
+
+    # Add validation tests if requested
+    if [[ "$RUN_VALIDATION" == "true" ]]; then
+        pytest_cmd="pytest /workspace/tests/test_routing.py /workspace/tests/test_sandbox_validation.py -v"
+    fi
+
+    # Add parallel option
+    if [[ -n "$PARALLEL" ]]; then
+        pytest_cmd+=" -n $PARALLEL"
+    fi
+
+    # Add user-provided pytest args (properly quote each arg)
+    if [[ ${#PYTEST_ARGS[@]} -gt 0 ]]; then
+        for arg in "${PYTEST_ARGS[@]}"; do
+            escaped_arg=$(printf '%s' "$arg" | sed "s/'/'\\\\''/g")
+            pytest_cmd+=" '$escaped_arg'"
+        done
+    fi
+
+    local full_cmd="$pytest_cmd"
+
+    # Override entrypoint to run shell command
+    docker_args+=("--entrypoint" "/bin/bash")
+    docker_args+=("$IMAGE_NAME:$IMAGE_TAG")
+    docker_args+=("-c" "$full_cmd")
+
+    # Run container
+    echo_info "Running: docker ${docker_args[*]}"
+    docker "${docker_args[@]}"
+}
+
+# =============================================================================
+# Main
+# =============================================================================
+
+main() {
+    echo "=============================================="
+    echo "JIRA Skills Sandboxed Test Runner"
+    echo "=============================================="
+    echo ""
+
+    validate_auth
+
+    if [[ "$BUILD_IMAGE" == "true" ]]; then
+        build_image
+    else
+        check_image
+    fi
+
+    run_tests
+
+    echo ""
+    echo_info "Sandboxed tests completed (profile: $PROFILE)"
+}
+
+main "$@"
