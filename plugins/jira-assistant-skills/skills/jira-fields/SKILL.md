@@ -35,6 +35,8 @@ Manage custom fields and screen configurations in JIRA for Agile and other workf
 
 ## What this skill does
 
+**IMPORTANT:** Always use the `jira` CLI. Never run Python scripts directly.
+
 ### Field Discovery
 - List all custom fields in the JIRA instance
 - Find Agile-specific fields (Story Points, Epic Link, Sprint, Rank)

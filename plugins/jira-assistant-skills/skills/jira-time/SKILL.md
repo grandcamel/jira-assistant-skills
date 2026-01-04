@@ -21,6 +21,8 @@ Use the **jira-time** skill when you need to:
 
 ## What this skill does
 
+**IMPORTANT:** Always use the `jira` CLI. Never run Python scripts directly.
+
 The jira-time skill provides comprehensive time tracking and worklog management:
 
 ### Worklog Management

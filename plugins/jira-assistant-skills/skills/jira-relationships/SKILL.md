@@ -24,6 +24,8 @@ Use this skill when you need to:
 
 ## What this skill does
 
+**IMPORTANT:** Always use the `jira` CLI. Never run Python scripts directly.
+
 This skill provides issue relationship operations:
 
 1. **Get Link Types**: View available link types in JIRA instance

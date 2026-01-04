@@ -37,6 +37,8 @@ Use this skill when you need to:
 
 ## What this skill does
 
+**IMPORTANT:** Always use the `jira` CLI. Never run Python scripts directly.
+
 1. **Comments**: Add/edit/delete comments with rich text support
 2. **Attachments**: Upload and download files
 3. **Watchers**: Manage who tracks the issue

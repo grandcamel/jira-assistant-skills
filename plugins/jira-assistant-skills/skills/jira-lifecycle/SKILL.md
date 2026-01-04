@@ -21,61 +21,66 @@ Workflow and lifecycle management for JIRA issues.
 
 ## What this skill does
 
-7 script categories for complete lifecycle management:
+**IMPORTANT:** Always use the `jira` CLI. Never run Python scripts directly.
+
+7 command categories for complete lifecycle management:
 
 | Category | Purpose | Example |
 |----------|---------|---------|
-| **Transitions** | Move issues between statuses | `transition_issue.py PROJ-123 --name "In Progress"` |
-| **Assignments** | Control ownership | `assign_issue.py PROJ-123 --user user@example.com` |
-| **Resolution** | Mark issues complete | `resolve_issue.py PROJ-123 --resolution Fixed` |
-| **Reopen** | Restore resolved issues | `reopen_issue.py PROJ-123` |
-| **Versions** | Plan and track releases | `create_version.py PROJ --name "v2.0.0"` |
-| **Components** | Organize by subsystem | `create_component.py PROJ --name "API"` |
-| **Discovery** | View available options | `get_transitions.py PROJ-123` |
+| **Transitions** | Move issues between statuses | `jira lifecycle transition PROJ-123 --name "In Progress"` |
+| **Assignments** | Control ownership | `jira lifecycle assign PROJ-123 --user user@example.com` |
+| **Resolution** | Mark issues complete | `jira lifecycle resolve PROJ-123 --resolution Fixed` |
+| **Reopen** | Restore resolved issues | `jira lifecycle reopen PROJ-123` |
+| **Versions** | Plan and track releases | `jira lifecycle version create PROJ --name "v2.0.0"` |
+| **Components** | Organize by subsystem | `jira lifecycle component create PROJ --name "API"` |
+| **Discovery** | View available options | `jira lifecycle transitions PROJ-123` |
 
-Each script supports `--help` for full option documentation.
+All commands support `--help` for full option documentation.
 
-## Available scripts
+## Available Commands
 
 ### Workflow Transitions
-- `get_transitions.py` - List available transitions for an issue
-- `transition_issue.py` - Transition issue to new status
-- `assign_issue.py` - Assign or reassign issues
-- `resolve_issue.py` - Resolve issues with resolution
-- `reopen_issue.py` - Reopen closed issues
+```bash
+jira lifecycle transitions PROJ-123         # List available transitions
+jira lifecycle transition PROJ-123 --name "In Progress"  # Transition issue
+jira lifecycle assign PROJ-123 --user email@example.com  # Assign issue
+jira lifecycle resolve PROJ-123 --resolution Fixed       # Resolve issue
+jira lifecycle reopen PROJ-123              # Reopen issue
+```
 
 ### Version Management
-- `create_version.py` - Create project version with dates
-- `get_versions.py` - List versions with issue counts
-- `release_version.py` - Release version with date/description
-- `archive_version.py` - Archive old version
-- `move_issues_version.py` - Move issues between versions (supports `--dry-run`)
+```bash
+jira lifecycle version list PROJ            # List versions
+jira lifecycle version create PROJ --name "v2.0.0" --start-date 2024-01-01
+jira lifecycle version release PROJ --name "v1.0.0"
+jira lifecycle version archive PROJ --name "v0.9.0"
+```
 
 ### Component Management
-- `create_component.py` - Create project component
-- `get_components.py` - List components with issue counts
-- `update_component.py` - Update component details
-- `delete_component.py` - Delete component with confirmation (supports `--dry-run`)
+```bash
+jira lifecycle component list PROJ          # List components
+jira lifecycle component create PROJ --name "API"
+jira lifecycle component update PROJ --name "API" --lead user@example.com
+jira lifecycle component delete PROJ --name "Legacy" --force
+```
 
 ## Common Options
 
-All scripts in this skill support these common options:
+All commands support these options:
 
 | Option | Description |
 |--------|-------------|
-| `--profile PROFILE` | Use a specific JIRA profile from settings (e.g., `development`, `production`) |
-| `--format FORMAT` | Output format: `table`, `json`, or `csv` (default: `table`) |
-| `--output FILE` | Write output to file instead of stdout |
+| `--profile, -p` | Use a specific JIRA profile |
+| `--output, -o` | Output format: `text`, `json`, or `table` |
 | `--help` | Show help message and exit |
 
 ### Dry Run Support
 
-The following scripts support `--dry-run` to preview changes without executing:
+Some commands support `--dry-run` to preview changes:
 
-| Script | Dry Run Behavior |
-|--------|------------------|
-| `move_issues_version.py` | Shows which issues would be moved without modifying them |
-| `delete_component.py` | Shows what would be deleted without removing the component |
+```bash
+jira lifecycle component delete PROJ --name "API" --dry-run
+```
 
 ## Exit Codes
 
@@ -97,7 +102,7 @@ Works with standard JIRA workflows, custom workflows, JIRA Service Management wo
 See [references/TROUBLESHOOTING.md](references/TROUBLESHOOTING.md) for common issues and solutions.
 
 **Quick fixes:**
-- "No transition found" - Run `get_transitions.py ISSUE-KEY` to see available transitions
+- "No transition found" - Run `jira lifecycle transitions ISSUE-KEY` to see available transitions
 - "Transition requires fields" - Use `--fields '{"field": "value"}'` option
 - "User not found" - Verify user email and project permissions
 

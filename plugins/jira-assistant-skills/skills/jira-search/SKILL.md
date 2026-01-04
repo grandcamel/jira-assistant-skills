@@ -43,17 +43,19 @@ jira search filter create "My Bugs" "type = Bug AND assignee = currentUser()" --
 
 For detailed setup, see [docs/QUICK_START.md](docs/QUICK_START.md).
 
-## Most Common Scripts
+## Available Commands
 
-| Script | Purpose | Example |
-|--------|---------|---------|
-| `jql_search.py` | Execute JQL queries | `jira search query "project = PROJ"` |
-| `export_results.py` | Export to CSV/JSON | `jira search export "JQL" -o report.csv` |
-| `create_filter.py` | Save a reusable filter | `jira search filter create "Name" "JQL"` |
-| `jql_validate.py` | Check JQL syntax | `jira search validate "your query"` |
-| `run_filter.py` | Run a saved filter | `jira search filter run --name "Filter"` |
+**IMPORTANT:** Always use the `jira` CLI. Never run Python scripts directly.
 
-For all 18 scripts, see [docs/SCRIPT_REFERENCE.md](docs/SCRIPT_REFERENCE.md).
+| Command | Purpose | Example |
+|---------|---------|---------|
+| `jira search query` | Execute JQL queries | `jira search query "project = PROJ"` |
+| `jira search export` | Export to CSV/JSON | `jira search export "JQL" -o report.csv` |
+| `jira search filter create` | Save a reusable filter | `jira search filter create "Name" "JQL"` |
+| `jira search validate` | Check JQL syntax | `jira search validate "your query"` |
+| `jira search filter run` | Run a saved filter | `jira search filter run --name "Filter"` |
+
+All commands support `--help` for full documentation.
 
 ## What this skill does
 

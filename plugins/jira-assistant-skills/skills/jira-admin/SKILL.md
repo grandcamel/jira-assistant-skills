@@ -98,85 +98,104 @@ Reach for this skill when you need to:
 
 ---
 
-## 84 Available Scripts
+## Available Commands
 
-All scripts support `--help` for full documentation. Run `jira <command> --help` for details.
+**IMPORTANT:** Always use the `jira` CLI. Never run Python scripts directly.
 
-### Project Management (14 scripts)
-```
-create_project.py     get_project.py      list_projects.py
-update_project.py     delete_project.py   archive_project.py
-restore_project.py    get_config.py       create_category.py
-list_categories.py    assign_category.py  set_avatar.py
-set_project_lead.py   set_default_assignee.py
-```
+All commands support `--help` for full documentation.
 
-### Automation Rules (12 scripts)
-```
-list_automation_rules.py      get_automation_rule.py
-search_automation_rules.py    enable_automation_rule.py
-disable_automation_rule.py    toggle_automation_rule.py
-list_manual_rules.py          invoke_manual_rule.py
-list_automation_templates.py  get_automation_template.py
-create_rule_from_template.py  update_automation_rule.py
+### Project Management
+```bash
+jira admin project list                    # List all projects
+jira admin project get PROJ                # Get project details
+jira admin project create                  # Create a new project
+jira admin project update PROJ             # Update project settings
+jira admin project delete PROJ             # Delete a project
+jira admin project archive PROJ            # Archive a project
+jira admin project restore PROJ            # Restore archived project
+jira admin config get PROJ                 # Get project configuration
+jira admin category list                   # List project categories
+jira admin category create                 # Create a category
+jira admin category assign PROJ            # Assign category to project
 ```
 
-### Permission Schemes (7 scripts)
-```
-list_permission_schemes.py    get_permission_scheme.py
-create_permission_scheme.py   update_permission_scheme.py
-delete_permission_scheme.py   assign_permission_scheme.py
-list_permissions.py
-```
-
-### User & Group Management (8 scripts)
-```
-search_users.py          get_user.py
-list_groups.py           get_group_members.py
-create_group.py          delete_group.py
-add_user_to_group.py     remove_user_from_group.py
+### Automation Rules
+```bash
+jira admin automation list --project PROJ  # List automation rules
+jira admin automation get RULE_ID          # Get rule details
+jira admin automation enable RULE_ID       # Enable a rule
+jira admin automation disable RULE_ID      # Disable a rule
+jira admin automation invoke RULE_ID       # Invoke manual rule
+jira admin automation-template list        # List rule templates
 ```
 
-### Notification Schemes (7 scripts)
-```
-list_notification_schemes.py   get_notification_scheme.py
-create_notification_scheme.py  update_notification_scheme.py
-add_notification.py            remove_notification.py
-delete_notification_scheme.py
-```
-
-### Screen Management (10 scripts)
-```
-list_screens.py               get_screen.py
-list_screen_tabs.py           get_screen_fields.py
-add_field_to_screen.py        remove_field_from_screen.py
-list_screen_schemes.py        get_screen_scheme.py
-list_issue_type_screen_schemes.py  get_issue_type_screen_scheme.py
-get_project_screens.py
+### Permission Schemes
+```bash
+jira admin permission-scheme list          # List permission schemes
+jira admin permission-scheme get ID        # Get scheme details
+jira admin permission-scheme create        # Create new scheme
+jira admin permission-scheme assign        # Assign scheme to project
+jira admin permission list                 # List available permissions
 ```
 
-### Issue Types (5 scripts)
-```
-list_issue_types.py   get_issue_type.py    create_issue_type.py
-update_issue_type.py  delete_issue_type.py
-```
-
-### Issue Type Schemes (8 scripts)
-```
-list_issue_type_schemes.py       get_issue_type_scheme.py
-create_issue_type_scheme.py      update_issue_type_scheme.py
-delete_issue_type_scheme.py      assign_issue_type_scheme.py
-get_project_issue_type_scheme.py get_issue_type_scheme_mappings.py
-add_issue_types_to_scheme.py     remove_issue_type_from_scheme.py
-reorder_issue_types_in_scheme.py
+### User & Group Management
+```bash
+jira admin user search --query "name"      # Search for users
+jira admin user get ACCOUNT_ID             # Get user details
+jira admin group list                      # List all groups
+jira admin group members GROUP_NAME        # Get group members
+jira admin group create GROUP_NAME         # Create a group
+jira admin group add-user                  # Add user to group
+jira admin group remove-user               # Remove user from group
 ```
 
-### Workflow Management (9 scripts)
+### Notification Schemes
+```bash
+jira admin notification-scheme list        # List notification schemes
+jira admin notification-scheme get ID      # Get scheme details
+jira admin notification-scheme create      # Create new scheme
+jira admin notification add                # Add notification to scheme
+jira admin notification remove             # Remove notification
 ```
-list_workflows.py            get_workflow.py
-search_workflows.py          list_workflow_schemes.py
-get_workflow_scheme.py       assign_workflow_scheme.py
-list_statuses.py             get_workflow_for_issue.py
+
+### Screen Management
+```bash
+jira admin screen list                     # List screens
+jira admin screen get ID                   # Get screen details
+jira admin screen tabs ID                  # List screen tabs
+jira admin screen fields ID                # Get fields on screen
+jira admin screen add-field                # Add field to screen
+jira admin screen remove-field             # Remove field from screen
+jira admin screen-scheme list              # List screen schemes
+```
+
+### Issue Types
+```bash
+jira admin issue-type list                 # List issue types
+jira admin issue-type get ID               # Get issue type details
+jira admin issue-type create               # Create issue type
+jira admin issue-type update ID            # Update issue type
+jira admin issue-type delete ID            # Delete issue type
+```
+
+### Issue Type Schemes
+```bash
+jira admin issue-type-scheme list          # List schemes
+jira admin issue-type-scheme get ID        # Get scheme details
+jira admin issue-type-scheme create        # Create new scheme
+jira admin issue-type-scheme assign        # Assign to project
+jira admin issue-type-scheme project       # Get project's scheme
+```
+
+### Workflow Management
+```bash
+jira admin workflow list                   # List workflows
+jira admin workflow get --name "Name"      # Get workflow details
+jira admin workflow search --query "term"  # Search workflows
+jira admin workflow-scheme list            # List workflow schemes
+jira admin workflow-scheme get --id ID     # Get scheme details
+jira admin workflow-scheme assign          # Assign to project
+jira admin status list                     # List all statuses
 ```
 
 ---

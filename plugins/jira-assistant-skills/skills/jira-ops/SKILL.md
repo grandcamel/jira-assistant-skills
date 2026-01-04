@@ -31,6 +31,8 @@ Use this skill when you need to:
 
 ## What This Skill Does
 
+**IMPORTANT:** Always use the `jira` CLI. Never run Python scripts directly.
+
 - **Project Discovery**: Discover project metadata, workflows, and patterns for intelligent defaults
 - **Cache Status Monitoring**: Display cache statistics (size, entries, hit rates)
 - **Cache Clearing**: Remove cache entries by category, pattern, or all at once

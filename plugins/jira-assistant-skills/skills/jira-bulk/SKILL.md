@@ -13,6 +13,8 @@ Bulk operations for JIRA issue management at scale - transitions, assignments, p
 
 ## When to use this skill
 
+**IMPORTANT:** Always use the `jira` CLI. Never run Python scripts directly.
+
 Use this skill when you need to:
 - Transition **multiple issues** through workflow states simultaneously
 - Assign **multiple issues** to a user (or unassign)

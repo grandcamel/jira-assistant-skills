@@ -34,6 +34,8 @@ See [Skill Selection Guide](docs/SKILL_SELECTION.md) for detailed guidance.
 
 ## What this skill does
 
+**IMPORTANT:** Always use the `jira` CLI. Never run Python scripts directly.
+
 ### 1. Epic Management
 
 Create epics with Epic Name and Color fields, link stories/tasks to epics, and track epic progress with story point calculations.

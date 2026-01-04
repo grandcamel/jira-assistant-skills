@@ -43,6 +43,8 @@ Use jira-jsm when you encounter:
 
 ## What this skill does
 
+**IMPORTANT:** Always use the `jira` CLI. Never run Python scripts directly.
+
 This skill provides comprehensive JSM operations organized into 6 key ITSM capabilities:
 
 | Capability | Description | Key Scripts |

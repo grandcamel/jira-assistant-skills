@@ -40,6 +40,8 @@ Use this skill when you need to:
 - Fix Smart Commits not working
 - Resolve PR linking issues
 
+**IMPORTANT:** Always use the `jira` CLI. Never run Python scripts directly.
+
 ## Learning Path
 
 ### Phase 1: Core Git Integration (30-45 min)
