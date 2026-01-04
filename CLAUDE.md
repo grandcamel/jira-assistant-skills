@@ -118,6 +118,141 @@ jira issue get PROJ-123 --profile development
 python plugins/jira-assistant-skills/skills/jira-issue/scripts/get_issue.py EXISTING-ISSUE-KEY
 ```
 
+## Unit Testing
+
+**IMPORTANT: All unit tests must pass before merging to main.** This is enforced by CI and is a hard requirement for all PRs.
+
+### Running All Unit Tests
+
+Use the test runner script to run all unit tests across all skills:
+
+```bash
+# Run all unit tests (required before merge)
+./scripts/run_tests.sh
+
+# Run with verbose output
+./scripts/run_tests.sh --verbose
+
+# Run tests for a specific skill only
+./scripts/run_tests.sh --skill jira-bulk
+
+# Stop on first skill failure
+./scripts/run_tests.sh --fail-fast
+
+# Show help and available skills
+./scripts/run_tests.sh --help
+```
+
+The script runs tests for each skill separately to avoid conftest conflicts, excludes live integration tests, and provides a summary table of results.
+
+### Running Single Tests (Iterative Fixing)
+
+Use the single test runner for rapid iteration when fixing failing tests:
+
+```bash
+# Run all tests in a file
+./scripts/run_single_test.sh jira-bulk test_bulk_assign.py
+
+# Run a specific test class
+./scripts/run_single_test.sh jira-bulk test_bulk_assign.py::TestBulkAssignToUser
+
+# Run a specific test method
+./scripts/run_single_test.sh jira-bulk test_bulk_assign.py::TestBulkAssignToUser::test_bulk_assign_to_user_by_account_id
+
+# Run tests matching a keyword
+./scripts/run_single_test.sh jira-search -k "validate"
+
+# Run with verbose output and full traceback
+./scripts/run_single_test.sh jira-admin test_list_projects.py -v --tb=long
+
+# Re-run only failed tests from last run
+./scripts/run_single_test.sh jira-admin --lf
+
+# Stop on first failure
+./scripts/run_single_test.sh jira-admin -x
+
+# Drop into debugger on failure
+./scripts/run_single_test.sh jira-bulk test_bulk_assign.py --pdb
+```
+
+### Test Organization
+
+Tests are organized per-skill with this structure:
+
+```
+plugins/jira-assistant-skills/skills/<skill>/tests/
+├── conftest.py           # Skill-specific fixtures
+├── fixtures/             # Test data and mock responses
+├── test_*.py             # Unit tests
+├── unit/                 # Additional unit test modules (optional)
+└── live_integration/     # Live API tests (excluded from unit tests)
+```
+
+### Available Skills for Testing
+
+| Skill | Description |
+|-------|-------------|
+| `jira-admin` | Project, permission, notification, screen administration |
+| `jira-agile` | Epics, sprints, backlog management |
+| `jira-bulk` | Bulk transitions, assignments, priorities, cloning |
+| `jira-collaborate` | Comments, attachments, watchers |
+| `jira-dev` | Git branch names, commit parsing, PR descriptions |
+| `jira-fields` | Custom field management, Agile field configuration |
+| `jira-issue` | Core CRUD operations on issues |
+| `jira-jsm` | Jira Service Management features |
+| `jira-lifecycle` | Workflow transitions, versions, components |
+| `jira-ops` | Cache management, request batching |
+| `jira-relationships` | Issue linking, dependencies, cloning |
+| `jira-search` | JQL queries, saved filters, exports |
+| `jira-time` | Time tracking, worklogs, estimates |
+| `shared` | Shared test utilities and fixtures |
+
+### Test Coverage
+
+**Requirement: 95% test coverage is required for all PRs.** Coverage is enforced by CI.
+
+```bash
+# Run tests with coverage collection
+./scripts/run_tests.sh --coverage
+
+# Generate HTML coverage report (viewable in browser)
+./scripts/run_tests.sh --coverage --coverage-report html
+# Open htmlcov/index.html in browser
+
+# Generate XML coverage report (for CI/GitHub)
+./scripts/run_tests.sh --coverage --coverage-report xml
+# Creates coverage.xml for upload to coverage services
+
+# Enforce minimum coverage threshold
+./scripts/run_tests.sh --coverage --min-coverage 95
+
+# Combined: coverage + HTML report + enforce 95%
+./scripts/run_tests.sh --coverage --coverage-report html --min-coverage 95
+```
+
+**Coverage report formats:**
+
+| Format | Output | Use Case |
+|--------|--------|----------|
+| `term` (default) | Terminal | Quick local check |
+| `html` | `htmlcov/` directory | Detailed local analysis |
+| `xml` | `coverage.xml` | CI services (Codecov, Coveralls) |
+| `json` | `coverage.json` | Custom tooling |
+
+**CI Integration:**
+
+The XML coverage report can be uploaded to coverage services like Codecov or Coveralls:
+
+```yaml
+# Example GitHub Actions step
+- name: Upload coverage to Codecov
+  uses: codecov/codecov-action@v3
+  with:
+    files: ./coverage.xml
+    fail_ci_if_error: true
+    minimum_coverage: 95
+```
+
 ## Adding New Scripts
 
 When adding scripts to existing skills:
@@ -780,3 +915,4 @@ This script:
 ./scripts/run-e2e-tests.sh --local   # Local
 ./scripts/run-e2e-tests.sh --verbose # Verbose
 ```
+- Always use `#!/usr/bin/env bash` form for bash scripts
