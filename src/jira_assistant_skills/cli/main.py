@@ -53,6 +53,7 @@ from .commands.time_cmds import time
 from .commands.collaborate_cmds import collaborate
 from .commands.agile_cmds import agile
 from .commands.jsm_cmds import jsm
+from .commands.admin_cmds import admin
 
 cli.add_command(issue)
 cli.add_command(search)
@@ -66,3 +67,4 @@ cli.add_command(time)
 cli.add_command(collaborate)
 cli.add_command(agile)
 cli.add_command(jsm)
+cli.add_command(admin)
