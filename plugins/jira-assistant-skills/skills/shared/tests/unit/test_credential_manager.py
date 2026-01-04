@@ -29,7 +29,7 @@ from jira_assistant_skills_lib import (
     store_credentials,
     validate_credentials,
 )
-from jira_assistant_skills_lib import ValidationError, AuthenticationError
+from assistant_skills_lib.error_handler import ValidationError, AuthenticationError
 
 
 class TestCredentialBackend:
@@ -47,40 +47,40 @@ class TestKeychainAvailability:
 
     def test_keychain_available_when_keyring_works(self):
         """Test keychain is available when keyring works."""
-        import credential_manager
-        original_available = credential_manager.KEYRING_AVAILABLE
+        import jira_assistant_skills_lib.credential_manager as cm
+        original_available = cm.KEYRING_AVAILABLE
 
         try:
-            credential_manager.KEYRING_AVAILABLE = True
-            with patch.object(credential_manager, 'keyring', create=True) as mock_keyring:
+            cm.KEYRING_AVAILABLE = True
+            with patch.object(cm, 'keyring', create=True) as mock_keyring:
                 mock_keyring.get_keyring.return_value = MagicMock()
                 assert CredentialManager.is_keychain_available() is True
         finally:
-            credential_manager.KEYRING_AVAILABLE = original_available
+            cm.KEYRING_AVAILABLE = original_available
 
     def test_keychain_unavailable_when_not_installed(self):
         """Test keychain unavailable when keyring not installed."""
-        import credential_manager
-        original_available = credential_manager.KEYRING_AVAILABLE
+        import jira_assistant_skills_lib.credential_manager as cm
+        original_available = cm.KEYRING_AVAILABLE
 
         try:
-            credential_manager.KEYRING_AVAILABLE = False
+            cm.KEYRING_AVAILABLE = False
             assert CredentialManager.is_keychain_available() is False
         finally:
-            credential_manager.KEYRING_AVAILABLE = original_available
+            cm.KEYRING_AVAILABLE = original_available
 
     def test_keychain_unavailable_when_backend_fails(self):
         """Test keychain unavailable when backend fails."""
-        import credential_manager
-        original_available = credential_manager.KEYRING_AVAILABLE
+        import jira_assistant_skills_lib.credential_manager as cm
+        original_available = cm.KEYRING_AVAILABLE
 
         try:
-            credential_manager.KEYRING_AVAILABLE = True
-            with patch.object(credential_manager, 'keyring', create=True) as mock_keyring:
+            cm.KEYRING_AVAILABLE = True
+            with patch.object(cm, 'keyring', create=True) as mock_keyring:
                 mock_keyring.get_keyring.side_effect = Exception("Backend error")
                 assert CredentialManager.is_keychain_available() is False
         finally:
-            credential_manager.KEYRING_AVAILABLE = original_available
+            cm.KEYRING_AVAILABLE = original_available
 
 
 class TestCredentialManagerInit:
@@ -161,12 +161,12 @@ class TestKeychainCredentials:
 
     def test_get_credentials_from_keychain_success(self):
         """Test successful keychain retrieval."""
-        import credential_manager
-        original_available = credential_manager.KEYRING_AVAILABLE
+        import jira_assistant_skills_lib.credential_manager as cm
+        original_available = cm.KEYRING_AVAILABLE
 
         try:
-            credential_manager.KEYRING_AVAILABLE = True
-            with patch.object(credential_manager, 'keyring', create=True) as mock_keyring:
+            cm.KEYRING_AVAILABLE = True
+            with patch.object(cm, 'keyring', create=True) as mock_keyring:
                 mock_keyring.get_keyring.return_value = MagicMock()
                 mock_keyring.get_password.return_value = json.dumps({
                     'url': 'https://keychain.atlassian.net',
@@ -185,16 +185,16 @@ class TestKeychainCredentials:
                     'jira-assistant-production', 'credentials'
                 )
         finally:
-            credential_manager.KEYRING_AVAILABLE = original_available
+            cm.KEYRING_AVAILABLE = original_available
 
     def test_get_credentials_from_keychain_not_found(self):
         """Test keychain returns None when no credentials stored."""
-        import credential_manager
-        original_available = credential_manager.KEYRING_AVAILABLE
+        import jira_assistant_skills_lib.credential_manager as cm
+        original_available = cm.KEYRING_AVAILABLE
 
         try:
-            credential_manager.KEYRING_AVAILABLE = True
-            with patch.object(credential_manager, 'keyring', create=True) as mock_keyring:
+            cm.KEYRING_AVAILABLE = True
+            with patch.object(cm, 'keyring', create=True) as mock_keyring:
                 mock_keyring.get_keyring.return_value = MagicMock()
                 mock_keyring.get_password.return_value = None
 
@@ -205,15 +205,15 @@ class TestKeychainCredentials:
                 assert email is None
                 assert token is None
         finally:
-            credential_manager.KEYRING_AVAILABLE = original_available
+            cm.KEYRING_AVAILABLE = original_available
 
     def test_get_credentials_from_keychain_not_available(self):
         """Test keychain returns None when not available."""
-        import credential_manager
-        original_available = credential_manager.KEYRING_AVAILABLE
+        import jira_assistant_skills_lib.credential_manager as cm
+        original_available = cm.KEYRING_AVAILABLE
 
         try:
-            credential_manager.KEYRING_AVAILABLE = False
+            cm.KEYRING_AVAILABLE = False
             manager = CredentialManager()
             url, email, token = manager.get_credentials_from_keychain()
 
@@ -221,7 +221,7 @@ class TestKeychainCredentials:
             assert email is None
             assert token is None
         finally:
-            credential_manager.KEYRING_AVAILABLE = original_available
+            cm.KEYRING_AVAILABLE = original_available
 
 
 class TestJsonCredentials:
@@ -340,12 +340,12 @@ class TestStoreCredentials:
 
     def test_store_to_keychain(self):
         """Test storing credentials to keychain."""
-        import credential_manager
-        original_available = credential_manager.KEYRING_AVAILABLE
+        import jira_assistant_skills_lib.credential_manager as cm
+        original_available = cm.KEYRING_AVAILABLE
 
         try:
-            credential_manager.KEYRING_AVAILABLE = True
-            with patch.object(credential_manager, 'keyring', create=True) as mock_keyring:
+            cm.KEYRING_AVAILABLE = True
+            with patch.object(cm, 'keyring', create=True) as mock_keyring:
                 mock_keyring.get_keyring.return_value = MagicMock()
 
                 manager = CredentialManager("production")
@@ -370,7 +370,7 @@ class TestStoreCredentials:
                 assert stored_json['email'] == 'test@example.com'
                 assert stored_json['api_token'] == 'test-token'
         finally:
-            credential_manager.KEYRING_AVAILABLE = original_available
+            cm.KEYRING_AVAILABLE = original_available
 
     def test_store_to_json(self, tmp_path):
         """Test storing credentials to JSON file."""
@@ -400,12 +400,12 @@ class TestStoreCredentials:
         assert content['jira']['credentials']['production']['api_token'] == 'test-token'
 
     def test_store_validates_url(self):
-        """Test store validates URL format."""
+        """Test store validates URL format - rejects HTTP (requires HTTPS)."""
         manager = CredentialManager()
 
         with pytest.raises(ValidationError):
             manager.store_credentials(
-                'invalid-url',
+                'http://insecure.atlassian.net',  # HTTP is rejected, HTTPS required
                 'test@example.com',
                 'test-token'
             )
@@ -438,12 +438,12 @@ class TestDeleteCredentials:
 
     def test_delete_from_keychain(self):
         """Test deleting credentials from keychain."""
-        import credential_manager
-        original_available = credential_manager.KEYRING_AVAILABLE
+        import jira_assistant_skills_lib.credential_manager as cm
+        original_available = cm.KEYRING_AVAILABLE
 
         try:
-            credential_manager.KEYRING_AVAILABLE = True
-            with patch.object(credential_manager, 'keyring', create=True) as mock_keyring:
+            cm.KEYRING_AVAILABLE = True
+            with patch.object(cm, 'keyring', create=True) as mock_keyring:
                 mock_keyring.get_keyring.return_value = MagicMock()
 
                 manager = CredentialManager("production")
@@ -454,7 +454,7 @@ class TestDeleteCredentials:
                     'jira-assistant-production', 'credentials'
                 )
         finally:
-            credential_manager.KEYRING_AVAILABLE = original_available
+            cm.KEYRING_AVAILABLE = original_available
 
     def test_delete_from_json(self, tmp_path):
         """Test deleting credentials from JSON file."""
@@ -555,16 +555,16 @@ class TestConvenienceFunctions:
 
     def test_is_keychain_available_function(self):
         """Test is_keychain_available convenience function."""
-        import credential_manager
-        original_available = credential_manager.KEYRING_AVAILABLE
+        import jira_assistant_skills_lib.credential_manager as cm
+        original_available = cm.KEYRING_AVAILABLE
 
         try:
-            credential_manager.KEYRING_AVAILABLE = True
-            with patch.object(credential_manager, 'keyring', create=True) as mock_keyring:
+            cm.KEYRING_AVAILABLE = True
+            with patch.object(cm, 'keyring', create=True) as mock_keyring:
                 mock_keyring.get_keyring.return_value = MagicMock()
                 assert is_keychain_available() is True
         finally:
-            credential_manager.KEYRING_AVAILABLE = original_available
+            cm.KEYRING_AVAILABLE = original_available
 
     def test_get_credentials_function(self):
         """Test get_credentials convenience function."""

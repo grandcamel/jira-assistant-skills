@@ -19,7 +19,7 @@ from jira_assistant_skills_lib import (
     find_transition_by_keywords,
     format_transition_list
 )
-from jira_assistant_skills_lib import ValidationError
+from assistant_skills_lib.error_handler import ValidationError
 
 
 @pytest.fixture

@@ -28,6 +28,8 @@ from jira_assistant_skills_lib import (
     validate_transition,
     format_context_summary,
     has_project_context,
+)
+from jira_assistant_skills_lib.project_context import (
     load_json_file,
     load_skill_context,
     load_settings_context,
