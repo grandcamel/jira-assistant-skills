@@ -71,8 +71,9 @@ All commands support these options:
 | Option | Description |
 |--------|-------------|
 | `--profile, -p` | Use a specific JIRA profile |
-| `--output, -o` | Output format: `text`, `json`, or `table` |
 | `--help` | Show help message and exit |
+
+Query commands (`transitions`, `version list`, `component list`) also support `--output` for `text`, `json`, or `table` output.
 
 ### Dry Run Support
 

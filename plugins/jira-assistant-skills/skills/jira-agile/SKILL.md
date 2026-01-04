@@ -121,9 +121,11 @@ See [Quick Start Guide](docs/QUICK_START.md) for essential workflows.
 
 All scripts support:
 - `--profile <name>` - Use specific JIRA profile
-- `--output json` - Output as JSON
-- `--dry-run` - Preview changes (where applicable)
 - `--help` - Show usage and examples
+
+Most scripts also support:
+- `--output json` - Output as JSON (query and creation commands)
+- `--dry-run` - Preview changes (where applicable)
 
 See [Options Reference](docs/OPTIONS.md) for details.
 
