@@ -42,34 +42,79 @@ Use this skill when you need to:
 ## Quick Start
 
 ```bash
-# Discover project context for intelligent defaults
-jira ops discover-project PROJ --save
+# Discover project context (saves to skill directory by default)
+jira ops discover-project PROJ
 
 # Check cache status
-jira ops cache-status --detailed
+jira ops cache-status
 
-# Clear cache
+# Clear all cache
 jira ops cache-clear --force
 
-# Warm cache for a specific project
-jira ops cache-warm PROJ --max-issues 100
+# Warm cache with all metadata
+jira ops cache-warm --all
 ```
 
 ## Common Tasks (30-Second Solutions)
 
 ### Check cache status
 ```bash
+# Basic status
 jira ops cache-status
+
+# Output as JSON
+jira ops cache-status --json
+
+# Verbose output
+jira ops cache-status --verbose
 ```
 
-### Warm the cache for a project
+### Warm the cache
 ```bash
-jira ops cache-warm PROJ --type issues --max-issues 100
+# Cache project list
+jira ops cache-warm --projects
+
+# Cache field definitions
+jira ops cache-warm --fields
+
+# Cache all available metadata with verbose output
+jira ops cache-warm --all --verbose
 ```
 
-### Clear stale cache
+### Clear cache
 ```bash
+# Clear all cache (with confirmation)
+jira ops cache-clear
+
+# Clear all cache (skip confirmation)
 jira ops cache-clear --force
+
+# Clear only issue cache
+jira ops cache-clear --category issue --force
+
+# Preview what would be cleared
+jira ops cache-clear --dry-run
+
+# Clear keys matching pattern
+jira ops cache-clear --pattern "PROJ-*" --category issue --force
+```
+
+### Discover project context
+```bash
+# Discover and save to skill directory (default)
+jira ops discover-project PROJ
+
+# Save to settings.local.json for personal use
+jira ops discover-project PROJ --personal
+
+# Save to both locations
+jira ops discover-project PROJ --both
+
+# Output JSON without saving
+jira ops discover-project PROJ --output json --no-save
+
+# Custom sample size and period
+jira ops discover-project PROJ --sample-size 200 --days 60
 ```
 
 See [Scripts Guide](docs/SCRIPTS.md) for complete documentation.

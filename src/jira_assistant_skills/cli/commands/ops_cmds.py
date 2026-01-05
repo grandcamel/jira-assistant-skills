@@ -10,33 +10,51 @@ def ops():
 
 
 @ops.command(name="cache-status")
-@click.option("--detailed", "-d", is_flag=True, help="Show detailed cache statistics")
+@click.option("--json", "output_json", is_flag=True, help="Output as JSON")
+@click.option("--verbose", "-v", is_flag=True, help="Verbose output")
 @click.pass_context
-def ops_cache_status(ctx, detailed: bool):
+def ops_cache_status(ctx, output_json: bool, verbose: bool):
     """Show cache status and statistics."""
     script_path = SKILLS_ROOT_DIR / "jira-ops" / "scripts" / "cache_status.py"
 
     script_args = []
-    if detailed:
-        script_args.append("--detailed")
+    if output_json:
+        script_args.append("--json")
+    if verbose:
+        script_args.append("--verbose")
 
     run_skill_script_subprocess(script_path, script_args, ctx)
 
 
 @ops.command(name="cache-clear")
-@click.option("--type", "-t", "cache_type", help="Clear specific cache type")
-@click.option("--older-than", help="Clear entries older than (e.g., 1d, 2h)")
-@click.option("--force", "-f", is_flag=True, help="Skip confirmation")
+@click.option(
+    "--category",
+    "-c",
+    type=click.Choice(["issue", "project", "user", "field", "search", "default"]),
+    help="Clear only entries in this category",
+)
+@click.option("--pattern", help="Clear keys matching glob pattern (e.g., 'PROJ-*')")
+@click.option("--key", help="Clear specific cache key (requires --category)")
+@click.option(
+    "--dry-run", is_flag=True, help="Show what would be cleared without clearing"
+)
+@click.option("--force", "-f", is_flag=True, help="Skip confirmation prompt")
 @click.pass_context
-def ops_cache_clear(ctx, cache_type: str, older_than: str, force: bool):
+def ops_cache_clear(
+    ctx, category: str, pattern: str, key: str, dry_run: bool, force: bool
+):
     """Clear cache entries."""
     script_path = SKILLS_ROOT_DIR / "jira-ops" / "scripts" / "cache_clear.py"
 
     script_args = []
-    if cache_type:
-        script_args.extend(["--type", cache_type])
-    if older_than:
-        script_args.extend(["--older-than", older_than])
+    if category:
+        script_args.extend(["--category", category])
+    if pattern:
+        script_args.extend(["--pattern", pattern])
+    if key:
+        script_args.extend(["--key", key])
+    if dry_run:
+        script_args.append("--dry-run")
     if force:
         script_args.append("--force")
 
@@ -44,33 +62,90 @@ def ops_cache_clear(ctx, cache_type: str, older_than: str, force: bool):
 
 
 @ops.command(name="cache-warm")
-@click.argument("project_key")
-@click.option("--type", "-t", "cache_type", help="Warm specific cache type")
-@click.option("--max-issues", "-m", type=int, help="Maximum issues to cache")
+@click.option("--projects", is_flag=True, help="Cache project list")
+@click.option("--fields", is_flag=True, help="Cache field definitions")
+@click.option(
+    "--users", is_flag=True, help="Cache assignable users (requires project context)"
+)
+@click.option("--all", "warm_all", is_flag=True, help="Cache all available metadata")
+@click.option("--verbose", "-v", is_flag=True, help="Verbose output")
 @click.pass_context
-def ops_cache_warm(ctx, project_key: str, cache_type: str, max_issues: int):
-    """Pre-warm cache for a project."""
+def ops_cache_warm(
+    ctx, projects: bool, fields: bool, users: bool, warm_all: bool, verbose: bool
+):
+    """Pre-warm cache with commonly accessed data."""
     script_path = SKILLS_ROOT_DIR / "jira-ops" / "scripts" / "cache_warm.py"
 
-    script_args = [project_key]
-    if cache_type:
-        script_args.extend(["--type", cache_type])
-    if max_issues:
-        script_args.extend(["--max-issues", str(max_issues)])
+    script_args = []
+    if projects:
+        script_args.append("--projects")
+    if fields:
+        script_args.append("--fields")
+    if users:
+        script_args.append("--users")
+    if warm_all:
+        script_args.append("--all")
+    if verbose:
+        script_args.append("--verbose")
 
     run_skill_script_subprocess(script_path, script_args, ctx)
 
 
 @ops.command(name="discover-project")
 @click.argument("project_key")
-@click.option("--save", "-s", is_flag=True, help="Save discovered context to config")
+@click.option(
+    "--personal",
+    "-p",
+    is_flag=True,
+    help="Save to settings.local.json instead of skill directory",
+)
+@click.option(
+    "--both", is_flag=True, help="Save to both skill directory and settings.local.json"
+)
+@click.option(
+    "--no-save", is_flag=True, help="Do not save output (useful with --output json)"
+)
+@click.option(
+    "--output",
+    "-o",
+    type=click.Choice(["text", "json"]),
+    default="text",
+    help="Output format",
+)
+@click.option(
+    "--sample-size",
+    "-s",
+    type=int,
+    default=100,
+    help="Number of issues to sample for patterns",
+)
+@click.option("--days", "-d", type=int, default=30, help="Sample period in days")
 @click.pass_context
-def ops_discover_project(ctx, project_key: str, save: bool):
+def ops_discover_project(
+    ctx,
+    project_key: str,
+    personal: bool,
+    both: bool,
+    no_save: bool,
+    output: str,
+    sample_size: int,
+    days: int,
+):
     """Discover project configuration and capabilities."""
     script_path = SKILLS_ROOT_DIR / "jira-ops" / "scripts" / "discover_project.py"
 
     script_args = [project_key]
-    if save:
-        script_args.append("--save")
+    if personal:
+        script_args.append("--personal")
+    if both:
+        script_args.append("--both")
+    if no_save:
+        script_args.append("--no-save")
+    if output != "text":
+        script_args.extend(["--output", output])
+    if sample_size != 100:
+        script_args.extend(["--sample-size", str(sample_size)])
+    if days != 30:
+        script_args.extend(["--days", str(days)])
 
     run_skill_script_subprocess(script_path, script_args, ctx)
