@@ -370,7 +370,7 @@ def queue():
 def queue_list(ctx, service_desk_id: int):
     """List queues for a service desk."""
     script_path = SKILLS_ROOT_DIR / "jira-jsm" / "scripts" / "list_queues.py"
-    run_skill_script_subprocess(script_path, [str(service_desk_id)], ctx)
+    run_skill_script_subprocess(script_path, ["--service-desk", str(service_desk_id)], ctx)
 
 
 @queue.command(name="get")
@@ -380,7 +380,8 @@ def queue_list(ctx, service_desk_id: int):
 def queue_get(ctx, service_desk_id: int, queue_id: int):
     """Get queue details."""
     script_path = SKILLS_ROOT_DIR / "jira-jsm" / "scripts" / "get_queue.py"
-    run_skill_script_subprocess(script_path, [str(service_desk_id), str(queue_id)], ctx)
+    run_skill_script_subprocess(script_path, ["--service-desk", str(service_desk_id),
+                                              "--queue-id", str(queue_id)], ctx)
 
 
 @queue.command(name="issues")
@@ -391,8 +392,9 @@ def queue_get(ctx, service_desk_id: int, queue_id: int):
 def queue_issues(ctx, service_desk_id: int, queue_id: int, max_results: int):
     """Get issues in a queue."""
     script_path = SKILLS_ROOT_DIR / "jira-jsm" / "scripts" / "get_queue_issues.py"
-    run_skill_script_subprocess(script_path, [str(service_desk_id), str(queue_id),
-                                              "--max-results", str(max_results)], ctx)
+    run_skill_script_subprocess(script_path, ["--service-desk", str(service_desk_id),
+                                              "--queue-id", str(queue_id),
+                                              "--limit", str(max_results)], ctx)
 
 
 # SLA commands
