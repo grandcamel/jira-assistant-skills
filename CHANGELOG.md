@@ -1,5 +1,30 @@
 # Changelog
 
+## [2.2.7](https://github.com/grandcamel/JIRA-Assistant-Skills/compare/v2.2.6...v2.2.7) (2026-01-05)
+
+
+### Bug Fixes
+
+* **jira-admin:** fix user search positional query, screen field args, group user commands ([9c0480f](https://github.com/grandcamel/JIRA-Assistant-Skills/commit/9c0480f))
+* **jira-agile:** align CLI wrapper with script interfaces for epic/sprint commands ([80869c2](https://github.com/grandcamel/JIRA-Assistant-Skills/commit/80869c2))
+* **jira-assistant:** update hub skill documentation ([911a444](https://github.com/grandcamel/JIRA-Assistant-Skills/commit/911a444))
+* **jira-bulk:** align CLI wrapper with script interfaces ([f611f1c](https://github.com/grandcamel/JIRA-Assistant-Skills/commit/f611f1c))
+* **jira-collaborate:** add --max-results, --internal, --expand, --thumbnail, --no-notify options ([4cbdda7](https://github.com/grandcamel/JIRA-Assistant-Skills/commit/4cbdda7))
+* **jira-dev:** align CLI wrapper with script interfaces for branch/PR commands ([4efa771](https://github.com/grandcamel/JIRA-Assistant-Skills/commit/4efa771))
+* **jira-fields:** align CLI wrapper with script interfaces ([d73de54](https://github.com/grandcamel/JIRA-Assistant-Skills/commit/d73de54))
+* **jira-issue:** improve SKILL.md documentation accuracy ([7d718fe](https://github.com/grandcamel/JIRA-Assistant-Skills/commit/7d718fe))
+* **jira-jsm:** fix request comment syntax, add --internal-only, --show-jql, --dry-run options ([b145c28](https://github.com/grandcamel/JIRA-Assistant-Skills/commit/b145c28))
+* **jira-lifecycle:** fix component --id usage, version --name option, transition options ([9583208](https://github.com/grandcamel/JIRA-Assistant-Skills/commit/9583208))
+* **jira-ops:** fix cache command args (--category vs --type), remove invalid options ([0a43efa](https://github.com/grandcamel/JIRA-Assistant-Skills/commit/0a43efa))
+* **jira-relationships:** align CLI wrapper with script interfaces ([1a7e5fe](https://github.com/grandcamel/JIRA-Assistant-Skills/commit/1a7e5fe))
+* **jira-search:** align CLI wrapper with script interfaces ([3d2f01e](https://github.com/grandcamel/JIRA-Assistant-Skills/commit/3d2f01e))
+* **jira-time:** align CLI wrapper with script interfaces ([b90e076](https://github.com/grandcamel/JIRA-Assistant-Skills/commit/b90e076))
+
+
+### Documentation
+
+* add parallel subagent pattern to CLAUDE.md ([924a5c0](https://github.com/grandcamel/JIRA-Assistant-Skills/commit/924a5c0))
+
 ## [2.1.0](https://github.com/grandcamel/JIRA-Assistant-Skills/compare/v2.0.1...v2.1.0) (2025-12-31)
 
 
