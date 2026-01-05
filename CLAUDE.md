@@ -937,3 +937,108 @@ This script:
 - Run `./scripts/run_tests.sh` before committing to ensure all tests pass
 - When a force push is required, always use --force-with-lease
 - Always use `--rebase` with git pull
+
+## Parallel Subagent Pattern
+
+For large-scale analysis or review tasks across multiple skills, use parallel subagents to maximize throughput while ensuring results persist even if context is exhausted.
+
+### When to Use
+
+- Reviewing all 14 skills for consistency issues
+- Running analysis across multiple components in parallel
+- Tasks that can be decomposed into independent units of work
+- Long-running operations where context exhaustion is a risk
+
+### Pattern: File-Persisted Results
+
+**Key principle:** Each subagent writes its results to a file, so work is preserved even if the orchestrator session ends.
+
+```
+# Output files are written to each skill directory:
+plugins/jira-assistant-skills/skills/<skill>/SKILL_FIX_PLAN.md
+```
+
+### Example: Skill Review Subagents
+
+Launch 14 parallel subagents to review each skill for SKILL.md / CLI / library inconsistencies:
+
+```
+User: Create one review subagent for each skill to compare its SKILL.md / cli / libraries.
+      Each should write findings to SKILL_FIX_PLAN.md in its skill directory.
+
+Claude: [Launches 14 Task tools in parallel with subagent_type="general-purpose"]
+```
+
+Each subagent prompt should include:
+1. **Specific file paths** to read (SKILL.md, CLI commands, scripts)
+2. **Clear analysis criteria** (what inconsistencies to look for)
+3. **Output file path** where to write results
+4. **Output format** (Summary, table of issues, prioritized fixes, files to modify)
+5. **Explicit instruction** not to add to git
+
+### Subagent Prompt Template
+
+```
+You are reviewing the <skill-name> skill for inconsistencies between its SKILL.md
+documentation, CLI commands, and library implementation.
+
+**Your task:**
+1. Read the SKILL.md at: <full-path-to-SKILL.md>
+2. List all CLI commands mentioned in SKILL.md
+3. Check if each CLI command exists and works as documented by examining the scripts/ directory
+4. Identify inconsistencies between:
+   - What SKILL.md says vs what CLI actually does
+   - Command arguments/options documented vs implemented
+   - Examples that may not work
+5. Write your findings to: <full-path-to-output-file>
+
+Format your output file with:
+- ## Summary (one paragraph overview)
+- ## Inconsistencies Found (table: Issue | SKILL.md says | Reality | Fix needed)
+- ## Recommended Fixes (prioritized list)
+- ## Files to Modify (list of files needing changes)
+
+Focus on actionable fixes. Do NOT add the file to git.
+```
+
+### Recovery from Context Exhaustion
+
+If the orchestrator session ends before collecting results:
+
+1. **Check for output files:**
+   ```bash
+   find plugins/jira-assistant-skills/skills -name "SKILL_FIX_PLAN.md" -type f
+   ```
+
+2. **Review each plan:**
+   ```bash
+   cat plugins/jira-assistant-skills/skills/*/SKILL_FIX_PLAN.md
+   ```
+
+3. **Resume in new session:** The files persist, so a new session can read and summarize them.
+
+### Monitoring Subagent Progress
+
+Claude Code stores subagent state in `~/.claude/todos/`:
+```bash
+# View orchestrator's todo list (shows subagent status)
+cat ~/.claude/todos/<session-id>-agent-<session-id>.json
+```
+
+Debug logs are available in `~/.claude/debug/`:
+```bash
+# Find recent large debug files (likely orchestrator sessions)
+ls -laS ~/.claude/debug/*.txt | head -5
+
+# Search for subagent launches
+grep "SubagentStart" ~/.claude/debug/<session-id>.txt
+```
+
+### Best Practices for Parallel Subagents
+
+1. **Write to files** - Always have subagents write results to files, not just return them
+2. **Use absolute paths** - Provide full paths in prompts to avoid ambiguity
+3. **Include context** - If there are known issues, mention them in the prompt
+4. **Specify format** - Define the exact output structure expected
+5. **Limit scope** - Each subagent should have a focused, completable task
+6. **Track with TodoWrite** - Use TodoWrite in the orchestrator to track subagent status
