@@ -26,7 +26,7 @@ Use this skill when you need to:
 **Scale guidance:**
 - 5-10 issues: Run directly, no special options needed
 - 50-100 issues: Use `--dry-run` first, then execute
-- 500+ issues: Use batching + checkpointing for reliability
+- 500+ issues (transitions only): Use `--batch-size` and `--enable-checkpoint` for reliability
 
 ## Quick Start
 
@@ -53,16 +53,25 @@ For help choosing, see [Operations Guide](docs/OPERATIONS_GUIDE.md).
 
 ## Common Options
 
-All scripts support these options:
+All commands support these options:
 
 | Option | Purpose | When to Use |
 |--------|---------|-------------|
 | `--dry-run` | Preview changes | Always use for >10 issues |
+| `--force` / `-f` | Skip confirmation | Scripted automation |
 | `--profile` | JIRA instance | Multi-environment setups |
-| `--max-issues N` | Limit scope | Testing, large operations |
+| `--max-issues N` | Limit scope (default: 100) | Testing, large operations |
+
+### Transition-Only Options
+
+These options are only available for `jira bulk transition`:
+
+| Option | Purpose | When to Use |
+|--------|---------|-------------|
 | `--batch-size N` | Control batching | 500+ issues or rate limits |
 | `--enable-checkpoint` | Allow resume | 500+ issues, unreliable network |
-| `--delay-between-ops N` | Throttle requests | Rate limit (429) errors |
+| `--resume ID` | Resume from checkpoint | After interrupted operation |
+| `--list-checkpoints` | List pending checkpoints | Before resuming |
 
 ## Examples
 
@@ -108,7 +117,10 @@ jira bulk clone --jql "sprint='Sprint 42'" --include-subtasks --include-links
 jira bulk clone --issues PROJ-1,PROJ-2 --target-project NEWPROJ --prefix "[Clone]"
 ```
 
-## Parameter Tuning Guide
+## Parameter Tuning Guide (Transitions Only)
+
+The batching and checkpointing features are only available for `jira bulk transition`.
+Other commands (assign, set-priority, clone) process issues sequentially with built-in rate limiting.
 
 **How many issues?**
 
@@ -117,12 +129,11 @@ jira bulk clone --issues PROJ-1,PROJ-2 --target-project NEWPROJ --prefix "[Clone
 | <50 | Defaults are fine |
 | 50-500 | `--dry-run` first, then execute |
 | 500-1,000 | `--batch-size 200 --enable-checkpoint` |
-| 1,000+ | `--batch-size 200 --enable-checkpoint --delay-between-ops 0.3` |
+| 1,000+ | `--batch-size 200 --enable-checkpoint` |
 
 **Getting rate limit (429) errors?**
-- Increase delay: `--delay-between-ops 0.5`
-- Reduce batch: `--batch-size 50`
-- Or both
+- Reduce batch size: `--batch-size 50`
+- Consider running during off-peak hours
 
 ## Exit Codes
 
@@ -136,9 +147,9 @@ jira bulk clone --issues PROJ-1,PROJ-2 --target-project NEWPROJ --prefix "[Clone
 
 | Error | Solution |
 |-------|----------|
-| `Transition not available` | Check issue status with `get_issue.py --show-transitions` |
+| `Transition not available` | Check issue status with `jira issue get ISSUE-KEY --show-transitions` |
 | `Permission denied` | Verify JIRA project permissions |
-| `Rate limit (429)` | Increase `--delay-between-ops` or reduce `--batch-size` |
+| `Rate limit (429)` | Reduce `--batch-size` or run during off-peak hours (transitions only) |
 | `Invalid JQL` | Test JQL in JIRA search first |
 
 For detailed error recovery, see [Error Recovery Playbook](docs/ERROR_RECOVERY.md).

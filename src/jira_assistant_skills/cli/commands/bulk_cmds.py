@@ -104,15 +104,7 @@ def bulk_transition(
     help="Show what would be changed without making changes",
 )
 @click.option(
-    "--max-issues", "-m", type=int, default=50, help="Maximum issues to process"
-)
-@click.option(
-    "--batch-size", type=int, help="Issues per batch (auto-calculated if not specified)"
-)
-@click.option(
-    "--enable-checkpoint",
-    is_flag=True,
-    help="Enable checkpoint/resume for large operations",
+    "--max-issues", "-m", type=int, default=100, help="Maximum issues to process"
 )
 @click.option("--force", "-f", is_flag=True, help="Skip confirmation")
 @click.pass_context
@@ -124,8 +116,6 @@ def bulk_assign(
     unassign: bool,
     dry_run: bool,
     max_issues: int,
-    batch_size: int,
-    enable_checkpoint: bool,
     force: bool,
 ):
     """Assign or unassign multiple issues.
@@ -162,10 +152,6 @@ def bulk_assign(
         script_args.append("--dry-run")
     if max_issues:
         script_args.extend(["--max-issues", str(max_issues)])
-    if batch_size:
-        script_args.extend(["--batch-size", str(batch_size)])
-    if enable_checkpoint:
-        script_args.append("--enable-checkpoint")
     if force:
         script_args.append("--yes")
 
@@ -188,15 +174,7 @@ def bulk_assign(
     help="Show what would be changed without making changes",
 )
 @click.option(
-    "--max-issues", "-m", type=int, default=50, help="Maximum issues to process"
-)
-@click.option(
-    "--batch-size", type=int, help="Issues per batch (auto-calculated if not specified)"
-)
-@click.option(
-    "--enable-checkpoint",
-    is_flag=True,
-    help="Enable checkpoint/resume for large operations",
+    "--max-issues", "-m", type=int, default=100, help="Maximum issues to process"
 )
 @click.option("--force", "-f", is_flag=True, help="Skip confirmation")
 @click.pass_context
@@ -207,8 +185,6 @@ def bulk_set_priority(
     priority: str,
     dry_run: bool,
     max_issues: int,
-    batch_size: int,
-    enable_checkpoint: bool,
     force: bool,
 ):
     """Set priority for multiple issues.
@@ -236,10 +212,6 @@ def bulk_set_priority(
         script_args.append("--dry-run")
     if max_issues:
         script_args.extend(["--max-issues", str(max_issues)])
-    if batch_size:
-        script_args.extend(["--batch-size", str(batch_size)])
-    if enable_checkpoint:
-        script_args.append("--enable-checkpoint")
     if force:
         script_args.append("--yes")
 
@@ -260,15 +232,7 @@ def bulk_set_priority(
     help="Show what would be changed without making changes",
 )
 @click.option(
-    "--max-issues", "-m", type=int, default=50, help="Maximum issues to process"
-)
-@click.option(
-    "--batch-size", type=int, help="Issues per batch (auto-calculated if not specified)"
-)
-@click.option(
-    "--enable-checkpoint",
-    is_flag=True,
-    help="Enable checkpoint/resume for large operations",
+    "--max-issues", "-m", type=int, default=100, help="Maximum issues to process"
 )
 @click.option("--force", "-f", is_flag=True, help="Skip confirmation")
 @click.pass_context
@@ -282,8 +246,6 @@ def bulk_clone(
     include_subtasks: bool,
     dry_run: bool,
     max_issues: int,
-    batch_size: int,
-    enable_checkpoint: bool,
     force: bool,
 ):
     """Clone multiple issues.
@@ -318,10 +280,6 @@ def bulk_clone(
         script_args.append("--dry-run")
     if max_issues:
         script_args.extend(["--max-issues", str(max_issues)])
-    if batch_size:
-        script_args.extend(["--batch-size", str(batch_size)])
-    if enable_checkpoint:
-        script_args.append("--enable-checkpoint")
     if force:
         script_args.append("--yes")
 
