@@ -5,7 +5,7 @@ Provides a robust HTTP client for interacting with the JIRA REST API v3,
 including automatic retries, exponential backoff, and unified error handling.
 """
 
-from typing import Any, Optional
+from typing import Any
 
 import requests
 from requests.adapters import HTTPAdapter
@@ -97,9 +97,9 @@ class JiraClient:
     def get(
         self,
         endpoint: str,
-        params: Optional[dict[str, Any]] = None,
+        params: dict[str, Any] | None = None,
         operation: str = "fetch data",
-        headers: Optional[dict[str, str]] = None,
+        headers: dict[str, str] | None = None,
     ) -> dict[str, Any]:
         """
         Perform GET request.
@@ -126,9 +126,9 @@ class JiraClient:
     def post(
         self,
         endpoint: str,
-        data: Optional[dict[str, Any]] = None,
+        data: dict[str, Any] | None = None,
         operation: str = "create resource",
-        headers: Optional[dict[str, str]] = None,
+        headers: dict[str, str] | None = None,
     ) -> dict[str, Any]:
         """
         Perform POST request.
@@ -171,7 +171,7 @@ class JiraClient:
     def put(
         self,
         endpoint: str,
-        data: Optional[dict[str, Any]] = None,
+        data: dict[str, Any] | None = None,
         operation: str = "update resource",
     ) -> dict[str, Any]:
         """
@@ -232,7 +232,7 @@ class JiraClient:
         self,
         endpoint: str,
         file_path: str,
-        file_name: Optional[str] = None,
+        file_name: str | None = None,
         operation: str = "upload file",
     ) -> dict[str, Any]:
         """
@@ -303,10 +303,10 @@ class JiraClient:
     def search_issues(
         self,
         jql: str,
-        fields: Optional[list] = None,
+        fields: list | None = None,
         max_results: int = 50,
-        next_page_token: Optional[str] = None,
-        start_at: Optional[int] = None,
+        next_page_token: str | None = None,
+        start_at: int | None = None,
     ) -> dict[str, Any]:
         """
         Search for issues using JQL.
@@ -346,9 +346,7 @@ class JiraClient:
             "/rest/api/3/search/jql", params=params, operation="search issues"
         )
 
-    def get_issue(
-        self, issue_key: str, fields: Optional[list] = None
-    ) -> dict[str, Any]:
+    def get_issue(self, issue_key: str, fields: list | None = None) -> dict[str, Any]:
         """
         Get a specific issue.
 
@@ -453,7 +451,7 @@ class JiraClient:
         self,
         issue_key: str,
         transition_id: str,
-        fields: Optional[dict[str, Any]] = None,
+        fields: dict[str, Any] | None = None,
     ) -> None:
         """
         Transition an issue to a new status.
@@ -490,7 +488,7 @@ class JiraClient:
         current_user = self.get("/rest/api/3/myself", operation="get current user")
         return current_user.get("accountId")
 
-    def assign_issue(self, issue_key: str, account_id: Optional[str] = None) -> None:
+    def assign_issue(self, issue_key: str, account_id: str | None = None) -> None:
         """
         Assign an issue to a user.
 
@@ -572,7 +570,7 @@ class JiraClient:
     def get_sprint_issues(
         self,
         sprint_id: int,
-        fields: Optional[list] = None,
+        fields: list | None = None,
         max_results: int = 50,
         start_at: int = 0,
     ) -> dict[str, Any]:
@@ -608,9 +606,9 @@ class JiraClient:
         self,
         board_id: int,
         name: str,
-        goal: Optional[str] = None,
-        start_date: Optional[str] = None,
-        end_date: Optional[str] = None,
+        goal: str | None = None,
+        start_date: str | None = None,
+        end_date: str | None = None,
     ) -> dict[str, Any]:
         """
         Create a new sprint.
@@ -674,7 +672,7 @@ class JiraClient:
         )
 
     def move_issues_to_sprint(
-        self, sprint_id: int, issue_keys: list, rank: Optional[str] = None
+        self, sprint_id: int, issue_keys: list, rank: str | None = None
     ) -> None:
         """
         Move issues to a sprint.
@@ -702,8 +700,8 @@ class JiraClient:
     def get_board_backlog(
         self,
         board_id: int,
-        jql: Optional[str] = None,
-        fields: Optional[list] = None,
+        jql: str | None = None,
+        fields: list | None = None,
         max_results: int = 50,
         start_at: int = 0,
     ) -> dict[str, Any]:
@@ -741,8 +739,8 @@ class JiraClient:
     def rank_issues(
         self,
         issue_keys: list,
-        rank_before: Optional[str] = None,
-        rank_after: Optional[str] = None,
+        rank_before: str | None = None,
+        rank_after: str | None = None,
     ) -> None:
         """
         Rank issues in the backlog.
@@ -782,8 +780,8 @@ class JiraClient:
 
     def get_all_boards(
         self,
-        project_key: Optional[str] = None,
-        board_type: Optional[str] = None,
+        project_key: str | None = None,
+        board_type: str | None = None,
         max_results: int = 50,
         start_at: int = 0,
     ) -> dict[str, Any]:
@@ -816,7 +814,7 @@ class JiraClient:
     def get_board_sprints(
         self,
         board_id: int,
-        state: Optional[str] = None,
+        state: str | None = None,
         max_results: int = 50,
         start_at: int = 0,
     ) -> dict[str, Any]:
@@ -885,7 +883,7 @@ class JiraClient:
         link_type: str,
         inward_key: str,
         outward_key: str,
-        comment: Optional[dict[str, Any]] = None,
+        comment: dict[str, Any] | None = None,
     ) -> None:
         """
         Create a link between two issues.
@@ -955,8 +953,8 @@ class JiraClient:
         name: str,
         project_type_key: str = "software",
         template_key: str = "com.pyxis.greenhopper.jira:gh-simplified-agility-scrum",
-        lead_account_id: Optional[str] = None,
-        description: Optional[str] = None,
+        lead_account_id: str | None = None,
+        description: str | None = None,
     ) -> dict[str, Any]:
         """
         Create a new project.
@@ -1001,7 +999,7 @@ class JiraClient:
         )
 
     def get_project(
-        self, project_key: str, expand: Optional[list] = None
+        self, project_key: str, expand: list | None = None
     ) -> dict[str, Any]:
         """
         Get project details.
@@ -1263,11 +1261,11 @@ class JiraClient:
         self,
         issue_key: str,
         time_spent: str,
-        started: Optional[str] = None,
-        comment: Optional[dict[str, Any]] = None,
+        started: str | None = None,
+        comment: dict[str, Any] | None = None,
         adjust_estimate: str = "auto",
-        new_estimate: Optional[str] = None,
-        reduce_by: Optional[str] = None,
+        new_estimate: str | None = None,
+        reduce_by: str | None = None,
     ) -> dict[str, Any]:
         """
         Add a worklog to an issue.
@@ -1355,11 +1353,11 @@ class JiraClient:
         self,
         issue_key: str,
         worklog_id: str,
-        time_spent: Optional[str] = None,
-        started: Optional[str] = None,
-        comment: Optional[dict[str, Any]] = None,
+        time_spent: str | None = None,
+        started: str | None = None,
+        comment: dict[str, Any] | None = None,
         adjust_estimate: str = "auto",
-        new_estimate: Optional[str] = None,
+        new_estimate: str | None = None,
     ) -> dict[str, Any]:
         """
         Update an existing worklog.
@@ -1404,8 +1402,8 @@ class JiraClient:
         issue_key: str,
         worklog_id: str,
         adjust_estimate: str = "auto",
-        new_estimate: Optional[str] = None,
-        increase_by: Optional[str] = None,
+        new_estimate: str | None = None,
+        increase_by: str | None = None,
     ) -> None:
         """
         Delete a worklog.
@@ -1456,8 +1454,8 @@ class JiraClient:
     def set_time_tracking(
         self,
         issue_key: str,
-        original_estimate: Optional[str] = None,
-        remaining_estimate: Optional[str] = None,
+        original_estimate: str | None = None,
+        remaining_estimate: str | None = None,
     ) -> None:
         """
         Set time tracking estimates on an issue.
@@ -1565,9 +1563,9 @@ class JiraClient:
         self,
         name: str,
         jql: str,
-        description: Optional[str] = None,
+        description: str | None = None,
         favourite: bool = False,
-        share_permissions: Optional[list] = None,
+        share_permissions: list | None = None,
     ) -> dict[str, Any]:
         """
         Create a new filter.
@@ -1594,9 +1592,7 @@ class JiraClient:
             "/rest/api/3/filter", data=payload, operation=f"create filter '{name}'"
         )
 
-    def get_filter(
-        self, filter_id: str, expand: Optional[str] = None
-    ) -> dict[str, Any]:
+    def get_filter(self, filter_id: str, expand: str | None = None) -> dict[str, Any]:
         """
         Get a filter by ID.
 
@@ -1622,10 +1618,10 @@ class JiraClient:
     def update_filter(
         self,
         filter_id: str,
-        name: Optional[str] = None,
-        jql: Optional[str] = None,
-        description: Optional[str] = None,
-        favourite: Optional[bool] = None,
+        name: str | None = None,
+        jql: str | None = None,
+        description: str | None = None,
+        favourite: bool | None = None,
     ) -> dict[str, Any]:
         """
         Update a filter.
@@ -1672,7 +1668,7 @@ class JiraClient:
             f"/rest/api/3/filter/{filter_id}", operation=f"delete filter {filter_id}"
         )
 
-    def get_my_filters(self, expand: Optional[str] = None) -> list:
+    def get_my_filters(self, expand: str | None = None) -> list:
         """
         Get current user's filters.
 
@@ -1695,7 +1691,7 @@ class JiraClient:
         )
         return result if isinstance(result, list) else []
 
-    def get_favourite_filters(self, expand: Optional[str] = None) -> list:
+    def get_favourite_filters(self, expand: str | None = None) -> list:
         """
         Get current user's favourite filters.
 
@@ -1720,10 +1716,10 @@ class JiraClient:
 
     def search_filters(
         self,
-        filter_name: Optional[str] = None,
-        account_id: Optional[str] = None,
-        project_key: Optional[str] = None,
-        expand: Optional[str] = None,
+        filter_name: str | None = None,
+        account_id: str | None = None,
+        project_key: str | None = None,
+        expand: str | None = None,
         start_at: int = 0,
         max_results: int = 50,
     ) -> dict[str, Any]:
@@ -1855,8 +1851,8 @@ class JiraClient:
         self,
         issue_key: str,
         body: dict[str, Any],
-        visibility_type: Optional[str] = None,
-        visibility_value: Optional[str] = None,
+        visibility_type: str | None = None,
+        visibility_value: str | None = None,
     ) -> dict[str, Any]:
         """
         Add a comment with visibility restrictions.
@@ -1917,11 +1913,11 @@ class JiraClient:
     def notify_issue(
         self,
         issue_key: str,
-        subject: Optional[str] = None,
-        text_body: Optional[str] = None,
-        html_body: Optional[str] = None,
-        to: Optional[dict[str, Any]] = None,
-        restrict: Optional[dict[str, Any]] = None,
+        subject: str | None = None,
+        text_body: str | None = None,
+        html_body: str | None = None,
+        to: dict[str, Any] | None = None,
+        restrict: dict[str, Any] | None = None,
     ) -> None:
         """
         Send notification about an issue.
@@ -1961,9 +1957,9 @@ class JiraClient:
         self,
         project_id: int,
         name: str,
-        description: Optional[str] = None,
-        start_date: Optional[str] = None,
-        release_date: Optional[str] = None,
+        description: str | None = None,
+        start_date: str | None = None,
+        release_date: str | None = None,
         released: bool = False,
         archived: bool = False,
     ) -> dict[str, Any]:
@@ -2002,9 +1998,7 @@ class JiraClient:
             "/rest/api/3/version", data=data, operation=f"create version '{name}'"
         )
 
-    def get_version(
-        self, version_id: str, expand: Optional[str] = None
-    ) -> dict[str, Any]:
+    def get_version(self, version_id: str, expand: str | None = None) -> dict[str, Any]:
         """
         Get a version by ID.
 
@@ -2064,8 +2058,8 @@ class JiraClient:
     def delete_version(
         self,
         version_id: str,
-        move_fixed_to: Optional[str] = None,
-        move_affected_to: Optional[str] = None,
+        move_fixed_to: str | None = None,
+        move_affected_to: str | None = None,
     ) -> None:
         """
         Delete a version.
@@ -2091,9 +2085,7 @@ class JiraClient:
         )
         handle_jira_error(response, f"delete version {version_id}")
 
-    def get_project_versions(
-        self, project_key: str, expand: Optional[str] = None
-    ) -> list:
+    def get_project_versions(self, project_key: str, expand: str | None = None) -> list:
         """
         Get all versions for a project.
 
@@ -2158,8 +2150,8 @@ class JiraClient:
         self,
         project: str,
         name: str,
-        description: Optional[str] = None,
-        lead_account_id: Optional[str] = None,
+        description: str | None = None,
+        lead_account_id: str | None = None,
         assignee_type: str = "PROJECT_DEFAULT",
     ) -> dict[str, Any]:
         """
@@ -2238,7 +2230,7 @@ class JiraClient:
         )
 
     def delete_component(
-        self, component_id: str, move_issues_to: Optional[str] = None
+        self, component_id: str, move_issues_to: str | None = None
     ) -> None:
         """
         Delete a component.
@@ -2302,7 +2294,7 @@ class JiraClient:
     def clone_issue(
         self,
         issue_key: str,
-        summary: Optional[str] = None,
+        summary: str | None = None,
         clone_subtasks: bool = False,
         clone_links: bool = False,
     ) -> dict[str, Any]:
@@ -2588,8 +2580,8 @@ class JiraClient:
     def create_customer(
         self,
         email: str,
-        display_name: Optional[str] = None,
-        service_desk_id: Optional[str] = None,
+        display_name: str | None = None,
+        service_desk_id: str | None = None,
     ) -> dict[str, Any]:
         """
         Create a customer account for JSM.
@@ -2629,7 +2621,7 @@ class JiraClient:
     def get_service_desk_customers(
         self,
         service_desk_id: str,
-        query: Optional[str] = None,
+        query: str | None = None,
         start: int = 0,
         limit: int = 50,
     ) -> dict[str, Any]:
@@ -2714,12 +2706,12 @@ class JiraClient:
         self,
         service_desk_id: str,
         request_type_id: str,
-        fields: Optional[dict[str, Any]] = None,
-        summary: Optional[str] = None,
-        description: Optional[str] = None,
-        priority: Optional[str] = None,
-        participants: Optional[list] = None,
-        on_behalf_of: Optional[str] = None,
+        fields: dict[str, Any] | None = None,
+        summary: str | None = None,
+        description: str | None = None,
+        priority: str | None = None,
+        participants: list | None = None,
+        on_behalf_of: str | None = None,
     ) -> dict[str, Any]:
         """
         Create a service request via JSM API.
@@ -2770,9 +2762,7 @@ class JiraClient:
             operation="create service request",
         )
 
-    def get_request(
-        self, issue_key: str, expand: Optional[list] = None
-    ) -> dict[str, Any]:
+    def get_request(self, issue_key: str, expand: list | None = None) -> dict[str, Any]:
         """
         Get request details via JSM API.
 
@@ -2837,7 +2827,7 @@ class JiraClient:
         self,
         issue_key: str,
         transition_id: str,
-        comment: Optional[str] = None,
+        comment: str | None = None,
         public: bool = True,
     ) -> None:
         """
@@ -2888,7 +2878,7 @@ class JiraClient:
         )
 
     def get_request_sla(
-        self, issue_key: str, sla_metric_id: Optional[str] = None
+        self, issue_key: str, sla_metric_id: str | None = None
     ) -> dict[str, Any]:
         """
         Get SLA metrics for a request.
@@ -3140,8 +3130,8 @@ class JiraClient:
     def add_request_participants(
         self,
         issue_key: str,
-        account_ids: Optional[list] = None,
-        usernames: Optional[list] = None,
+        account_ids: list | None = None,
+        usernames: list | None = None,
     ) -> dict[str, Any]:
         """
         Add participants to a request.
@@ -3167,8 +3157,8 @@ class JiraClient:
     def remove_request_participants(
         self,
         issue_key: str,
-        account_ids: Optional[list] = None,
-        usernames: Optional[list] = None,
+        account_ids: list | None = None,
+        usernames: list | None = None,
     ) -> dict[str, Any]:
         """
         Remove participants from a request.
@@ -3224,8 +3214,8 @@ class JiraClient:
     def get_request_comments(
         self,
         issue_key: str,
-        public: Optional[bool] = None,
-        internal: Optional[bool] = None,
+        public: bool | None = None,
+        internal: bool | None = None,
         start: int = 0,
         limit: int = 100,
     ) -> dict[str, Any]:
@@ -3262,7 +3252,7 @@ class JiraClient:
         )
 
     def get_request_comment(
-        self, issue_key: str, comment_id: str, expand: Optional[str] = None
+        self, issue_key: str, comment_id: str, expand: str | None = None
     ) -> dict[str, Any]:
         """
         Get a specific JSM comment by ID.
@@ -3355,7 +3345,7 @@ class JiraClient:
             operation=f"{decision} approval {approval_id} for {issue_key}",
         )
 
-    def get_pending_approvals(self, service_desk_id: Optional[int] = None) -> list:
+    def get_pending_approvals(self, service_desk_id: int | None = None) -> list:
         """
         Get pending approvals for current user (agent view).
 
@@ -3540,8 +3530,8 @@ class JiraClient:
 
     def list_assets(
         self,
-        object_type: Optional[str] = None,
-        iql: Optional[str] = None,
+        object_type: str | None = None,
+        iql: str | None = None,
         max_results: int = 100,
     ) -> list:
         """
@@ -3881,7 +3871,7 @@ class JiraClient:
 
         return {"values": [], "start": start, "limit": limit, "size": 0}
 
-    def get_my_approvals(self, service_desk_id: Optional[int] = None) -> dict[str, Any]:
+    def get_my_approvals(self, service_desk_id: int | None = None) -> dict[str, Any]:
         """
         Get pending approvals for the current user.
 
@@ -3917,7 +3907,7 @@ class JiraClient:
         highlight: bool = True,
         start: int = 0,
         limit: int = 25,
-        space_key: Optional[str] = None,
+        space_key: str | None = None,
     ) -> dict[str, Any]:
         """
         Search the knowledge base for articles.
@@ -4098,7 +4088,7 @@ class JiraClient:
         return result
 
     def search_assets(
-        self, iql: str, schema_id: Optional[int] = None, max_results: int = 100
+        self, iql: str, schema_id: int | None = None, max_results: int = 100
     ) -> dict[str, Any]:
         """
         Search assets using IQL.
@@ -4235,11 +4225,11 @@ class JiraClient:
 
     def search_workflows(
         self,
-        workflow_name: Optional[str] = None,
-        is_active: Optional[bool] = None,
-        query_string: Optional[str] = None,
-        order_by: Optional[str] = None,
-        expand: Optional[str] = None,
+        workflow_name: str | None = None,
+        is_active: bool | None = None,
+        query_string: str | None = None,
+        order_by: str | None = None,
+        expand: str | None = None,
         start_at: int = 0,
         max_results: int = 50,
     ) -> dict[str, Any]:
@@ -4283,7 +4273,7 @@ class JiraClient:
         )
 
     def get_workflow_bulk(
-        self, workflow_ids: list, expand: Optional[str] = None
+        self, workflow_ids: list, expand: str | None = None
     ) -> dict[str, Any]:
         """
         Bulk get workflow details by IDs.
@@ -4424,7 +4414,7 @@ class JiraClient:
         self,
         project_key_or_id: str,
         workflow_scheme_id: str,
-        status_mappings: Optional[list] = None,
+        status_mappings: list | None = None,
     ) -> dict[str, Any]:
         """
         Assign a workflow scheme to a project.
@@ -4500,9 +4490,9 @@ class JiraClient:
 
     def search_statuses(
         self,
-        project_id: Optional[str] = None,
-        search_string: Optional[str] = None,
-        status_category: Optional[str] = None,
+        project_id: str | None = None,
+        search_string: str | None = None,
+        status_category: str | None = None,
         start_at: int = 0,
         max_results: int = 200,
     ) -> dict[str, Any]:
@@ -4537,7 +4527,7 @@ class JiraClient:
     # ========== Notification Scheme API Methods (/rest/api/3/notificationscheme) ==========
 
     def get_notification_schemes(
-        self, start_at: int = 0, max_results: int = 50, expand: Optional[str] = None
+        self, start_at: int = 0, max_results: int = 50, expand: str | None = None
     ) -> dict[str, Any]:
         """
         Get all notification schemes with pagination.
@@ -4563,7 +4553,7 @@ class JiraClient:
         )
 
     def get_notification_scheme(
-        self, scheme_id: str, expand: Optional[str] = None
+        self, scheme_id: str, expand: str | None = None
     ) -> dict[str, Any]:
         """
         Get a specific notification scheme by ID.
@@ -4591,8 +4581,8 @@ class JiraClient:
         self,
         start_at: int = 0,
         max_results: int = 50,
-        notification_scheme_id: Optional[list] = None,
-        project_id: Optional[list] = None,
+        notification_scheme_id: list | None = None,
+        project_id: list | None = None,
     ) -> dict[str, Any]:
         """
         Get project-to-notification scheme mappings.
@@ -4747,7 +4737,7 @@ class JiraClient:
             operation=f"remove notification {notification_id} from scheme {scheme_id}",
         )
 
-    def lookup_notification_scheme_by_name(self, name: str) -> Optional[dict[str, Any]]:
+    def lookup_notification_scheme_by_name(self, name: str) -> dict[str, Any] | None:
         """
         Lookup notification scheme by name.
 
@@ -4782,9 +4772,9 @@ class JiraClient:
 
     def get_user(
         self,
-        account_id: Optional[str] = None,
-        email: Optional[str] = None,
-        expand: Optional[list] = None,
+        account_id: str | None = None,
+        email: str | None = None,
+        expand: list | None = None,
     ) -> dict[str, Any]:
         """
         Get user details by accountId or email.
@@ -4817,7 +4807,7 @@ class JiraClient:
 
         return self.get("/rest/api/3/user", params=params, operation="get user")
 
-    def get_current_user(self, expand: Optional[list] = None) -> dict[str, Any]:
+    def get_current_user(self, expand: list | None = None) -> dict[str, Any]:
         """
         Get the current authenticated user.
 
@@ -4938,7 +4928,7 @@ class JiraClient:
         query: str = "",
         start_at: int = 0,
         max_results: int = 50,
-        exclude_id: Optional[list] = None,
+        exclude_id: list | None = None,
         caseInsensitive: bool = True,
     ) -> dict[str, Any]:
         """
@@ -4970,7 +4960,7 @@ class JiraClient:
         )
 
     def get_group(
-        self, group_name: Optional[str] = None, group_id: Optional[str] = None
+        self, group_name: str | None = None, group_id: str | None = None
     ) -> dict[str, Any]:
         """
         Get group details.
@@ -5020,10 +5010,10 @@ class JiraClient:
 
     def delete_group(
         self,
-        group_name: Optional[str] = None,
-        group_id: Optional[str] = None,
-        swap_group: Optional[str] = None,
-        swap_group_id: Optional[str] = None,
+        group_name: str | None = None,
+        group_id: str | None = None,
+        swap_group: str | None = None,
+        swap_group_id: str | None = None,
     ) -> None:
         """
         Delete a group.
@@ -5062,8 +5052,8 @@ class JiraClient:
 
     def get_group_members(
         self,
-        group_name: Optional[str] = None,
-        group_id: Optional[str] = None,
+        group_name: str | None = None,
+        group_id: str | None = None,
         include_inactive: bool = False,
         start_at: int = 0,
         max_results: int = 50,
@@ -5107,8 +5097,8 @@ class JiraClient:
     def add_user_to_group(
         self,
         account_id: str,
-        group_name: Optional[str] = None,
-        group_id: Optional[str] = None,
+        group_name: str | None = None,
+        group_id: str | None = None,
     ) -> dict[str, Any]:
         """
         Add a user to a group.
@@ -5153,8 +5143,8 @@ class JiraClient:
     def remove_user_from_group(
         self,
         account_id: str,
-        group_name: Optional[str] = None,
-        group_id: Optional[str] = None,
+        group_name: str | None = None,
+        group_id: str | None = None,
     ) -> None:
         """
         Remove a user from a group.
@@ -5232,12 +5222,12 @@ class JiraClient:
 
     def search_projects(
         self,
-        query: Optional[str] = None,
-        type_key: Optional[str] = None,
-        category_id: Optional[int] = None,
+        query: str | None = None,
+        type_key: str | None = None,
+        category_id: int | None = None,
         action: str = "browse",
-        expand: Optional[list] = None,
-        status: Optional[list] = None,
+        expand: list | None = None,
+        status: list | None = None,
         start_at: int = 0,
         max_results: int = 50,
     ) -> dict[str, Any]:
@@ -5398,7 +5388,7 @@ class JiraClient:
         )
 
     def create_project_category(
-        self, name: str, description: Optional[str] = None
+        self, name: str, description: str | None = None
     ) -> dict[str, Any]:
         """
         Create a new project category.
@@ -5429,8 +5419,8 @@ class JiraClient:
     def update_project_category(
         self,
         category_id: str,
-        name: Optional[str] = None,
-        description: Optional[str] = None,
+        name: str | None = None,
+        description: str | None = None,
     ) -> dict[str, Any]:
         """
         Update a project category.
@@ -5616,8 +5606,8 @@ class JiraClient:
         self,
         start_at: int = 0,
         max_results: int = 100,
-        scope: Optional[list] = None,
-        query_string: Optional[str] = None,
+        scope: list | None = None,
+        query_string: str | None = None,
     ) -> dict[str, Any]:
         """
         Get all screens with pagination.
@@ -5804,8 +5794,8 @@ class JiraClient:
         self,
         start_at: int = 0,
         max_results: int = 100,
-        query_string: Optional[str] = None,
-        expand: Optional[str] = None,
+        query_string: str | None = None,
+        expand: str | None = None,
     ) -> dict[str, Any]:
         """
         Get all screen schemes with pagination.
@@ -5904,9 +5894,9 @@ class JiraClient:
     def create_issue_type(
         self,
         name: str,
-        description: Optional[str] = None,
+        description: str | None = None,
         issue_type: str = "standard",
-        hierarchy_level: Optional[int] = None,
+        hierarchy_level: int | None = None,
     ) -> dict[str, Any]:
         """
         Create new issue type.
@@ -5938,9 +5928,9 @@ class JiraClient:
     def update_issue_type(
         self,
         issue_type_id: str,
-        name: Optional[str] = None,
-        description: Optional[str] = None,
-        avatar_id: Optional[int] = None,
+        name: str | None = None,
+        description: str | None = None,
+        avatar_id: int | None = None,
     ) -> dict[str, Any]:
         """
         Update issue type.
@@ -5973,7 +5963,7 @@ class JiraClient:
         )
 
     def delete_issue_type(
-        self, issue_type_id: str, alternative_issue_type_id: Optional[str] = None
+        self, issue_type_id: str, alternative_issue_type_id: str | None = None
     ) -> None:
         """
         Delete issue type.
@@ -6020,8 +6010,8 @@ class JiraClient:
         self,
         start_at: int = 0,
         max_results: int = 50,
-        scheme_ids: Optional[list] = None,
-        order_by: Optional[str] = None,
+        scheme_ids: list | None = None,
+        order_by: str | None = None,
     ) -> dict[str, Any]:
         """
         Get all issue type schemes.
@@ -6055,7 +6045,7 @@ class JiraClient:
         self,
         start_at: int = 0,
         max_results: int = 50,
-        scheme_ids: Optional[list] = None,
+        scheme_ids: list | None = None,
     ) -> dict[str, Any]:
         """
         Get issue type scheme items (issue types in schemes).
@@ -6086,8 +6076,8 @@ class JiraClient:
         self,
         name: str,
         issue_type_ids: list,
-        description: Optional[str] = None,
-        default_issue_type_id: Optional[str] = None,
+        description: str | None = None,
+        default_issue_type_id: str | None = None,
     ) -> dict[str, Any]:
         """
         Create issue type scheme.
@@ -6120,9 +6110,9 @@ class JiraClient:
     def update_issue_type_scheme(
         self,
         scheme_id: str,
-        name: Optional[str] = None,
-        description: Optional[str] = None,
-        default_issue_type_id: Optional[str] = None,
+        name: str | None = None,
+        description: str | None = None,
+        default_issue_type_id: str | None = None,
     ) -> dict[str, Any]:
         """
         Update issue type scheme.
@@ -6266,7 +6256,7 @@ class JiraClient:
         )
 
     def reorder_issue_types_in_scheme(
-        self, scheme_id: str, issue_type_id: str, after: Optional[str] = None
+        self, scheme_id: str, issue_type_id: str, after: str | None = None
     ) -> None:
         """
         Reorder issue types in scheme.
@@ -6293,7 +6283,7 @@ class JiraClient:
     # ========== Issue Type Screen Schemes API (/rest/api/3/issuetypescreenscheme) ==========
 
     def get_issue_type_screen_schemes(
-        self, start_at: int = 0, max_results: int = 100, expand: Optional[str] = None
+        self, start_at: int = 0, max_results: int = 100, expand: str | None = None
     ) -> dict[str, Any]:
         """
         Get all issue type screen schemes.
@@ -6348,7 +6338,7 @@ class JiraClient:
 
     def get_issue_type_screen_scheme_mappings(
         self,
-        scheme_ids: Optional[list] = None,
+        scheme_ids: list | None = None,
         start_at: int = 0,
         max_results: int = 100,
     ) -> dict[str, Any]:
@@ -6378,7 +6368,7 @@ class JiraClient:
 
     def get_project_issue_type_screen_schemes(
         self,
-        project_ids: Optional[list] = None,
+        project_ids: list | None = None,
         start_at: int = 0,
         max_results: int = 100,
     ) -> dict[str, Any]:
@@ -6416,7 +6406,7 @@ class JiraClient:
 
     # ========== Permission Scheme API Methods (/rest/api/3/permissionscheme) ==========
 
-    def get_permission_schemes(self, expand: Optional[str] = None) -> dict[str, Any]:
+    def get_permission_schemes(self, expand: str | None = None) -> dict[str, Any]:
         """
         Get all permission schemes.
 
@@ -6440,7 +6430,7 @@ class JiraClient:
         )
 
     def get_permission_scheme(
-        self, scheme_id: int, expand: Optional[str] = None
+        self, scheme_id: int, expand: str | None = None
     ) -> dict[str, Any]:
         """
         Get a specific permission scheme by ID.
@@ -6468,8 +6458,8 @@ class JiraClient:
     def create_permission_scheme(
         self,
         name: str,
-        description: Optional[str] = None,
-        permissions: Optional[list] = None,
+        description: str | None = None,
+        permissions: list | None = None,
     ) -> dict[str, Any]:
         """
         Create a new permission scheme.
@@ -6503,8 +6493,8 @@ class JiraClient:
     def update_permission_scheme(
         self,
         scheme_id: int,
-        name: Optional[str] = None,
-        description: Optional[str] = None,
+        name: str | None = None,
+        description: str | None = None,
     ) -> dict[str, Any]:
         """
         Update a permission scheme's name and/or description.
@@ -6556,7 +6546,7 @@ class JiraClient:
         )
 
     def get_permission_scheme_grants(
-        self, scheme_id: int, expand: Optional[str] = None
+        self, scheme_id: int, expand: str | None = None
     ) -> dict[str, Any]:
         """
         Get all permission grants for a permission scheme.
@@ -6586,7 +6576,7 @@ class JiraClient:
         scheme_id: int,
         permission: str,
         holder_type: str,
-        holder_parameter: Optional[str] = None,
+        holder_parameter: str | None = None,
     ) -> dict[str, Any]:
         """
         Create a permission grant in a permission scheme.
@@ -6619,7 +6609,7 @@ class JiraClient:
         )
 
     def get_permission_grant(
-        self, scheme_id: int, permission_id: int, expand: Optional[str] = None
+        self, scheme_id: int, permission_id: int, expand: str | None = None
     ) -> dict[str, Any]:
         """
         Get a specific permission grant.
@@ -6680,7 +6670,7 @@ class JiraClient:
         return self.get("/rest/api/3/permissions", operation="get all permissions")
 
     def get_project_permission_scheme(
-        self, project_key_or_id: str, expand: Optional[str] = None
+        self, project_key_or_id: str, expand: str | None = None
     ) -> dict[str, Any]:
         """
         Get the permission scheme associated with a project.

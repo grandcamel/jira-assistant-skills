@@ -10,7 +10,6 @@ Usage:
 
 import argparse
 import sys
-from typing import Optional
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -35,9 +34,9 @@ def parse_account_ids(account_id_string: str) -> list:
 
 def add_participant_func(
     issue_key: str,
-    account_ids: Optional[list] = None,
-    usernames: Optional[list] = None,
-    profile: Optional[str] = None,
+    account_ids: list | None = None,
+    usernames: list | None = None,
+    profile: str | None = None,
 ) -> dict:
     """
     Add participants to a request.

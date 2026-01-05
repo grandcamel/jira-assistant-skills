@@ -11,13 +11,12 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Optional
 
 from jira_assistant_skills_lib import JiraError, get_jira_client, print_error
 
 
 def get_link_types(
-    filter_pattern: Optional[str] = None, profile: Optional[str] = None
+    filter_pattern: str | None = None, profile: str | None = None
 ) -> list:
     """
     Get all available issue link types.

@@ -13,7 +13,6 @@ import argparse
 import json
 import re
 import sys
-from typing import Optional
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -38,7 +37,7 @@ def validate_email(email: str) -> bool:
 
 
 def create_customer_account(
-    email: str, display_name: Optional[str] = None, profile: Optional[str] = None
+    email: str, display_name: str | None = None, profile: str | None = None
 ) -> dict:
     """
     Create a customer account.

@@ -13,7 +13,6 @@ import argparse
 import json
 import sys
 from datetime import datetime
-from typing import Optional
 
 # Add shared lib to path
 # Imports from shared library
@@ -29,7 +28,7 @@ from jira_assistant_skills_lib import (
 def get_sprint(
     sprint_id: int,
     with_issues: bool = False,
-    profile: Optional[str] = None,
+    profile: str | None = None,
     client=None,
 ) -> dict:
     """
@@ -121,7 +120,7 @@ def get_sprint(
 
 
 def get_active_sprint_for_board(
-    board_id: int, profile: Optional[str] = None, client=None
+    board_id: int, profile: str | None = None, client=None
 ) -> dict:
     """
     Get the currently active sprint for a board.

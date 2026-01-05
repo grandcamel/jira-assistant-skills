@@ -10,7 +10,7 @@ import argparse
 import json
 import sys
 from difflib import get_close_matches
-from typing import Any, Optional
+from typing import Any
 
 # Add shared library to path
 from jira_assistant_skills_lib import JiraError, get_jira_client, print_error
@@ -49,8 +49,8 @@ COMMON_FIELDS = [
 
 
 def suggest_correction(
-    invalid_field: str, known_fields: Optional[list[str]] = None
-) -> Optional[str]:
+    invalid_field: str, known_fields: list[str] | None = None
+) -> str | None:
     """
     Suggest a correction for an invalid field name.
 

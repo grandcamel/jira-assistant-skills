@@ -8,14 +8,13 @@ Requires 'Administer Jira' global permission.
 
 import argparse
 import sys
-from typing import Optional
 
 # Add shared lib to path
 from jira_assistant_skills_lib import JiraError, get_jira_client, print_error
 
 
 def remove_issue_type_from_scheme(
-    scheme_id: str, issue_type_id: str, client=None, profile: Optional[str] = None
+    scheme_id: str, issue_type_id: str, client=None, profile: str | None = None
 ) -> bool:
     """
     Remove an issue type from a scheme.

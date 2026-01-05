@@ -12,7 +12,6 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Optional
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -29,11 +28,11 @@ FIBONACCI_SEQUENCE = [0, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89]
 
 
 def estimate_issue(
-    issue_keys: Optional[list[str]] = None,
-    jql: Optional[str] = None,
-    points: Optional[float] = None,
+    issue_keys: list[str] | None = None,
+    jql: str | None = None,
+    points: float | None = None,
     validate_fibonacci: bool = False,
-    profile: Optional[str] = None,
+    profile: str | None = None,
     client=None,
 ) -> dict:
     """

@@ -17,7 +17,7 @@ import argparse
 import json
 import re
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib path
 from jira_assistant_skills_lib import (
@@ -109,9 +109,9 @@ def get_prefix_for_issue_type(issue_type: str) -> str:
 
 def create_branch_name(
     issue_key: str,
-    prefix: Optional[str] = None,
+    prefix: str | None = None,
     auto_prefix: bool = False,
-    profile: Optional[str] = None,
+    profile: str | None = None,
     client=None,
     output_format: str = "text",
 ) -> dict[str, Any]:

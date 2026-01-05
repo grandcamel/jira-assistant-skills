@@ -11,7 +11,7 @@ Usage:
 
 import argparse
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -28,10 +28,10 @@ AGILE_PATTERNS = ["epic", "sprint", "story", "point", "rank", "velocity", "backl
 
 
 def list_fields(
-    filter_pattern: Optional[str] = None,
+    filter_pattern: str | None = None,
     agile_only: bool = False,
     custom_only: bool = True,
-    profile: Optional[str] = None,
+    profile: str | None = None,
     client=None,
 ) -> list[dict[str, Any]]:
     """

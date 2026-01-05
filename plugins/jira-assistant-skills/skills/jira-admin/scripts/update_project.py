@@ -19,7 +19,7 @@ Examples:
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -35,12 +35,12 @@ from jira_assistant_skills_lib import (
 
 def update_project(
     project_key: str,
-    name: Optional[str] = None,
-    description: Optional[str] = None,
-    lead: Optional[str] = None,
-    url: Optional[str] = None,
-    assignee_type: Optional[str] = None,
-    category_id: Optional[int] = None,
+    name: str | None = None,
+    description: str | None = None,
+    lead: str | None = None,
+    url: str | None = None,
+    assignee_type: str | None = None,
+    category_id: int | None = None,
     client=None,
 ) -> dict[str, Any]:
     """

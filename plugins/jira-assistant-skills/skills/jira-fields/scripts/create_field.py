@@ -14,7 +14,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -100,8 +100,8 @@ FIELD_TYPES = _load_field_types()
 def create_field(
     name: str,
     field_type: str,
-    description: Optional[str] = None,
-    profile: Optional[str] = None,
+    description: str | None = None,
+    profile: str | None = None,
     client=None,
 ) -> dict[str, Any]:
     """

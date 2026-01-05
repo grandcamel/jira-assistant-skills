@@ -9,7 +9,7 @@ Requires 'Administer Jira' global permission.
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -23,7 +23,7 @@ from jira_assistant_skills_lib import (
 def get_issue_type_scheme(
     scheme_id: str,
     client=None,
-    profile: Optional[str] = None,
+    profile: str | None = None,
     include_items: bool = False,
 ) -> dict[str, Any]:
     """

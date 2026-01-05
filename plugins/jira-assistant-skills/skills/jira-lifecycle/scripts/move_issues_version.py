@@ -11,7 +11,7 @@ Usage:
 
 import argparse
 import sys
-from typing import Any, Optional
+from typing import Any
 
 try:
     from tqdm import tqdm
@@ -33,7 +33,7 @@ def move_issues_to_version(
     jql: str,
     target_version: str,
     field: str = "fixVersions",
-    profile: Optional[str] = None,
+    profile: str | None = None,
     show_progress: bool = True,
 ) -> dict[str, Any]:
     """
@@ -110,7 +110,7 @@ def move_issues_between_versions(
     source_version: str,
     target_version: str,
     field: str = "fixVersions",
-    profile: Optional[str] = None,
+    profile: str | None = None,
     show_progress: bool = True,
 ) -> dict[str, Any]:
     """
@@ -137,7 +137,7 @@ def move_specific_issues(
     issue_keys: list[str],
     target_version: str,
     field: str = "fixVersions",
-    profile: Optional[str] = None,
+    profile: str | None = None,
     show_progress: bool = True,
 ) -> dict[str, Any]:
     """
@@ -205,7 +205,7 @@ def move_specific_issues(
 
 
 def move_issues_dry_run(
-    jql: str, target_version: str, profile: Optional[str] = None
+    jql: str, target_version: str, profile: str | None = None
 ) -> dict[str, Any]:
     """
     Show what issues would be moved without moving them.
@@ -235,7 +235,7 @@ def move_issues_with_confirmation(
     jql: str,
     target_version: str,
     field: str = "fixVersions",
-    profile: Optional[str] = None,
+    profile: str | None = None,
     show_progress: bool = True,
 ) -> dict[str, Any]:
     """

@@ -10,7 +10,7 @@ Usage:
 
 import argparse
 import sys
-from typing import Any, Optional
+from typing import Any
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -22,15 +22,15 @@ from jira_assistant_skills_lib import (
 
 def send_notification(
     issue_key: str,
-    subject: Optional[str] = None,
-    body: Optional[str] = None,
+    subject: str | None = None,
+    body: str | None = None,
     watchers: bool = False,
     assignee: bool = False,
     reporter: bool = False,
     voters: bool = False,
-    users: Optional[list[str]] = None,
-    groups: Optional[list[str]] = None,
-    profile: Optional[str] = None,
+    users: list[str] | None = None,
+    groups: list[str] | None = None,
+    profile: str | None = None,
 ) -> None:
     """
     Send notification about an issue.
@@ -75,15 +75,15 @@ def send_notification(
 
 def notify_dry_run(
     issue_key: str,
-    subject: Optional[str] = None,
-    body: Optional[str] = None,
+    subject: str | None = None,
+    body: str | None = None,
     watchers: bool = False,
     assignee: bool = False,
     reporter: bool = False,
     voters: bool = False,
-    users: Optional[list[str]] = None,
-    groups: Optional[list[str]] = None,
-    profile: Optional[str] = None,
+    users: list[str] | None = None,
+    groups: list[str] | None = None,
+    profile: str | None = None,
 ) -> dict[str, Any]:
     """
     Show notification details without sending.

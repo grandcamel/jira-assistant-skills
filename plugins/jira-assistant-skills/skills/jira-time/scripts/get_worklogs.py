@@ -7,7 +7,7 @@ Lists all time logged against an issue with filtering and formatting options.
 
 import argparse
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -23,9 +23,9 @@ from jira_assistant_skills_lib import (
 def get_worklogs(
     client,
     issue_key: str,
-    author_filter: Optional[str] = None,
-    since: Optional[str] = None,
-    until: Optional[str] = None,
+    author_filter: str | None = None,
+    since: str | None = None,
+    until: str | None = None,
 ) -> dict[str, Any]:
     """
     Get worklogs for an issue with optional filtering.

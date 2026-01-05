@@ -10,7 +10,7 @@ Usage:
 
 import argparse
 import sys
-from typing import Any, Optional
+from typing import Any
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -21,9 +21,7 @@ from jira_assistant_skills_lib import (
 )
 
 
-def delete_comment(
-    issue_key: str, comment_id: str, profile: Optional[str] = None
-) -> None:
+def delete_comment(issue_key: str, comment_id: str, profile: str | None = None) -> None:
     """
     Delete a comment.
 
@@ -43,7 +41,7 @@ def delete_comment(
 
 
 def delete_comment_with_confirm(
-    issue_key: str, comment_id: str, profile: Optional[str] = None
+    issue_key: str, comment_id: str, profile: str | None = None
 ) -> bool:
     """
     Delete a comment with confirmation prompt.
@@ -93,7 +91,7 @@ def delete_comment_with_confirm(
 
 
 def delete_comment_dry_run(
-    issue_key: str, comment_id: str, profile: Optional[str] = None
+    issue_key: str, comment_id: str, profile: str | None = None
 ) -> dict[str, Any]:
     """
     Show what would be deleted without actually deleting.

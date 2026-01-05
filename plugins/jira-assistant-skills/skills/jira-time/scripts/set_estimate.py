@@ -8,7 +8,7 @@ Sets original and/or remaining estimates for time tracking.
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -24,8 +24,8 @@ from jira_assistant_skills_lib import (
 def set_estimate(
     client,
     issue_key: str,
-    original_estimate: Optional[str] = None,
-    remaining_estimate: Optional[str] = None,
+    original_estimate: str | None = None,
+    remaining_estimate: str | None = None,
 ) -> dict[str, Any]:
     """
     Set time estimates on an issue.

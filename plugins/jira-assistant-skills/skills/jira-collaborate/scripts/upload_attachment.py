@@ -9,7 +9,6 @@ Usage:
 
 import argparse
 import sys
-from typing import Optional
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -24,8 +23,8 @@ from jira_assistant_skills_lib import (
 def upload_attachment(
     issue_key: str,
     file_path: str,
-    file_name: Optional[str] = None,
-    profile: Optional[str] = None,
+    file_name: str | None = None,
+    profile: str | None = None,
 ) -> dict:
     """
     Upload an attachment to an issue.

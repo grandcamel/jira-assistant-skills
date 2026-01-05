@@ -20,7 +20,7 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -154,7 +154,7 @@ def get_blockers(
     direction: str = "inward",
     recursive: bool = False,
     max_depth: int = 0,
-    profile: Optional[str] = None,
+    profile: str | None = None,
 ) -> dict[str, Any]:
     """
     Get blockers for an issue.

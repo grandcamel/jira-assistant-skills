@@ -12,7 +12,6 @@ Supports:
 
 import argparse
 import sys
-from typing import Optional
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -27,8 +26,8 @@ from jira_assistant_skills_lib import (
 def remove_user_from_group(
     client,
     account_id: str,
-    group_name: Optional[str] = None,
-    group_id: Optional[str] = None,
+    group_name: str | None = None,
+    group_id: str | None = None,
     confirmed: bool = False,
     dry_run: bool = False,
 ) -> None:
@@ -63,8 +62,8 @@ def remove_user_from_group(
 def remove_user_by_email(
     client,
     email: str,
-    group_name: Optional[str] = None,
-    group_id: Optional[str] = None,
+    group_name: str | None = None,
+    group_id: str | None = None,
     confirmed: bool = False,
     dry_run: bool = False,
 ) -> str:
@@ -112,10 +111,10 @@ def remove_user_by_email(
 
 
 def format_dry_run_preview(
-    account_id: Optional[str] = None,
-    email: Optional[str] = None,
-    group_name: Optional[str] = None,
-    group_id: Optional[str] = None,
+    account_id: str | None = None,
+    email: str | None = None,
+    group_name: str | None = None,
+    group_id: str | None = None,
 ) -> str:
     """
     Format dry-run preview message.
@@ -149,7 +148,7 @@ def format_dry_run_preview(
 
 
 def format_success_message(
-    account_id: str, group_name: Optional[str] = None, group_id: Optional[str] = None
+    account_id: str, group_name: str | None = None, group_id: str | None = None
 ) -> str:
     """
     Format success message.

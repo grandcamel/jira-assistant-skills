@@ -9,7 +9,7 @@ Requires 'Browse Projects' permission.
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -22,10 +22,10 @@ from jira_assistant_skills_lib import (
 
 def list_issue_types(
     client=None,
-    profile: Optional[str] = None,
+    profile: str | None = None,
     subtask_only: bool = False,
     standard_only: bool = False,
-    hierarchy_level: Optional[int] = None,
+    hierarchy_level: int | None = None,
 ) -> list[dict[str, Any]]:
     """
     List issue types with optional filtering.

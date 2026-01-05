@@ -8,7 +8,7 @@ Updates the name, JQL, or description of an existing filter.
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared library to path
 from jira_assistant_skills_lib import JiraError, get_jira_client, print_error
@@ -17,10 +17,10 @@ from jira_assistant_skills_lib import JiraError, get_jira_client, print_error
 def update_filter(
     client,
     filter_id: str,
-    name: Optional[str] = None,
-    jql: Optional[str] = None,
-    description: Optional[str] = None,
-    favourite: Optional[bool] = None,
+    name: str | None = None,
+    jql: str | None = None,
+    description: str | None = None,
+    favourite: bool | None = None,
 ) -> dict[str, Any]:
     """
     Update a filter.

@@ -11,7 +11,7 @@ import argparse
 import json
 import sys
 import time
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -46,9 +46,9 @@ def get_current_scheme(client, project_key: str) -> dict[str, Any]:
 def assign_workflow_scheme(
     client,
     project_key: str,
-    scheme_id: Optional[int] = None,
-    scheme_name: Optional[str] = None,
-    status_mappings: Optional[list[dict[str, Any]]] = None,
+    scheme_id: int | None = None,
+    scheme_name: str | None = None,
+    status_mappings: list[dict[str, Any]] | None = None,
     dry_run: bool = False,
     confirm: bool = False,
     wait: bool = True,

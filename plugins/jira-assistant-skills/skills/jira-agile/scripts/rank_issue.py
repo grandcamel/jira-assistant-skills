@@ -13,7 +13,6 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Optional
 
 # Add shared lib to path
 # Imports from shared library
@@ -29,11 +28,11 @@ from jira_assistant_skills_lib import (
 
 def rank_issue(
     issue_keys: list[str],
-    before_key: Optional[str] = None,
-    after_key: Optional[str] = None,
-    position: Optional[str] = None,
-    board_id: Optional[int] = None,
-    profile: Optional[str] = None,
+    before_key: str | None = None,
+    after_key: str | None = None,
+    position: str | None = None,
+    board_id: int | None = None,
+    profile: str | None = None,
     client=None,
 ) -> dict:
     """

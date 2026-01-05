@@ -11,12 +11,12 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 from jira_assistant_skills_lib import JiraError, get_jira_client, print_error
 
 
-def list_queues(service_desk_id: int, profile: Optional[str] = None) -> dict[str, Any]:
+def list_queues(service_desk_id: int, profile: str | None = None) -> dict[str, Any]:
     """List queues for a service desk."""
     with get_jira_client(profile) as client:
         return client.get_service_desk_queues(service_desk_id)

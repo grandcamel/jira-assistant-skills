@@ -11,13 +11,12 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Optional
 
 from jira_assistant_skills_lib import JiraError, get_jira_client, print_error
 
 
 def list_organizations_func(
-    start: int = 0, limit: int = 50, profile: Optional[str] = None
+    start: int = 0, limit: int = 50, profile: str | None = None
 ) -> dict:
     """
     List all organizations.

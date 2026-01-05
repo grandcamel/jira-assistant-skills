@@ -14,7 +14,7 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 from urllib.parse import urlparse
 
 # Import parse_commit_issues for --from-message functionality
@@ -56,7 +56,7 @@ def detect_repo_type(repo_url: str) -> str:
         return "generic"
 
 
-def build_commit_url(commit_sha: str, repo_url: Optional[str] = None) -> Optional[str]:
+def build_commit_url(commit_sha: str, repo_url: str | None = None) -> str | None:
     """
     Build URL to commit on the repository.
 
@@ -90,10 +90,10 @@ def build_commit_url(commit_sha: str, repo_url: Optional[str] = None) -> Optiona
 
 def build_commit_comment(
     commit_sha: str,
-    message: Optional[str] = None,
-    repo_url: Optional[str] = None,
-    author: Optional[str] = None,
-    branch: Optional[str] = None,
+    message: str | None = None,
+    repo_url: str | None = None,
+    author: str | None = None,
+    branch: str | None = None,
 ) -> str:
     """
     Build formatted commit comment for JIRA.
@@ -138,16 +138,16 @@ def build_commit_comment(
 
 def link_commit(
     issue_key: str,
-    commit_sha: Optional[str] = None,
-    message: Optional[str] = None,
-    repo_url: Optional[str] = None,
-    author: Optional[str] = None,
-    branch: Optional[str] = None,
-    profile: Optional[str] = None,
+    commit_sha: str | None = None,
+    message: str | None = None,
+    repo_url: str | None = None,
+    author: str | None = None,
+    branch: str | None = None,
+    profile: str | None = None,
     client=None,
     # Aliases for parameter names
-    commit: Optional[str] = None,
-    repo: Optional[str] = None,
+    commit: str | None = None,
+    repo: str | None = None,
 ) -> dict[str, Any]:
     """
     Link a commit to a JIRA issue by adding a comment.
@@ -214,11 +214,11 @@ def link_commit(
 def link_commit_to_issues(
     issue_keys: list[str],
     commit_sha: str,
-    message: Optional[str] = None,
-    repo_url: Optional[str] = None,
-    author: Optional[str] = None,
-    branch: Optional[str] = None,
-    profile: Optional[str] = None,
+    message: str | None = None,
+    repo_url: str | None = None,
+    author: str | None = None,
+    branch: str | None = None,
+    profile: str | None = None,
 ) -> list[dict[str, Any]]:
     """
     Link a commit to multiple JIRA issues.

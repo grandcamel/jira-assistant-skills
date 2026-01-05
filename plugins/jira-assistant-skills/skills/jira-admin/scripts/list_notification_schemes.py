@@ -15,7 +15,7 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -27,11 +27,11 @@ from jira_assistant_skills_lib import (
 
 def list_notification_schemes(
     client=None,
-    filter_name: Optional[str] = None,
+    filter_name: str | None = None,
     show_events: bool = False,
     max_results: int = 50,
     fetch_all: bool = False,
-    profile: Optional[str] = None,
+    profile: str | None = None,
 ) -> dict[str, Any]:
     """
     List all notification schemes.

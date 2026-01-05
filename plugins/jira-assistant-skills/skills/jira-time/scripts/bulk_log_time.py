@@ -8,7 +8,7 @@ Bulk time logging for meetings, sprint activities, etc.
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -27,11 +27,11 @@ from jira_assistant_skills_lib import (
 
 def bulk_log_time(
     client,
-    issues: Optional[list[str]] = None,
-    jql: Optional[str] = None,
-    time_spent: Optional[str] = None,
-    comment: Optional[str] = None,
-    started: Optional[str] = None,
+    issues: list[str] | None = None,
+    jql: str | None = None,
+    time_spent: str | None = None,
+    comment: str | None = None,
+    started: str | None = None,
     dry_run: bool = False,
 ) -> dict[str, Any]:
     """

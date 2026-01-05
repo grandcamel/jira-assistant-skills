@@ -6,13 +6,13 @@ Provides reusable utilities for resolving user identifiers
 (email addresses, usernames) to JIRA account IDs.
 """
 
-from typing import Any, Optional
+from typing import Any
 
 
 class UserNotFoundError(Exception):
     """Raised when a user cannot be found in JIRA."""
 
-    def __init__(self, identifier: str, message: Optional[str] = None):
+    def __init__(self, identifier: str, message: str | None = None):
         self.identifier = identifier
         if message:
             super().__init__(message)

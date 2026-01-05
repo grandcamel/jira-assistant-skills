@@ -9,7 +9,6 @@ Usage:
 
 import argparse
 import sys
-from typing import Optional
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -24,12 +23,12 @@ from jira_assistant_skills_lib import (
 
 def bulk_update(
     jql: str,
-    add_labels: Optional[list] = None,
-    remove_labels: Optional[list] = None,
-    priority: Optional[str] = None,
+    add_labels: list | None = None,
+    remove_labels: list | None = None,
+    priority: str | None = None,
     max_issues: int = 100,
     dry_run: bool = False,
-    profile: Optional[str] = None,
+    profile: str | None = None,
 ) -> None:
     """
     Bulk update issues from search results.

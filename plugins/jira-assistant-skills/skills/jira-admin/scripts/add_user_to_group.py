@@ -12,7 +12,7 @@ Supports:
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -26,10 +26,10 @@ from jira_assistant_skills_lib import (
 def add_user_to_group(
     client,
     account_id: str,
-    group_name: Optional[str] = None,
-    group_id: Optional[str] = None,
+    group_name: str | None = None,
+    group_id: str | None = None,
     dry_run: bool = False,
-) -> Optional[dict[str, Any]]:
+) -> dict[str, Any] | None:
     """
     Add a user to a group.
 
@@ -54,10 +54,10 @@ def add_user_to_group(
 def add_user_by_email(
     client,
     email: str,
-    group_name: Optional[str] = None,
-    group_id: Optional[str] = None,
+    group_name: str | None = None,
+    group_id: str | None = None,
     dry_run: bool = False,
-) -> Optional[dict[str, Any]]:
+) -> dict[str, Any] | None:
     """
     Add a user to a group by email lookup.
 
@@ -97,10 +97,10 @@ def add_user_by_email(
 
 
 def format_dry_run_preview(
-    account_id: Optional[str] = None,
-    email: Optional[str] = None,
-    group_name: Optional[str] = None,
-    group_id: Optional[str] = None,
+    account_id: str | None = None,
+    email: str | None = None,
+    group_name: str | None = None,
+    group_id: str | None = None,
 ) -> str:
     """
     Format dry-run preview message.
@@ -132,7 +132,7 @@ def format_dry_run_preview(
 
 
 def format_success_message(
-    account_id: str, group_name: Optional[str] = None, group_id: Optional[str] = None
+    account_id: str, group_name: str | None = None, group_id: str | None = None
 ) -> str:
     """
     Format success message.

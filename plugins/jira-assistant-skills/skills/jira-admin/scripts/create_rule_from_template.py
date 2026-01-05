@@ -16,7 +16,7 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -29,13 +29,13 @@ from jira_assistant_skills_lib import (
 
 def create_rule_from_template(
     client=None,
-    template_id: Optional[str] = None,
-    project: Optional[str] = None,
-    parameters: Optional[dict[str, Any]] = None,
-    name: Optional[str] = None,
-    scope: Optional[str] = None,
+    template_id: str | None = None,
+    project: str | None = None,
+    parameters: dict[str, Any] | None = None,
+    name: str | None = None,
+    scope: str | None = None,
     dry_run: bool = False,
-    profile: Optional[str] = None,
+    profile: str | None = None,
 ) -> dict[str, Any]:
     """
     Create an automation rule from a template.

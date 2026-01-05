@@ -16,7 +16,8 @@ Usage:
 
 import argparse
 import sys
-from typing import Any, Callable, Optional
+from collections.abc import Callable
+from typing import Any
 
 from bulk_utils import execute_bulk_operation, get_issues_to_process
 
@@ -68,14 +69,14 @@ def validate_priority(priority: str) -> str:
 
 def bulk_set_priority(
     client=None,
-    issue_keys: Optional[list[str]] = None,
-    jql: Optional[str] = None,
-    priority: Optional[str] = None,
+    issue_keys: list[str] | None = None,
+    jql: str | None = None,
+    priority: str | None = None,
     dry_run: bool = False,
     max_issues: int = 100,
     delay_between_ops: float = 0.1,
-    progress_callback: Optional[Callable] = None,
-    profile: Optional[str] = None,
+    progress_callback: Callable | None = None,
+    profile: str | None = None,
     show_progress: bool = True,
     confirm_threshold: int = 50,
     skip_confirmation: bool = False,

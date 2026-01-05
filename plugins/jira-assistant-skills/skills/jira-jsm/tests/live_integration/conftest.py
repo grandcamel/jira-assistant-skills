@@ -23,7 +23,7 @@ import os
 import time
 import uuid
 from collections.abc import Generator
-from typing import Any, Optional
+from typing import Any
 
 import pytest
 
@@ -84,7 +84,7 @@ def keep_project(request) -> bool:
 
 
 @pytest.fixture(scope="session")
-def existing_service_desk_id(request) -> Optional[str]:
+def existing_service_desk_id(request) -> str | None:
     """Get existing service desk ID if specified."""
     return request.config.getoption("--service-desk-id")
 
@@ -254,9 +254,7 @@ def default_request_type(jira_client, test_service_desk) -> dict[str, Any]:
 
 
 @pytest.fixture(scope="session")
-def request_type_with_priority(
-    jira_client, test_service_desk
-) -> Optional[dict[str, Any]]:
+def request_type_with_priority(jira_client, test_service_desk) -> dict[str, Any] | None:
     """
     Find a request type that supports the priority field.
 
@@ -281,9 +279,7 @@ def request_type_with_priority(
 
 
 @pytest.fixture(scope="session")
-def request_type_with_approval(
-    jira_client, test_service_desk
-) -> Optional[dict[str, Any]]:
+def request_type_with_approval(jira_client, test_service_desk) -> dict[str, Any] | None:
     """
     Find a request type that has an approval workflow configured.
 
@@ -310,7 +306,7 @@ def request_type_with_approval(
 
 
 @pytest.fixture(scope="session")
-def kb_article(jira_client, test_service_desk) -> Optional[dict[str, Any]]:
+def kb_article(jira_client, test_service_desk) -> dict[str, Any] | None:
     """
     Find an existing knowledge base article for testing.
 
@@ -343,7 +339,7 @@ def kb_article(jira_client, test_service_desk) -> Optional[dict[str, Any]]:
 @pytest.fixture(scope="session")
 def request_with_sla(
     jira_client, test_service_desk, default_request_type
-) -> Optional[dict[str, Any]]:
+) -> dict[str, Any] | None:
     """
     Create a request and check if it has SLAs configured.
 
@@ -504,7 +500,7 @@ def transition_request(
     client: JiraClient,
     issue_key: str,
     transition_id: str,
-    comment: Optional[str] = None,
+    comment: str | None = None,
 ) -> None:
     """Helper to transition a request to a new status."""
     client.transition_request(issue_key, transition_id, comment=comment)

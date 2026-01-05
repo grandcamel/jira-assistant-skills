@@ -21,11 +21,11 @@ import csv
 import json
 import sys
 import time
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable, Optional
+from typing import Any
 
 try:
     from tqdm import tqdm
@@ -59,7 +59,7 @@ class ExportProgress:
     format_type: str
     total_expected: int = 0
     total_exported: int = 0
-    next_page_token: Optional[str] = None
+    next_page_token: str | None = None
     started_at: str = ""
     updated_at: str = ""
     fields: list[str] = None
@@ -73,7 +73,7 @@ class ExportProgress:
 class ExportCheckpointManager:
     """Manages checkpoints for resumable exports."""
 
-    def __init__(self, checkpoint_dir: Optional[str] = None):
+    def __init__(self, checkpoint_dir: str | None = None):
         if checkpoint_dir is None:
             checkpoint_dir = str(Path.home() / ".jira-skills" / "export-checkpoints")
         self.checkpoint_dir = Path(checkpoint_dir)
@@ -90,7 +90,7 @@ class ExportCheckpointManager:
             json.dump(data, f, indent=2)
         temp_file.rename(checkpoint_file)
 
-    def load(self, operation_id: str) -> Optional[ExportProgress]:
+    def load(self, operation_id: str) -> ExportProgress | None:
         """Load export progress from checkpoint."""
         checkpoint_file = self.checkpoint_dir / f"{operation_id}.json"
         if not checkpoint_file.exists():
@@ -206,8 +206,8 @@ def stream_issues(
     fields: list[str],
     max_results: int = DEFAULT_MAX_RESULTS,
     page_size: int = DEFAULT_PAGE_SIZE,
-    next_page_token: Optional[str] = None,
-    progress_callback: Optional[Callable[[int, int, Optional[str]], None]] = None,
+    next_page_token: str | None = None,
+    progress_callback: Callable[[int, int, str | None], None] | None = None,
 ) -> Iterator[dict[str, Any]]:
     """
     Stream issues from JIRA API using token-based pagination.
@@ -285,7 +285,7 @@ class StreamingExporter:
         jql: str,
         output_file: str,
         format_type: str = "csv",
-        fields: Optional[list[str]] = None,
+        fields: list[str] | None = None,
         max_results: int = DEFAULT_MAX_RESULTS,
         page_size: int = DEFAULT_PAGE_SIZE,
         enable_checkpoint: bool = False,
@@ -330,7 +330,7 @@ class StreamingExporter:
         f.write(json.dumps(row) + "\n")
 
     def export(
-        self, resume_from: Optional[ExportProgress] = None, show_progress: bool = True
+        self, resume_from: ExportProgress | None = None, show_progress: bool = True
     ) -> dict[str, Any]:
         """
         Execute streaming export.

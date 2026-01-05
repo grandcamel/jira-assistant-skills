@@ -32,7 +32,6 @@ import subprocess
 import time
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Optional
 
 # OpenTelemetry imports
 try:
@@ -358,8 +357,8 @@ def record_test_result(
     test_id: str,
     category: str,
     input_text: str,
-    expected_skill: Optional[str],
-    actual_skill: Optional[str],
+    expected_skill: str | None,
+    actual_skill: str | None,
     passed: bool,
     duration_ms: int,
     cost_usd: float,
@@ -369,14 +368,14 @@ def record_test_result(
     tokens_input: int = 0,
     tokens_output: int = 0,
     retry_count: int = 0,
-    disambiguation_options: Optional[list] = None,
-    error_type: Optional[str] = None,
-    error_message: Optional[str] = None,
+    disambiguation_options: list | None = None,
+    error_type: str | None = None,
+    error_message: str | None = None,
     # New parameters for tool use accuracy
     response_text: str = "",
-    tool_use_accuracy: Optional[float] = None,
-    tool_use_matched: Optional[int] = None,
-    tool_use_total: Optional[int] = None,
+    tool_use_accuracy: float | None = None,
+    tool_use_matched: int | None = None,
+    tool_use_total: int | None = None,
 ):
     """
     Record a single test result with comprehensive context.
@@ -593,7 +592,7 @@ def start_suite_span(
     suite_name: str = "routing_test_suite",
     model: str = "unknown",
     parallel_workers: int = 1,
-) -> Optional[str]:
+) -> str | None:
     """
     Start a suite-level span that will be parent to all test spans.
 
@@ -923,8 +922,8 @@ def record_test_session_summary(
     skipped: int,
     total_duration_ms: int,
     total_cost_usd: float,
-    categories: Optional[dict] = None,
-    skills_tested: Optional[list] = None,
+    categories: dict | None = None,
+    skills_tested: list | None = None,
 ):
     """
     Record summary metrics for a complete test session.

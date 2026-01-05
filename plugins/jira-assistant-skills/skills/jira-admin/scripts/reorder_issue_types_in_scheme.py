@@ -8,7 +8,6 @@ Requires 'Administer Jira' global permission.
 
 import argparse
 import sys
-from typing import Optional
 
 # Add shared lib to path
 from jira_assistant_skills_lib import JiraError, get_jira_client, print_error
@@ -17,9 +16,9 @@ from jira_assistant_skills_lib import JiraError, get_jira_client, print_error
 def reorder_issue_types_in_scheme(
     scheme_id: str,
     issue_type_id: str,
-    after: Optional[str] = None,
+    after: str | None = None,
     client=None,
-    profile: Optional[str] = None,
+    profile: str | None = None,
 ) -> bool:
     """
     Reorder issue types in a scheme.

@@ -24,7 +24,6 @@ Usage:
 
 import argparse
 import sys
-from typing import Optional
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -74,18 +73,18 @@ def find_link_type(link_types: list, name: str) -> dict:
 
 def link_issue(
     issue_key: str,
-    blocks: Optional[str] = None,
-    duplicates: Optional[str] = None,
-    relates_to: Optional[str] = None,
-    clones: Optional[str] = None,
-    is_blocked_by: Optional[str] = None,
-    is_duplicated_by: Optional[str] = None,
-    is_cloned_by: Optional[str] = None,
-    link_type: Optional[str] = None,
-    target_issue: Optional[str] = None,
-    comment: Optional[str] = None,
+    blocks: str | None = None,
+    duplicates: str | None = None,
+    relates_to: str | None = None,
+    clones: str | None = None,
+    is_blocked_by: str | None = None,
+    is_duplicated_by: str | None = None,
+    is_cloned_by: str | None = None,
+    link_type: str | None = None,
+    target_issue: str | None = None,
+    comment: str | None = None,
     dry_run: bool = False,
-    profile: Optional[str] = None,
+    profile: str | None = None,
 ) -> dict:
     """
     Create a link between two issues.

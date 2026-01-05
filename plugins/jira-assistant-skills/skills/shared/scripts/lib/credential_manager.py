@@ -17,7 +17,7 @@ import os
 import stat
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from validators import validate_email, validate_url
 
@@ -89,7 +89,7 @@ class CredentialManager:
         self.profile = profile
         self._claude_dir = self._find_claude_dir()
 
-    def _find_claude_dir(self) -> Optional[Path]:
+    def _find_claude_dir(self) -> Path | None:
         """
         Find .claude directory by walking up from current directory.
 
@@ -106,7 +106,7 @@ class CredentialManager:
 
         return None
 
-    def _get_keychain_service(self, profile: Optional[str] = None) -> str:
+    def _get_keychain_service(self, profile: str | None = None) -> str:
         """Get keychain service name for a profile."""
         profile = profile or self.profile
         return f"{self.KEYCHAIN_SERVICE}-{profile}"
@@ -131,8 +131,8 @@ class CredentialManager:
             return False
 
     def get_credentials_from_env(
-        self, profile: Optional[str] = None
-    ) -> tuple[Optional[str], Optional[str], Optional[str]]:
+        self, profile: str | None = None
+    ) -> tuple[str | None, str | None, str | None]:
         """
         Get credentials from environment variables.
 
@@ -155,8 +155,8 @@ class CredentialManager:
         return url, email, api_token
 
     def get_credentials_from_keychain(
-        self, profile: Optional[str] = None
-    ) -> tuple[Optional[str], Optional[str], Optional[str]]:
+        self, profile: str | None = None
+    ) -> tuple[str | None, str | None, str | None]:
         """
         Get credentials from system keychain.
 
@@ -184,8 +184,8 @@ class CredentialManager:
             return None, None, None
 
     def get_credentials_from_json(
-        self, profile: Optional[str] = None
-    ) -> tuple[Optional[str], Optional[str], Optional[str]]:
+        self, profile: str | None = None
+    ) -> tuple[str | None, str | None, str | None]:
         """
         Get credentials from settings.local.json.
 
@@ -225,7 +225,7 @@ class CredentialManager:
         except Exception:
             return None, None, None
 
-    def get_credentials(self, profile: Optional[str] = None) -> tuple[str, str, str]:
+    def get_credentials(self, profile: str | None = None) -> tuple[str, str, str]:
         """
         Retrieve credentials (url, email, api_token) for a profile.
 
@@ -291,8 +291,8 @@ class CredentialManager:
         url: str,
         email: str,
         api_token: str,
-        profile: Optional[str] = None,
-        backend: Optional[CredentialBackend] = None,
+        profile: str | None = None,
+        backend: CredentialBackend | None = None,
     ) -> CredentialBackend:
         """
         Store credentials in the specified or preferred backend.
@@ -412,7 +412,7 @@ class CredentialManager:
                 f"Failed to store credentials in JSON: {sanitize_error_message(str(e))}"
             )
 
-    def delete_credentials(self, profile: Optional[str] = None) -> bool:
+    def delete_credentials(self, profile: str | None = None) -> bool:
         """
         Delete credentials from all backends for a profile.
 
@@ -559,7 +559,7 @@ def is_keychain_available() -> bool:
     return CredentialManager.is_keychain_available()
 
 
-def get_credentials(profile: Optional[str] = None) -> tuple[str, str, str]:
+def get_credentials(profile: str | None = None) -> tuple[str, str, str]:
     """
     Get credentials for a profile.
 
@@ -577,8 +577,8 @@ def store_credentials(
     url: str,
     email: str,
     api_token: str,
-    profile: Optional[str] = None,
-    backend: Optional[CredentialBackend] = None,
+    profile: str | None = None,
+    backend: CredentialBackend | None = None,
 ) -> CredentialBackend:
     """
     Store credentials using preferred backend.

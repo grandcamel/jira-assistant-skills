@@ -8,7 +8,7 @@ Provides status discovery with filtering by category and workflow.
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -24,10 +24,10 @@ CATEGORY_MAP = {"TODO": "new", "IN_PROGRESS": "indeterminate", "DONE": "done"}
 
 def list_statuses(
     client,
-    category: Optional[str] = None,
-    workflow: Optional[str] = None,
-    search: Optional[str] = None,
-    group_by: Optional[str] = None,
+    category: str | None = None,
+    workflow: str | None = None,
+    search: str | None = None,
+    group_by: str | None = None,
     show_usage: bool = False,
     use_search: bool = False,
 ) -> dict[str, Any]:

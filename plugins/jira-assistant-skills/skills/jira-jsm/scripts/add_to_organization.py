@@ -10,7 +10,6 @@ Usage:
 
 import argparse
 import sys
-from typing import Optional
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -34,7 +33,7 @@ def parse_account_ids(account_id_string: str) -> list:
 
 
 def add_users_to_organization_func(
-    organization_id: int, account_ids: list, profile: Optional[str] = None
+    organization_id: int, account_ids: list, profile: str | None = None
 ) -> None:
     """
     Add users to an organization.

@@ -11,7 +11,6 @@ Usage:
 
 import argparse
 import sys
-from typing import Optional
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -24,11 +23,11 @@ from jira_assistant_skills_lib import (
 
 def transition_service_request(
     issue_key: str,
-    transition_id: Optional[str] = None,
-    transition_name: Optional[str] = None,
-    comment: Optional[str] = None,
+    transition_id: str | None = None,
+    transition_name: str | None = None,
+    comment: str | None = None,
     public: bool = True,
-    profile: Optional[str] = None,
+    profile: str | None = None,
 ) -> None:
     """
     Transition a service request.
@@ -68,7 +67,7 @@ def transition_service_request(
         )
 
 
-def list_transitions(issue_key: str, profile: Optional[str] = None) -> list:
+def list_transitions(issue_key: str, profile: str | None = None) -> list:
     """
     List available transitions for a request.
 

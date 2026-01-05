@@ -10,7 +10,6 @@ Usage:
 
 import argparse
 import sys
-from typing import Optional
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -46,11 +45,11 @@ def find_link_to_issue(links: list, target_key: str) -> dict:
 
 def unlink_issue(
     issue_key: str,
-    from_issue: Optional[str] = None,
-    link_type: Optional[str] = None,
+    from_issue: str | None = None,
+    link_type: str | None = None,
     remove_all: bool = False,
     dry_run: bool = False,
-    profile: Optional[str] = None,
+    profile: str | None = None,
 ) -> dict:
     """
     Remove links from an issue.

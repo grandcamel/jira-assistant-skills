@@ -9,7 +9,7 @@ Requires 'Administer Jira' global permission.
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -46,11 +46,11 @@ def validate_issue_type_type(issue_type: str) -> str:
 
 def create_issue_type(
     name: str,
-    description: Optional[str] = None,
+    description: str | None = None,
     issue_type: str = "standard",
-    hierarchy_level: Optional[int] = None,
+    hierarchy_level: int | None = None,
     client=None,
-    profile: Optional[str] = None,
+    profile: str | None = None,
 ) -> dict[str, Any]:
     """
     Create a new issue type.

@@ -19,7 +19,8 @@ Usage:
 
 import argparse
 import sys
-from typing import Any, Callable, Optional
+from collections.abc import Callable
+from typing import Any
 
 from bulk_utils import execute_bulk_operation, get_issues_to_process
 
@@ -31,7 +32,7 @@ from jira_assistant_skills_lib import (
 )
 
 
-def resolve_user_id(client, user_identifier: str) -> Optional[str]:
+def resolve_user_id(client, user_identifier: str) -> str | None:
     """
     Resolve a user identifier to an account ID.
 
@@ -73,15 +74,15 @@ def resolve_user_id(client, user_identifier: str) -> Optional[str]:
 
 def bulk_assign(
     client=None,
-    issue_keys: Optional[list[str]] = None,
-    jql: Optional[str] = None,
-    assignee: Optional[str] = None,
+    issue_keys: list[str] | None = None,
+    jql: str | None = None,
+    assignee: str | None = None,
     unassign: bool = False,
     dry_run: bool = False,
     max_issues: int = 100,
     delay_between_ops: float = 0.1,
-    progress_callback: Optional[Callable] = None,
-    profile: Optional[str] = None,
+    progress_callback: Callable | None = None,
+    profile: str | None = None,
     show_progress: bool = True,
     confirm_threshold: int = 50,
     skip_confirmation: bool = False,

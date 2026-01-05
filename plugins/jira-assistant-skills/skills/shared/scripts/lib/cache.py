@@ -24,7 +24,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import timedelta
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 
 @dataclass
@@ -120,7 +120,7 @@ class JiraCache:
     LRU eviction, and pattern-based invalidation.
     """
 
-    def __init__(self, cache_dir: Optional[str] = None, max_size_mb: float = 100):
+    def __init__(self, cache_dir: str | None = None, max_size_mb: float = 100):
         """
         Initialize cache.
 
@@ -204,7 +204,7 @@ class JiraCache:
         finally:
             conn.close()
 
-    def get(self, key: str, category: str = "default") -> Optional[Any]:
+    def get(self, key: str, category: str = "default") -> Any | None:
         """
         Get cached value if not expired.
 
@@ -262,7 +262,7 @@ class JiraCache:
         key: str,
         value: Any,
         category: str = "default",
-        ttl: Optional[timedelta] = None,
+        ttl: timedelta | None = None,
     ) -> None:
         """
         Set cache value with optional custom TTL.
@@ -361,9 +361,9 @@ class JiraCache:
 
     def invalidate(
         self,
-        key: Optional[str] = None,
-        pattern: Optional[str] = None,
-        category: Optional[str] = None,
+        key: str | None = None,
+        pattern: str | None = None,
+        category: str | None = None,
     ) -> int:
         """
         Invalidate cache entries.
@@ -553,7 +553,7 @@ class JiraCache:
         return False
 
 
-def get_cache(cache_dir: Optional[str] = None, max_size_mb: float = 100) -> JiraCache:
+def get_cache(cache_dir: str | None = None, max_size_mb: float = 100) -> JiraCache:
     """
     Get or create a cache instance.
 

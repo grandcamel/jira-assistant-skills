@@ -11,7 +11,6 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Optional
 
 # Add shared lib to path
 # Imports from shared library
@@ -46,14 +45,14 @@ VALID_EPIC_COLORS = [
 def create_epic(
     project: str,
     summary: str,
-    description: Optional[str] = None,
-    epic_name: Optional[str] = None,
-    color: Optional[str] = None,
-    priority: Optional[str] = None,
-    assignee: Optional[str] = None,
-    labels: Optional[list] = None,
-    custom_fields: Optional[dict] = None,
-    profile: Optional[str] = None,
+    description: str | None = None,
+    epic_name: str | None = None,
+    color: str | None = None,
+    priority: str | None = None,
+    assignee: str | None = None,
+    labels: list | None = None,
+    custom_fields: dict | None = None,
+    profile: str | None = None,
     client=None,
 ) -> dict:
     """

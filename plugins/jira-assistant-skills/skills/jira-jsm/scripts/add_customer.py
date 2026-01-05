@@ -10,7 +10,6 @@ Usage:
 
 import argparse
 import sys
-from typing import Optional
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -49,7 +48,7 @@ def validate_account_ids(account_ids: list) -> bool:
 
 
 def add_customer_to_service_desk(
-    service_desk_id: str, account_ids: list, profile: Optional[str] = None
+    service_desk_id: str, account_ids: list, profile: str | None = None
 ) -> None:
     """
     Add customers to a service desk.

@@ -9,7 +9,6 @@ Usage:
 
 import argparse
 import sys
-from typing import Optional
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -21,7 +20,7 @@ from jira_assistant_skills_lib import (
 )
 
 
-def get_transitions(issue_key: str, profile: Optional[str] = None) -> list:
+def get_transitions(issue_key: str, profile: str | None = None) -> list:
     """
     Get available transitions for an issue.
 

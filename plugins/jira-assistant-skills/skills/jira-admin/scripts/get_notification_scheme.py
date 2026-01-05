@@ -16,7 +16,7 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 from notification_utils import format_recipient, get_event_name
 
@@ -31,10 +31,10 @@ from jira_assistant_skills_lib import (
 
 def get_notification_scheme(
     client=None,
-    scheme_id: Optional[str] = None,
-    scheme_name: Optional[str] = None,
+    scheme_id: str | None = None,
+    scheme_name: str | None = None,
     show_projects: bool = False,
-    profile: Optional[str] = None,
+    profile: str | None = None,
 ) -> dict[str, Any]:
     """
     Get notification scheme details.

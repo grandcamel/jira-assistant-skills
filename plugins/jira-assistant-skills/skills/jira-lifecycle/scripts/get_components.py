@@ -12,7 +12,7 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -22,7 +22,7 @@ from jira_assistant_skills_lib import (
 )
 
 
-def get_components(project: str, profile: Optional[str] = None) -> list[dict[str, Any]]:
+def get_components(project: str, profile: str | None = None) -> list[dict[str, Any]]:
     """
     Get all components for a project.
 
@@ -41,7 +41,7 @@ def get_components(project: str, profile: Optional[str] = None) -> list[dict[str
 
 
 def get_component_by_id(
-    component_id: str, profile: Optional[str] = None
+    component_id: str, profile: str | None = None
 ) -> dict[str, Any]:
     """
     Get a specific component by ID.
@@ -77,7 +77,7 @@ def filter_by_lead(
 
 
 def get_component_issue_counts(
-    component_id: str, profile: Optional[str] = None
+    component_id: str, profile: str | None = None
 ) -> dict[str, Any]:
     """
     Get issue counts for a component.

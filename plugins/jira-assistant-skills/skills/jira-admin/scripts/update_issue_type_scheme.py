@@ -8,7 +8,6 @@ Requires 'Administer Jira' global permission.
 
 import argparse
 import sys
-from typing import Optional
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -21,11 +20,11 @@ from jira_assistant_skills_lib import (
 
 def update_issue_type_scheme(
     scheme_id: str,
-    name: Optional[str] = None,
-    description: Optional[str] = None,
-    default_issue_type_id: Optional[str] = None,
+    name: str | None = None,
+    description: str | None = None,
+    default_issue_type_id: str | None = None,
     client=None,
-    profile: Optional[str] = None,
+    profile: str | None = None,
 ) -> bool:
     """
     Update an issue type scheme.

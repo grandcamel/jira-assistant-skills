@@ -9,7 +9,7 @@ import csv
 import json
 import sys
 from io import StringIO
-from typing import Any, Optional
+from typing import Any
 
 from adf_helper import adf_to_text
 
@@ -165,8 +165,8 @@ def format_issue(issue: dict[str, Any], detailed: bool = False) -> str:
 
 def format_table(
     data: list[dict[str, Any]],
-    columns: Optional[list[str]] = None,
-    headers: Optional[list[str]] = None,
+    columns: list[str] | None = None,
+    headers: list[str] | None = None,
 ) -> str:
     """
     Format data as a table.
@@ -272,7 +272,7 @@ def format_json(data: Any, pretty: bool = True) -> str:
 
 
 def export_csv(
-    data: list[dict[str, Any]], file_path: str, columns: Optional[list[str]] = None
+    data: list[dict[str, Any]], file_path: str, columns: list[str] | None = None
 ) -> None:
     """
     Export data to CSV file.
@@ -309,9 +309,7 @@ def export_csv(
             writer.writerow(row)
 
 
-def get_csv_string(
-    data: list[dict[str, Any]], columns: Optional[list[str]] = None
-) -> str:
+def get_csv_string(data: list[dict[str, Any]], columns: list[str] | None = None) -> str:
     """
     Get CSV formatted string.
 
@@ -377,7 +375,7 @@ def format_transitions(transitions: list[dict[str, Any]]) -> str:
     return format_table(data, columns=["ID", "Name", "To Status"])
 
 
-def format_comments(comments: list[dict[str, Any]], limit: Optional[int] = None) -> str:
+def format_comments(comments: list[dict[str, Any]], limit: int | None = None) -> str:
     """
     Format issue comments for display.
 

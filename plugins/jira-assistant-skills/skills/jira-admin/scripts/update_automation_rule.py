@@ -15,7 +15,7 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -28,12 +28,12 @@ from jira_assistant_skills_lib import (
 
 def update_automation_rule(
     client=None,
-    rule_id: Optional[str] = None,
-    name: Optional[str] = None,
-    description: Optional[str] = None,
-    config: Optional[dict[str, Any]] = None,
+    rule_id: str | None = None,
+    name: str | None = None,
+    description: str | None = None,
+    config: dict[str, Any] | None = None,
     dry_run: bool = False,
-    profile: Optional[str] = None,
+    profile: str | None = None,
 ) -> dict[str, Any]:
     """
     Update an automation rule configuration.

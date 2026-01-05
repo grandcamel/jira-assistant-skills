@@ -26,8 +26,9 @@ Usage:
 import argparse
 import sys
 import time
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable, Optional
+from typing import Any
 
 try:
     from tqdm import tqdm
@@ -60,7 +61,7 @@ from jira_assistant_skills_lib import (
 BATCH_THRESHOLD = 500
 
 
-def find_transition(transitions: list[dict], target_status: str) -> Optional[dict]:
+def find_transition(transitions: list[dict], target_status: str) -> dict | None:
     """
     Find a transition that leads to the target status.
 
@@ -117,20 +118,20 @@ def confirm_bulk_operation(count: int, operation: str, threshold: int = 50) -> b
 
 def bulk_transition_batched(
     client=None,
-    issue_keys: Optional[list[str]] = None,
-    jql: Optional[str] = None,
-    target_status: Optional[str] = None,
-    resolution: Optional[str] = None,
-    comment: Optional[str] = None,
+    issue_keys: list[str] | None = None,
+    jql: str | None = None,
+    target_status: str | None = None,
+    resolution: str | None = None,
+    comment: str | None = None,
     dry_run: bool = False,
     max_issues: int = 10000,
-    batch_size: Optional[int] = None,
+    batch_size: int | None = None,
     delay_between_batches: float = 1.0,
     delay_between_items: float = 0.1,
     enable_checkpoint: bool = False,
-    operation_id: Optional[str] = None,
-    progress_callback: Optional[Callable] = None,
-    profile: Optional[str] = None,
+    operation_id: str | None = None,
+    progress_callback: Callable | None = None,
+    profile: str | None = None,
     show_progress: bool = True,
     skip_confirmation: bool = False,
 ) -> dict[str, Any]:
@@ -384,16 +385,16 @@ def bulk_transition_batched(
 
 def bulk_transition(
     client=None,
-    issue_keys: Optional[list[str]] = None,
-    jql: Optional[str] = None,
-    target_status: Optional[str] = None,
-    resolution: Optional[str] = None,
-    comment: Optional[str] = None,
+    issue_keys: list[str] | None = None,
+    jql: str | None = None,
+    target_status: str | None = None,
+    resolution: str | None = None,
+    comment: str | None = None,
     dry_run: bool = False,
     max_issues: int = 100,
     delay_between_ops: float = 0.1,
-    progress_callback: Optional[Callable] = None,
-    profile: Optional[str] = None,
+    progress_callback: Callable | None = None,
+    profile: str | None = None,
     show_progress: bool = True,
     confirm_threshold: int = 50,
     skip_confirmation: bool = False,

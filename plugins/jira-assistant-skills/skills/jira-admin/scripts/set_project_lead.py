@@ -18,7 +18,7 @@ Examples:
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -32,8 +32,8 @@ from jira_assistant_skills_lib import (
 
 def set_project_lead(
     project_key: str,
-    lead_email: Optional[str] = None,
-    lead_account_id: Optional[str] = None,
+    lead_email: str | None = None,
+    lead_account_id: str | None = None,
     client=None,
 ) -> dict[str, Any]:
     """

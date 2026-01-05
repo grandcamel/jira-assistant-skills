@@ -17,7 +17,7 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -31,13 +31,13 @@ from jira_assistant_skills_lib import (
 
 def search_automation_rules(
     client=None,
-    trigger: Optional[str] = None,
-    state: Optional[str] = None,
-    scope: Optional[str] = None,
-    project: Optional[str] = None,
+    trigger: str | None = None,
+    state: str | None = None,
+    scope: str | None = None,
+    project: str | None = None,
     limit: int = 50,
     fetch_all: bool = False,
-    profile: Optional[str] = None,
+    profile: str | None = None,
 ) -> list[dict[str, Any]]:
     """
     Search automation rules with filters.

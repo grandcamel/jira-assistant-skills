@@ -15,7 +15,7 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib path
 from jira_assistant_skills_lib import (
@@ -28,7 +28,7 @@ from jira_assistant_skills_lib import (
 )
 
 
-def get_jira_base_url(profile: Optional[str] = None) -> str:
+def get_jira_base_url(profile: str | None = None) -> str:
     """
     Get JIRA base URL from configuration.
 
@@ -100,7 +100,7 @@ def create_pr_description(
     include_checklist: bool = False,
     include_labels: bool = False,
     include_components: bool = False,
-    profile: Optional[str] = None,
+    profile: str | None = None,
     client=None,
     output_format: str = "text",
 ) -> dict[str, Any]:

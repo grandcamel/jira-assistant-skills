@@ -10,13 +10,12 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Optional
 
 from jira_assistant_skills_lib import JiraError, get_jira_client, print_error
 
 
 def get_participants_func(
-    issue_key: str, start: int = 0, limit: int = 50, profile: Optional[str] = None
+    issue_key: str, start: int = 0, limit: int = 50, profile: str | None = None
 ) -> dict:
     """
     Get participants for a request.

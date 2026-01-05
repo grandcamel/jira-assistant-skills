@@ -12,7 +12,6 @@ Supports:
 
 import argparse
 import sys
-from typing import Optional
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -50,7 +49,7 @@ def check_system_group_protection(group_name: str) -> None:
 
 
 def format_dry_run_preview(
-    group_name: str, group_id: Optional[str] = None, swap_group: Optional[str] = None
+    group_name: str, group_id: str | None = None, swap_group: str | None = None
 ) -> str:
     """
     Format dry-run preview message.
@@ -80,10 +79,10 @@ def format_dry_run_preview(
 
 def delete_group(
     client,
-    group_name: Optional[str] = None,
-    group_id: Optional[str] = None,
-    swap_group: Optional[str] = None,
-    swap_group_id: Optional[str] = None,
+    group_name: str | None = None,
+    group_id: str | None = None,
+    swap_group: str | None = None,
+    swap_group_id: str | None = None,
     confirmed: bool = False,
     dry_run: bool = False,
 ) -> None:

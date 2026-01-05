@@ -22,7 +22,7 @@ import argparse
 import json
 import sys
 from collections import defaultdict
-from typing import Any, Optional
+from typing import Any
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -33,9 +33,7 @@ from jira_assistant_skills_lib import (
 )
 
 
-def get_issue_link_stats(
-    issue_key: str, profile: Optional[str] = None
-) -> dict[str, Any]:
+def get_issue_link_stats(issue_key: str, profile: str | None = None) -> dict[str, Any]:
     """
     Get link statistics for a single issue.
 
@@ -88,7 +86,7 @@ def get_issue_link_stats(
 
 
 def get_project_link_stats(
-    jql: str, profile: Optional[str] = None, max_results: int = 500
+    jql: str, profile: str | None = None, max_results: int = 500
 ) -> dict[str, Any]:
     """
     Get link statistics for issues matching a JQL query.

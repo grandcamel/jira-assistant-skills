@@ -9,7 +9,6 @@ Usage:
 
 import argparse
 import sys
-from typing import Optional
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -21,7 +20,7 @@ from jira_assistant_skills_lib import (
 
 
 def delete_issue(
-    issue_key: str, force: bool = False, profile: Optional[str] = None
+    issue_key: str, force: bool = False, profile: str | None = None
 ) -> None:
     """
     Delete a JIRA issue.

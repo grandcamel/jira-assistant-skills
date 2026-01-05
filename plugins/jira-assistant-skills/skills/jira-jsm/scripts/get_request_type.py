@@ -10,7 +10,6 @@ Usage:
 
 import argparse
 import sys
-from typing import Optional
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -21,7 +20,7 @@ from jira_assistant_skills_lib import (
 
 
 def get_request_type(
-    service_desk_id: str, request_type_id: str, profile: Optional[str] = None
+    service_desk_id: str, request_type_id: str, profile: str | None = None
 ) -> dict:
     """
     Get request type details.

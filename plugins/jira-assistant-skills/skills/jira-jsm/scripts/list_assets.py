@@ -25,13 +25,12 @@ shared_lib_path = str(
 if shared_lib_path not in sys.path:
     sys.path.insert(0, shared_lib_path)
 
-from typing import Optional
 
 from jira_assistant_skills_lib import get_jira_client
 
 
 def list_assets(
-    object_type: Optional[str] = None, iql: Optional[str] = None, max_results: int = 100
+    object_type: str | None = None, iql: str | None = None, max_results: int = 100
 ):
     """
     List assets with optional filtering.

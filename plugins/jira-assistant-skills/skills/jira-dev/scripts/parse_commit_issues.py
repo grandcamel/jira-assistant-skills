@@ -16,7 +16,6 @@ import argparse
 import json
 import re
 import sys
-from typing import Optional
 
 # Add shared lib path
 
@@ -44,7 +43,7 @@ COMMIT_PREFIXES = [
 ]
 
 
-def parse_issue_keys(message: str, project_filter: Optional[str] = None) -> list[str]:
+def parse_issue_keys(message: str, project_filter: str | None = None) -> list[str]:
     """
     Extract JIRA issue keys from a commit message.
 
@@ -90,7 +89,7 @@ def parse_issue_keys(message: str, project_filter: Optional[str] = None) -> list
 
 
 def parse_from_lines(
-    lines: list[str], project_filter: Optional[str] = None, unique: bool = True
+    lines: list[str], project_filter: str | None = None, unique: bool = True
 ) -> list[str]:
     """
     Parse issue keys from multiple lines.

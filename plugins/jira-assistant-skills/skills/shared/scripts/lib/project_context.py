@@ -12,7 +12,7 @@ import json
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 # Module-level cache for session persistence
 _context_cache: dict[str, "ProjectContext"] = {}
@@ -28,7 +28,7 @@ class ProjectContext:
     patterns: dict[str, Any] = field(default_factory=dict)
     defaults: dict[str, Any] = field(default_factory=dict)
     source: str = "none"  # 'skill', 'settings', 'merged', 'none'
-    discovered_at: Optional[str] = None
+    discovered_at: str | None = None
 
     def has_context(self) -> bool:
         """Check if any context data is available."""
@@ -66,7 +66,7 @@ def get_project_skill_path(project_key: str) -> Path:
     return get_skills_root() / "skills" / f"jira-project-{project_key}"
 
 
-def load_json_file(path: Path) -> Optional[dict[str, Any]]:
+def load_json_file(path: Path) -> dict[str, Any] | None:
     """Load a JSON file if it exists."""
     if path.exists():
         try:
@@ -77,7 +77,7 @@ def load_json_file(path: Path) -> Optional[dict[str, Any]]:
     return None
 
 
-def load_skill_context(project_key: str) -> Optional[dict[str, Any]]:
+def load_skill_context(project_key: str) -> dict[str, Any] | None:
     """
     Load context from a project skill directory.
 
@@ -118,8 +118,8 @@ def load_skill_context(project_key: str) -> Optional[dict[str, Any]]:
 
 
 def load_settings_context(
-    project_key: str, profile: Optional[str] = None
-) -> Optional[dict[str, Any]]:
+    project_key: str, profile: str | None = None
+) -> dict[str, Any] | None:
     """
     Load context overrides from settings.local.json.
 
@@ -170,7 +170,7 @@ def load_settings_context(
 
 
 def merge_contexts(
-    skill_ctx: Optional[dict[str, Any]], settings_ctx: Optional[dict[str, Any]]
+    skill_ctx: dict[str, Any] | None, settings_ctx: dict[str, Any] | None
 ) -> tuple[dict[str, Any], str]:
     """
     Merge settings overrides on top of skill context.
@@ -219,7 +219,7 @@ def _deep_merge(base: dict, override: dict) -> dict:
 
 
 def get_project_context(
-    project_key: str, profile: Optional[str] = None, force_refresh: bool = False
+    project_key: str, profile: str | None = None, force_refresh: bool = False
 ) -> ProjectContext:
     """
     Lazy-load project context with caching.
@@ -276,7 +276,7 @@ def get_project_context(
     return context
 
 
-def clear_context_cache(project_key: Optional[str] = None) -> None:
+def clear_context_cache(project_key: str | None = None) -> None:
     """
     Clear the context cache.
 
@@ -376,8 +376,8 @@ def get_statuses_for_issue_type(
 
 
 def suggest_assignee(
-    context: ProjectContext, issue_type: Optional[str] = None
-) -> Optional[str]:
+    context: ProjectContext, issue_type: str | None = None
+) -> str | None:
     """
     Suggest the most common assignee based on patterns.
 
@@ -410,7 +410,7 @@ def suggest_assignee(
 
 
 def get_common_labels(
-    context: ProjectContext, issue_type: Optional[str] = None, limit: int = 10
+    context: ProjectContext, issue_type: str | None = None, limit: int = 10
 ) -> list[str]:
     """
     Get the most commonly used labels.
@@ -523,7 +523,7 @@ def format_context_summary(context: ProjectContext) -> str:
 
 
 # Convenience function for external access
-def has_project_context(project_key: str, profile: Optional[str] = None) -> bool:
+def has_project_context(project_key: str, profile: str | None = None) -> bool:
     """
     Check if project context exists without fully loading it.
 

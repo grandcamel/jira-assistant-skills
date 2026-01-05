@@ -13,7 +13,7 @@ Usage:
 
 import argparse
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -33,13 +33,13 @@ def add_worklog(
     client,
     issue_key: str,
     time_spent: str,
-    started: Optional[str] = None,
-    comment: Optional[str] = None,
+    started: str | None = None,
+    comment: str | None = None,
     adjust_estimate: str = "auto",
-    new_estimate: Optional[str] = None,
-    reduce_by: Optional[str] = None,
-    visibility_type: Optional[str] = None,
-    visibility_value: Optional[str] = None,
+    new_estimate: str | None = None,
+    reduce_by: str | None = None,
+    visibility_type: str | None = None,
+    visibility_value: str | None = None,
 ) -> dict[str, Any]:
     """
     Add a worklog to an issue.

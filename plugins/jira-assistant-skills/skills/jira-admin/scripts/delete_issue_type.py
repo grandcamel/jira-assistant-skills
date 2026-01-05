@@ -8,7 +8,7 @@ Requires 'Administer Jira' global permission.
 
 import argparse
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -20,7 +20,7 @@ from jira_assistant_skills_lib import (
 
 
 def get_alternatives_for_type(
-    issue_type_id: str, client=None, profile: Optional[str] = None
+    issue_type_id: str, client=None, profile: str | None = None
 ) -> list[dict[str, Any]]:
     """
     Get alternative issue types for migration.
@@ -48,9 +48,9 @@ def get_alternatives_for_type(
 
 def delete_issue_type(
     issue_type_id: str,
-    alternative_id: Optional[str] = None,
+    alternative_id: str | None = None,
     client=None,
-    profile: Optional[str] = None,
+    profile: str | None = None,
     dry_run: bool = False,
 ) -> bool:
     """

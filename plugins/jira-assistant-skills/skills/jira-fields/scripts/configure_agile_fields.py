@@ -13,7 +13,7 @@ Usage:
 
 import argparse
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -143,11 +143,11 @@ def add_field_to_screen(
 
 def configure_agile_fields(
     project_key: str,
-    story_points_id: Optional[str] = None,
-    epic_link_id: Optional[str] = None,
-    sprint_id: Optional[str] = None,
+    story_points_id: str | None = None,
+    epic_link_id: str | None = None,
+    sprint_id: str | None = None,
     dry_run: bool = False,
-    profile: Optional[str] = None,
+    profile: str | None = None,
     client=None,
 ) -> dict[str, Any]:
     """

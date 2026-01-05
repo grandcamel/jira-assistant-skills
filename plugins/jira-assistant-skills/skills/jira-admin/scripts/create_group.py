@@ -12,7 +12,7 @@ Supports:
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -46,7 +46,7 @@ def validate_group_name(name: str) -> None:
         raise ValidationError("Group name cannot exceed 255 characters")
 
 
-def check_system_group_name(name: str) -> Optional[str]:
+def check_system_group_name(name: str) -> str | None:
     """
     Check if a group name resembles a system group.
 
@@ -74,7 +74,7 @@ def check_system_group_name(name: str) -> Optional[str]:
     return None
 
 
-def create_group(client, name: str, dry_run: bool = False) -> Optional[dict[str, Any]]:
+def create_group(client, name: str, dry_run: bool = False) -> dict[str, Any] | None:
     """
     Create a new group.
 

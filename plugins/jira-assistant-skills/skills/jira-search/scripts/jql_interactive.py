@@ -13,7 +13,7 @@ Usage:
 
 import argparse
 import sys
-from typing import Any, Optional
+from typing import Any
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -162,7 +162,7 @@ JQL_FUNCTIONS = {
 class InteractiveBuilder:
     """Interactive JQL query builder."""
 
-    def __init__(self, profile: Optional[str] = None):
+    def __init__(self, profile: str | None = None):
         self.profile = profile
         self.clauses = []
         self.order_by = None
@@ -261,7 +261,7 @@ class InteractiveBuilder:
         return [p.get("name", "") for p in priorities]
 
 
-def prompt(message: str, default: Optional[str] = None) -> str:
+def prompt(message: str, default: str | None = None) -> str:
     """Prompt user for input."""
     if default:
         result = input(f"{message} [{default}]: ").strip()
@@ -433,7 +433,7 @@ def show_help():
     input("\nPress Enter to continue...")
 
 
-def run_interactive(builder: InteractiveBuilder, start_with: Optional[str] = None):
+def run_interactive(builder: InteractiveBuilder, start_with: str | None = None):
     """Run the interactive builder loop."""
     if start_with:
         builder.add_clause(start_with)

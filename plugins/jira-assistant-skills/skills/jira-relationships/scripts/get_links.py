@@ -12,7 +12,6 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Optional
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -24,9 +23,9 @@ from jira_assistant_skills_lib import (
 
 def get_links(
     issue_key: str,
-    direction: Optional[str] = None,
-    link_type: Optional[str] = None,
-    profile: Optional[str] = None,
+    direction: str | None = None,
+    link_type: str | None = None,
+    profile: str | None = None,
 ) -> list:
     """
     Get links for an issue.

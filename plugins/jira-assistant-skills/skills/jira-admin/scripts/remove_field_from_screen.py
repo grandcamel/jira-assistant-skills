@@ -7,7 +7,7 @@ Removes a field from a specific tab or searches all tabs.
 
 import argparse
 import sys
-from typing import Any, Optional, Union
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -40,11 +40,11 @@ def is_required_field(field_id: str) -> bool:
 def remove_field_from_screen(
     screen_id: int,
     field_id: str,
-    tab_id: Optional[int] = None,
+    tab_id: int | None = None,
     client=None,
     dry_run: bool = False,
     force: bool = False,
-) -> Union[bool, dict[str, Any]]:
+) -> bool | dict[str, Any]:
     """
     Remove a field from a screen.
 

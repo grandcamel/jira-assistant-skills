@@ -5,7 +5,7 @@ Provides functions to find transitions by name with fuzzy matching
 support (case-insensitive, exact and partial matching).
 """
 
-from typing import Any, Optional
+from typing import Any
 
 
 def find_transition_by_name(
@@ -65,8 +65,8 @@ def find_transition_by_name(
 def find_transition_by_keywords(
     transitions: list[dict[str, Any]],
     keywords: list[str],
-    prefer_exact: Optional[str] = None,
-) -> Optional[dict[str, Any]]:
+    prefer_exact: str | None = None,
+) -> dict[str, Any] | None:
     """
     Find a transition matching any of the given keywords.
 

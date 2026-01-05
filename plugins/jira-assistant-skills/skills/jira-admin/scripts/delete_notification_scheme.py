@@ -14,7 +14,7 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -26,11 +26,11 @@ from jira_assistant_skills_lib import (
 
 def delete_notification_scheme(
     client=None,
-    scheme_id: Optional[str] = None,
+    scheme_id: str | None = None,
     force: bool = False,
     confirmed: bool = True,
     dry_run: bool = False,
-    profile: Optional[str] = None,
+    profile: str | None = None,
 ) -> dict[str, Any]:
     """
     Delete a notification scheme.

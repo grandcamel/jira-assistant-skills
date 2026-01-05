@@ -23,7 +23,7 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 from jira_assistant_skills_lib import (
     AuthenticationError,
@@ -36,14 +36,14 @@ from jira_assistant_skills_lib import (
 
 
 def bulk_link(
-    issues: Optional[list[str]] = None,
-    jql: Optional[str] = None,
-    target: Optional[str] = None,
-    link_type: Optional[str] = None,
+    issues: list[str] | None = None,
+    jql: str | None = None,
+    target: str | None = None,
+    link_type: str | None = None,
     dry_run: bool = False,
     skip_existing: bool = False,
     show_progress: bool = False,
-    profile: Optional[str] = None,
+    profile: str | None = None,
 ) -> dict[str, Any]:
     """
     Bulk link multiple issues to a target.

@@ -7,7 +7,7 @@ Lists fields with their IDs and names, optionally filtered by type.
 
 import argparse
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -21,9 +21,9 @@ from jira_assistant_skills_lib import (
 
 def get_screen_fields(
     screen_id: int,
-    tab_id: Optional[int] = None,
+    tab_id: int | None = None,
     client=None,
-    field_type: Optional[str] = None,
+    field_type: str | None = None,
 ) -> list[dict[str, Any]]:
     """
     Get all fields on a screen or specific tab.

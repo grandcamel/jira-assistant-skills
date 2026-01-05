@@ -21,7 +21,6 @@ Usage:
 
 import argparse
 import sys
-from typing import Optional
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -36,10 +35,10 @@ from jira_assistant_skills_lib import (
 
 def assign_issue(
     issue_key: str,
-    user: Optional[str] = None,
+    user: str | None = None,
     assign_to_self: bool = False,
     unassign: bool = False,
-    profile: Optional[str] = None,
+    profile: str | None = None,
     dry_run: bool = False,
 ) -> dict:
     """

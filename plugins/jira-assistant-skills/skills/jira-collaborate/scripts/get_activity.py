@@ -13,7 +13,7 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -25,7 +25,7 @@ from jira_assistant_skills_lib import (
 
 
 def get_activity(
-    issue_key: str, limit: int = 100, offset: int = 0, profile: Optional[str] = None
+    issue_key: str, limit: int = 100, offset: int = 0, profile: str | None = None
 ) -> dict[str, Any]:
     """
     Get activity/changelog for an issue.
@@ -50,8 +50,8 @@ def get_activity(
 
 def parse_changelog(
     changelog_data: dict[str, Any],
-    field_filter: Optional[list[str]] = None,
-    field_type_filter: Optional[list[str]] = None,
+    field_filter: list[str] | None = None,
+    field_type_filter: list[str] | None = None,
 ) -> list[dict[str, Any]]:
     """
     Parse changelog into simplified format with optional filtering.

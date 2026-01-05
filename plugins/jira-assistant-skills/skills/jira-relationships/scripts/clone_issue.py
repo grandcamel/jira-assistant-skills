@@ -30,7 +30,7 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -55,7 +55,7 @@ CLONEABLE_FIELDS = [
 
 
 def extract_cloneable_fields(
-    issue: dict[str, Any], to_project: Optional[str] = None
+    issue: dict[str, Any], to_project: str | None = None
 ) -> dict[str, Any]:
     """
     Extract fields from an issue that can be cloned.
@@ -113,12 +113,12 @@ def extract_cloneable_fields(
 
 def clone_issue(
     issue_key: str,
-    to_project: Optional[str] = None,
-    summary: Optional[str] = None,
+    to_project: str | None = None,
+    summary: str | None = None,
     include_subtasks: bool = False,
     include_links: bool = False,
     create_clone_link: bool = True,
-    profile: Optional[str] = None,
+    profile: str | None = None,
 ) -> dict[str, Any]:
     """
     Clone a JIRA issue.

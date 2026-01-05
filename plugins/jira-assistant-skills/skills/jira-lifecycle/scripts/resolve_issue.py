@@ -9,7 +9,6 @@ Usage:
 
 import argparse
 import sys
-from typing import Optional
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -30,8 +29,8 @@ RESOLVE_KEYWORDS = ["done", "resolve", "close", "complete"]
 def resolve_issue(
     issue_key: str,
     resolution: str = "Fixed",
-    comment: Optional[str] = None,
-    profile: Optional[str] = None,
+    comment: str | None = None,
+    profile: str | None = None,
 ) -> None:
     """
     Resolve an issue.

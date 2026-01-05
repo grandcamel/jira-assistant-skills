@@ -12,19 +12,19 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 from jira_assistant_skills_lib import JiraError, get_jira_client, print_error
 
 
 def list_service_requests(
     service_desk_id: str,
-    status: Optional[str] = None,
-    request_type: Optional[str] = None,
-    jql: Optional[str] = None,
+    status: str | None = None,
+    request_type: str | None = None,
+    jql: str | None = None,
     max_results: int = 50,
     start_at: int = 0,
-    profile: Optional[str] = None,
+    profile: str | None = None,
 ) -> dict[str, Any]:
     """
     List service requests.

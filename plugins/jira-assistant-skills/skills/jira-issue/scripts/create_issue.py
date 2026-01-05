@@ -21,7 +21,6 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Optional
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -56,20 +55,20 @@ def create_issue(
     project: str,
     issue_type: str,
     summary: str,
-    description: Optional[str] = None,
-    priority: Optional[str] = None,
-    assignee: Optional[str] = None,
-    labels: Optional[list] = None,
-    components: Optional[list] = None,
-    template: Optional[str] = None,
-    custom_fields: Optional[dict] = None,
-    profile: Optional[str] = None,
-    epic: Optional[str] = None,
-    sprint: Optional[int] = None,
-    story_points: Optional[float] = None,
-    blocks: Optional[list] = None,
-    relates_to: Optional[list] = None,
-    estimate: Optional[str] = None,
+    description: str | None = None,
+    priority: str | None = None,
+    assignee: str | None = None,
+    labels: list | None = None,
+    components: list | None = None,
+    template: str | None = None,
+    custom_fields: dict | None = None,
+    profile: str | None = None,
+    epic: str | None = None,
+    sprint: int | None = None,
+    story_points: float | None = None,
+    blocks: list | None = None,
+    relates_to: list | None = None,
+    estimate: str | None = None,
     no_defaults: bool = False,
 ) -> dict:
     """

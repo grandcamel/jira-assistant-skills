@@ -12,7 +12,7 @@ Supports configurable Agile field IDs with automatic discovery fallback.
 import json
 import os
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from automation_client import AutomationClient
 from jira_client import JiraClient
@@ -44,7 +44,7 @@ class ConfigManager:
     Manages JIRA configuration from multiple sources with profile support.
     """
 
-    def __init__(self, profile: Optional[str] = None):
+    def __init__(self, profile: str | None = None):
         """
         Initialize configuration manager.
 
@@ -54,7 +54,7 @@ class ConfigManager:
         self.config = self._load_config()
         self.profile = profile or self._get_default_profile()
 
-    def _find_claude_dir(self) -> Optional[Path]:
+    def _find_claude_dir(self) -> Path | None:
         """
         Find .claude directory by walking up from current directory.
 
@@ -148,7 +148,7 @@ class ConfigManager:
 
         return self.config.get("jira", {}).get("default_profile", "production")
 
-    def get_profile_config(self, profile: Optional[str] = None) -> dict[str, Any]:
+    def get_profile_config(self, profile: str | None = None) -> dict[str, Any]:
         """
         Get configuration for a specific profile.
 
@@ -171,7 +171,7 @@ class ConfigManager:
 
         return profiles[profile]
 
-    def get_credentials(self, profile: Optional[str] = None) -> tuple:
+    def get_credentials(self, profile: str | None = None) -> tuple:
         """
         Get JIRA credentials (URL, email, API token) for a profile.
 
@@ -271,7 +271,7 @@ class ConfigManager:
             {"version": "3", "timeout": 30, "max_retries": 3, "retry_backoff": 2.0},
         )
 
-    def get_client(self, profile: Optional[str] = None) -> JiraClient:
+    def get_client(self, profile: str | None = None) -> JiraClient:
         """
         Create a configured JIRA client for a profile.
 
@@ -297,7 +297,7 @@ class ConfigManager:
             retry_backoff=api_config.get("retry_backoff", 2.0),
         )
 
-    def get_default_project(self, profile: Optional[str] = None) -> Optional[str]:
+    def get_default_project(self, profile: str | None = None) -> str | None:
         """
         Get default project key for a profile.
 
@@ -323,7 +323,7 @@ class ConfigManager:
         """
         return list(self.config.get("jira", {}).get("profiles", {}).keys())
 
-    def get_agile_fields(self, profile: Optional[str] = None) -> dict[str, str]:
+    def get_agile_fields(self, profile: str | None = None) -> dict[str, str]:
         """
         Get Agile field IDs for a profile.
 
@@ -371,7 +371,7 @@ class ConfigManager:
 
         return fields
 
-    def get_agile_field(self, field_name: str, profile: Optional[str] = None) -> str:
+    def get_agile_field(self, field_name: str, profile: str | None = None) -> str:
         """
         Get a specific Agile field ID.
 
@@ -401,7 +401,7 @@ class ConfigManager:
         fields = self.get_agile_fields(profile)
         return fields[field_name]
 
-    def get_automation_client(self, profile: Optional[str] = None) -> AutomationClient:
+    def get_automation_client(self, profile: str | None = None) -> AutomationClient:
         """
         Create a configured Automation API client for a profile.
 
@@ -437,7 +437,7 @@ class ConfigManager:
         )
 
 
-def get_jira_client(profile: Optional[str] = None) -> JiraClient:
+def get_jira_client(profile: str | None = None) -> JiraClient:
     """
     Convenience function to get a configured JIRA client.
 
@@ -454,7 +454,7 @@ def get_jira_client(profile: Optional[str] = None) -> JiraClient:
     return config_manager.get_client()
 
 
-def get_automation_client(profile: Optional[str] = None) -> AutomationClient:
+def get_automation_client(profile: str | None = None) -> AutomationClient:
     """
     Convenience function to get a configured Automation API client.
 
@@ -471,7 +471,7 @@ def get_automation_client(profile: Optional[str] = None) -> AutomationClient:
     return config_manager.get_automation_client()
 
 
-def get_agile_fields(profile: Optional[str] = None) -> dict[str, str]:
+def get_agile_fields(profile: str | None = None) -> dict[str, str]:
     """
     Convenience function to get Agile field IDs.
 
@@ -485,7 +485,7 @@ def get_agile_fields(profile: Optional[str] = None) -> dict[str, str]:
     return config_manager.get_agile_fields()
 
 
-def get_agile_field(field_name: str, profile: Optional[str] = None) -> str:
+def get_agile_field(field_name: str, profile: str | None = None) -> str:
     """
     Convenience function to get a specific Agile field ID.
 
@@ -504,7 +504,7 @@ def get_agile_field(field_name: str, profile: Optional[str] = None) -> str:
 
 
 # Project context functions - lazy imports to avoid circular dependencies
-def get_project_context(project_key: str, profile: Optional[str] = None):
+def get_project_context(project_key: str, profile: str | None = None):
     """
     Convenience function to get project context.
 
@@ -523,7 +523,7 @@ def get_project_context(project_key: str, profile: Optional[str] = None):
 
 
 def get_project_defaults(
-    project_key: str, issue_type: Optional[str] = None, profile: Optional[str] = None
+    project_key: str, issue_type: str | None = None, profile: str | None = None
 ) -> dict[str, Any]:
     """
     Convenience function to get default values for issue creation.
@@ -554,7 +554,7 @@ def get_project_defaults(
         return context.defaults.get("global", {})
 
 
-def has_project_context(project_key: str, profile: Optional[str] = None) -> bool:
+def has_project_context(project_key: str, profile: str | None = None) -> bool:
     """
     Convenience function to check if project context exists.
 

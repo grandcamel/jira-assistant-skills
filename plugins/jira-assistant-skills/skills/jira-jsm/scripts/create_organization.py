@@ -11,7 +11,6 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Optional
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -21,7 +20,7 @@ from jira_assistant_skills_lib import (
 )
 
 
-def create_organization_func(name: str, profile: Optional[str] = None) -> dict:
+def create_organization_func(name: str, profile: str | None = None) -> dict:
     """
     Create an organization.
 

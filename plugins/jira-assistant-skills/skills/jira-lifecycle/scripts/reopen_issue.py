@@ -9,7 +9,6 @@ Usage:
 
 import argparse
 import sys
-from typing import Optional
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -28,7 +27,7 @@ REOPEN_KEYWORDS = ["reopen", "to do", "todo", "open", "backlog"]
 
 
 def reopen_issue(
-    issue_key: str, comment: Optional[str] = None, profile: Optional[str] = None
+    issue_key: str, comment: str | None = None, profile: str | None = None
 ) -> None:
     """
     Reopen a closed or resolved issue.

@@ -24,7 +24,7 @@ Examples:
 
 import argparse
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -42,8 +42,8 @@ from jira_assistant_skills_lib import (
 def update_permission_scheme(
     client,
     scheme_id: int,
-    name: Optional[str] = None,
-    description: Optional[str] = None,
+    name: str | None = None,
+    description: str | None = None,
 ) -> dict[str, Any]:
     """
     Update a permission scheme's metadata.
@@ -160,9 +160,9 @@ def find_and_remove_grant(
 
 
 def format_update_result(
-    scheme: Optional[dict[str, Any]] = None,
-    added_grants: Optional[list[dict[str, Any]]] = None,
-    removed_grants: Optional[list[str]] = None,
+    scheme: dict[str, Any] | None = None,
+    added_grants: list[dict[str, Any]] | None = None,
+    removed_grants: list[str] | None = None,
     output_format: str = "table",
 ) -> str:
     """

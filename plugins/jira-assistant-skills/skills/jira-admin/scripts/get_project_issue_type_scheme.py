@@ -9,7 +9,7 @@ Requires 'Administer Jira' global permission.
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -21,7 +21,7 @@ from jira_assistant_skills_lib import (
 
 
 def get_project_issue_type_scheme(
-    project_id: str, client=None, profile: Optional[str] = None
+    project_id: str, client=None, profile: str | None = None
 ) -> dict[str, Any]:
     """
     Get issue type scheme assigned to a project.

@@ -7,7 +7,7 @@ Removes a worklog with optional estimate adjustment.
 
 import argparse
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -23,10 +23,10 @@ def delete_worklog(
     issue_key: str,
     worklog_id: str,
     adjust_estimate: str = "auto",
-    new_estimate: Optional[str] = None,
-    increase_by: Optional[str] = None,
+    new_estimate: str | None = None,
+    increase_by: str | None = None,
     dry_run: bool = False,
-) -> Optional[dict[str, Any]]:
+) -> dict[str, Any] | None:
     """
     Delete a worklog from an issue.
 

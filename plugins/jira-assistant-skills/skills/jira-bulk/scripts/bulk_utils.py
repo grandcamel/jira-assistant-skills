@@ -14,7 +14,8 @@ Usage:
 """
 
 import time
-from typing import Any, Callable, Optional, TypedDict
+from collections.abc import Callable
+from typing import Any, TypedDict
 
 # Optional tqdm support
 try:
@@ -69,10 +70,10 @@ def confirm_bulk_operation(count: int, operation: str, threshold: int = 50) -> b
 
 def get_issues_to_process(
     client,
-    issue_keys: Optional[list[str]] = None,
-    jql: Optional[str] = None,
+    issue_keys: list[str] | None = None,
+    jql: str | None = None,
     max_issues: int = 100,
-    fields: Optional[list[str]] = None,
+    fields: list[str] | None = None,
 ) -> list[dict[str, Any]]:
     """
     Retrieve issues to process from either issue keys or JQL query.
@@ -112,17 +113,17 @@ def execute_bulk_operation(
     issues: list[dict[str, Any]],
     operation_func: Callable[[dict[str, Any], int, int], Any],
     dry_run: bool = False,
-    dry_run_message: Optional[str] = None,
-    dry_run_item_formatter: Optional[Callable[[dict[str, Any]], str]] = None,
+    dry_run_message: str | None = None,
+    dry_run_item_formatter: Callable[[dict[str, Any]], str] | None = None,
     delay: float = 0.1,
-    progress_callback: Optional[Callable[[int, int, str, str], None]] = None,
-    success_message_formatter: Optional[Callable[[str, Any], str]] = None,
-    failure_message_formatter: Optional[Callable[[str, Exception], str]] = None,
+    progress_callback: Callable[[int, int, str, str], None] | None = None,
+    success_message_formatter: Callable[[str, Any], str] | None = None,
+    failure_message_formatter: Callable[[str, Exception], str] | None = None,
     show_progress: bool = True,
-    progress_desc: Optional[str] = None,
+    progress_desc: str | None = None,
     confirm_threshold: int = 50,
     skip_confirmation: bool = False,
-    operation_name: Optional[str] = None,
+    operation_name: str | None = None,
 ) -> BulkResult:
     """
     Execute a bulk operation on a list of issues.

@@ -32,7 +32,7 @@ import argparse
 import json
 import sys
 from collections import defaultdict
-from typing import Any, Optional
+from typing import Any
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -44,8 +44,8 @@ from jira_assistant_skills_lib import (
 
 def get_dependencies(
     issue_key: str,
-    link_types: Optional[list[str]] = None,
-    profile: Optional[str] = None,
+    link_types: list[str] | None = None,
+    profile: str | None = None,
 ) -> dict[str, Any]:
     """
     Get all dependencies for an issue.

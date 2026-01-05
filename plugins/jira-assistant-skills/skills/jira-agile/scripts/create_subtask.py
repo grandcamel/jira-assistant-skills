@@ -11,7 +11,6 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Optional
 
 # Add shared lib to path
 # Imports from shared library
@@ -30,13 +29,13 @@ from jira_assistant_skills_lib import (
 def create_subtask(
     parent_key: str,
     summary: str,
-    description: Optional[str] = None,
-    assignee: Optional[str] = None,
-    priority: Optional[str] = None,
-    labels: Optional[list] = None,
-    time_estimate: Optional[str] = None,
-    custom_fields: Optional[dict] = None,
-    profile: Optional[str] = None,
+    description: str | None = None,
+    assignee: str | None = None,
+    priority: str | None = None,
+    labels: list | None = None,
+    time_estimate: str | None = None,
+    custom_fields: dict | None = None,
+    profile: str | None = None,
     client=None,
 ) -> dict:
     """

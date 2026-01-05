@@ -27,18 +27,18 @@ import csv
 import json
 import sys
 from io import StringIO
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import JiraError, get_jira_client, print_error
 
 
 def list_projects(
-    query: Optional[str] = None,
-    project_type: Optional[str] = None,
-    category_id: Optional[int] = None,
+    query: str | None = None,
+    project_type: str | None = None,
+    category_id: int | None = None,
     include_archived: bool = False,
-    expand: Optional[list[str]] = None,
+    expand: list[str] | None = None,
     start_at: int = 0,
     max_results: int = 50,
     output_format: str = "table",

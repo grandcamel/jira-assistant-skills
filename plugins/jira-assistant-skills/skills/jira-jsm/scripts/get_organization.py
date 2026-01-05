@@ -10,12 +10,11 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Optional
 
 from jira_assistant_skills_lib import JiraError, get_jira_client, print_error
 
 
-def get_organization_func(organization_id: int, profile: Optional[str] = None) -> dict:
+def get_organization_func(organization_id: int, profile: str | None = None) -> dict:
     """
     Get organization details.
 

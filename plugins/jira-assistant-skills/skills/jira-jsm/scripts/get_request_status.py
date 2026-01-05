@@ -12,7 +12,7 @@ import argparse
 import json
 import sys
 import time
-from typing import Any, Optional
+from typing import Any
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -22,7 +22,7 @@ from jira_assistant_skills_lib import (
 )
 
 
-def get_status_history(issue_key: str, profile: Optional[str] = None) -> dict[str, Any]:
+def get_status_history(issue_key: str, profile: str | None = None) -> dict[str, Any]:
     """
     Get request status history.
 

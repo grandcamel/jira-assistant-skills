@@ -11,7 +11,8 @@ Use sanitize_error_message() before logging errors in production environments.
 import functools
 import re
 import sys
-from typing import Any, Callable, Optional
+from collections.abc import Callable
+from typing import Any
 
 
 class JiraError(Exception):
@@ -20,8 +21,8 @@ class JiraError(Exception):
     def __init__(
         self,
         message: str,
-        status_code: Optional[int] = None,
-        response_data: Optional[dict[str, Any]] = None,
+        status_code: int | None = None,
+        response_data: dict[str, Any] | None = None,
     ):
         self.message = message
         self.status_code = status_code
@@ -61,7 +62,7 @@ class ValidationError(JiraError):
     """Raised when input validation fails."""
 
     def __init__(
-        self, message: str = "Validation failed", field: Optional[str] = None, **kwargs
+        self, message: str = "Validation failed", field: str | None = None, **kwargs
     ):
         self.field = field
         if field:
@@ -84,7 +85,7 @@ class NotFoundError(JiraError):
 class RateLimitError(JiraError):
     """Raised when API rate limit is exceeded."""
 
-    def __init__(self, retry_after: Optional[int] = None, **kwargs):
+    def __init__(self, retry_after: int | None = None, **kwargs):
         self.retry_after = retry_after
         message = "API rate limit exceeded"
         if retry_after:
@@ -158,7 +159,7 @@ class AutomationValidationError(AutomationError):
     def __init__(
         self,
         message: str = "Automation validation failed",
-        field: Optional[str] = None,
+        field: str | None = None,
         **kwargs,
     ):
         self.field = field

@@ -4,7 +4,7 @@ Helper utilities for permission scheme operations.
 Provides functions for parsing, formatting, and validating permission grants.
 """
 
-from typing import Any, Optional
+from typing import Any
 
 from jira_assistant_skills_lib import ValidationError
 
@@ -32,7 +32,7 @@ HOLDER_TYPES_WITHOUT_PARAMETER = [
 ]
 
 
-def parse_grant_string(grant_string: str) -> tuple[str, str, Optional[str]]:
+def parse_grant_string(grant_string: str) -> tuple[str, str, str | None]:
     """
     Parse a grant string in the format PERMISSION:HOLDER_TYPE[:HOLDER_PARAMETER].
 
@@ -138,7 +138,7 @@ def format_grant_for_export(grant: dict[str, Any]) -> str:
 
 
 def build_grant_payload(
-    permission: str, holder_type: str, holder_parameter: Optional[str] = None
+    permission: str, holder_type: str, holder_parameter: str | None = None
 ) -> dict[str, Any]:
     """
     Build a permission grant payload for the JIRA API.
@@ -212,7 +212,7 @@ def validate_holder_type(holder_type: str) -> bool:
 
 def find_scheme_by_name(
     schemes: list[dict[str, Any]], name: str, fuzzy: bool = False
-) -> Optional[dict[str, Any]]:
+) -> dict[str, Any] | None:
     """
     Find a permission scheme by name.
 
@@ -280,8 +280,8 @@ def find_grant_by_spec(
     grants: list[dict[str, Any]],
     permission: str,
     holder_type: str,
-    holder_parameter: Optional[str] = None,
-) -> Optional[dict[str, Any]]:
+    holder_parameter: str | None = None,
+) -> dict[str, Any] | None:
     """
     Find a specific grant by permission and holder specification.
 

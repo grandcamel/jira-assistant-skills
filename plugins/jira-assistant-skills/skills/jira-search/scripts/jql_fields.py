@@ -12,7 +12,7 @@ cached for 1 day by default.
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared library to path
 from jira_assistant_skills_lib import (
@@ -26,7 +26,7 @@ from jira_assistant_skills_lib import (
 
 def get_fields(
     client,
-    name_filter: Optional[str] = None,
+    name_filter: str | None = None,
     custom_only: bool = False,
     system_only: bool = False,
     use_cache: bool = True,

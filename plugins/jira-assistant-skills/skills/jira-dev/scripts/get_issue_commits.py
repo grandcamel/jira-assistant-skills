@@ -15,7 +15,7 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib path
 from jira_assistant_skills_lib import (
@@ -30,8 +30,8 @@ from jira_assistant_skills_lib import (
 def get_issue_commits(
     issue_key: str,
     detailed: bool = False,
-    repo_filter: Optional[str] = None,
-    profile: Optional[str] = None,
+    repo_filter: str | None = None,
+    profile: str | None = None,
 ) -> list[dict[str, Any]]:
     """
     Get commits linked to a JIRA issue via Development Information API.

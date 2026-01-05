@@ -10,7 +10,7 @@ Usage:
 
 import argparse
 import sys
-from typing import Any, Optional
+from typing import Any
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -21,7 +21,7 @@ from jira_assistant_skills_lib import (
 )
 
 
-def archive_version(version_id: str, profile: Optional[str] = None) -> dict[str, Any]:
+def archive_version(version_id: str, profile: str | None = None) -> dict[str, Any]:
     """
     Archive a version by ID.
 
@@ -40,7 +40,7 @@ def archive_version(version_id: str, profile: Optional[str] = None) -> dict[str,
 
 
 def archive_version_by_name(
-    project: str, version_name: str, profile: Optional[str] = None
+    project: str, version_name: str, profile: str | None = None
 ) -> dict[str, Any]:
     """
     Archive a version by name (requires project lookup).

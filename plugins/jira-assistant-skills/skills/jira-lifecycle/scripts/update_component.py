@@ -11,7 +11,7 @@ Usage:
 
 import argparse
 import sys
-from typing import Any, Optional
+from typing import Any
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -23,11 +23,11 @@ from jira_assistant_skills_lib import (
 
 def update_component(
     component_id: str,
-    name: Optional[str] = None,
-    description: Optional[str] = None,
-    lead_account_id: Optional[str] = None,
-    assignee_type: Optional[str] = None,
-    profile: Optional[str] = None,
+    name: str | None = None,
+    description: str | None = None,
+    lead_account_id: str | None = None,
+    assignee_type: str | None = None,
+    profile: str | None = None,
 ) -> dict[str, Any]:
     """
     Update a component.
@@ -63,10 +63,10 @@ def update_component(
 
 def update_component_dry_run(
     component_id: str,
-    name: Optional[str] = None,
-    description: Optional[str] = None,
-    lead_account_id: Optional[str] = None,
-    assignee_type: Optional[str] = None,
+    name: str | None = None,
+    description: str | None = None,
+    lead_account_id: str | None = None,
+    assignee_type: str | None = None,
 ) -> dict[str, Any]:
     """
     Show what would be updated without updating.

@@ -13,7 +13,6 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Optional
 
 # Add shared lib to path
 # Imports from shared library
@@ -40,9 +39,9 @@ def _parse_date_safe(date_str: str) -> str:
 
 def start_sprint(
     sprint_id: int,
-    start_date: Optional[str] = None,
-    end_date: Optional[str] = None,
-    profile: Optional[str] = None,
+    start_date: str | None = None,
+    end_date: str | None = None,
+    profile: str | None = None,
     client=None,
 ) -> dict:
     """
@@ -92,8 +91,8 @@ def start_sprint(
 
 def close_sprint(
     sprint_id: int,
-    move_incomplete_to: Optional[int] = None,
-    profile: Optional[str] = None,
+    move_incomplete_to: int | None = None,
+    profile: str | None = None,
     client=None,
 ) -> dict:
     """
@@ -144,11 +143,11 @@ def close_sprint(
 
 def update_sprint(
     sprint_id: int,
-    name: Optional[str] = None,
-    goal: Optional[str] = None,
-    start_date: Optional[str] = None,
-    end_date: Optional[str] = None,
-    profile: Optional[str] = None,
+    name: str | None = None,
+    goal: str | None = None,
+    start_date: str | None = None,
+    end_date: str | None = None,
+    profile: str | None = None,
     client=None,
 ) -> dict:
     """
@@ -207,9 +206,7 @@ def update_sprint(
             client.close()
 
 
-def get_active_sprint(
-    board_id: int, profile: Optional[str] = None, client=None
-) -> dict:
+def get_active_sprint(board_id: int, profile: str | None = None, client=None) -> dict:
     """
     Get the currently active sprint for a board.
 

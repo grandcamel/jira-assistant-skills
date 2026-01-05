@@ -24,7 +24,7 @@ Examples:
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -42,7 +42,7 @@ def delete_project(
     force: bool = False,
     dry_run: bool = False,
     client=None,
-) -> Optional[dict[str, Any]]:
+) -> dict[str, Any] | None:
     """
     Delete a JIRA project.
 

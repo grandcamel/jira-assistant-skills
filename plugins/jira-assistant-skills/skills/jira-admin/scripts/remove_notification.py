@@ -14,7 +14,7 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 from notification_utils import (
     format_recipient,
@@ -34,7 +34,7 @@ from jira_assistant_skills_lib import (
 
 def find_notification_in_scheme(
     scheme: dict[str, Any], notification_id: str
-) -> Optional[dict[str, Any]]:
+) -> dict[str, Any] | None:
     """
     Find a notification by ID in a scheme.
 
@@ -55,15 +55,15 @@ def find_notification_in_scheme(
 
 def remove_notification(
     client=None,
-    scheme_id: Optional[str] = None,
-    notification_id: Optional[str] = None,
-    event_name: Optional[str] = None,
-    event_id: Optional[str] = None,
-    recipient: Optional[str] = None,
+    scheme_id: str | None = None,
+    notification_id: str | None = None,
+    event_name: str | None = None,
+    event_id: str | None = None,
+    recipient: str | None = None,
     force: bool = False,
     confirmed: bool = True,
     dry_run: bool = False,
-    profile: Optional[str] = None,
+    profile: str | None = None,
 ) -> dict[str, Any]:
     """
     Remove a notification from a notification scheme.

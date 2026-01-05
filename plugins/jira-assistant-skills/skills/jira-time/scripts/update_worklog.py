@@ -7,7 +7,7 @@ Modifies time spent, start time, or comment on an existing worklog.
 
 import argparse
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -27,11 +27,11 @@ def update_worklog(
     client,
     issue_key: str,
     worklog_id: str,
-    time_spent: Optional[str] = None,
-    started: Optional[str] = None,
-    comment: Optional[str] = None,
+    time_spent: str | None = None,
+    started: str | None = None,
+    comment: str | None = None,
     adjust_estimate: str = "auto",
-    new_estimate: Optional[str] = None,
+    new_estimate: str | None = None,
 ) -> dict[str, Any]:
     """
     Update an existing worklog.

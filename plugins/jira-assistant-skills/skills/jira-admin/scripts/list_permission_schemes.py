@@ -21,7 +21,7 @@ Examples:
 
 import argparse
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -35,7 +35,7 @@ from jira_assistant_skills_lib import (
 
 
 def list_permission_schemes(
-    client, name_filter: Optional[str] = None, show_grants: bool = False
+    client, name_filter: str | None = None, show_grants: bool = False
 ) -> list[dict[str, Any]]:
     """
     List all permission schemes.

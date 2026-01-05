@@ -14,7 +14,7 @@ Features:
 
 import time
 from datetime import timedelta
-from typing import Any, Optional
+from typing import Any
 
 from cache import JiraCache, get_cache
 
@@ -41,7 +41,7 @@ class AutocompleteCache:
     TTL_AUTOCOMPLETE = timedelta(days=1)
     TTL_SUGGESTIONS = timedelta(hours=1)
 
-    def __init__(self, cache: Optional[JiraCache] = None):
+    def __init__(self, cache: JiraCache | None = None):
         """
         Initialize autocomplete cache.
 
@@ -54,7 +54,7 @@ class AutocompleteCache:
 
     def get_autocomplete_data(
         self, client=None, force_refresh: bool = False
-    ) -> Optional[dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """
         Get cached JQL autocomplete data.
 
@@ -277,7 +277,7 @@ class AutocompleteCache:
 
         return stats
 
-    def invalidate(self, field_name: Optional[str] = None) -> int:
+    def invalidate(self, field_name: str | None = None) -> int:
         """
         Invalidate cached autocomplete data.
 
@@ -344,7 +344,7 @@ class AutocompleteCache:
 
 
 # Singleton instance for shared access
-_autocomplete_cache: Optional[AutocompleteCache] = None
+_autocomplete_cache: AutocompleteCache | None = None
 
 
 def get_autocomplete_cache() -> AutocompleteCache:

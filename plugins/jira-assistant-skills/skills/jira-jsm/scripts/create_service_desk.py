@@ -12,7 +12,6 @@ Usage:
 import argparse
 import re
 import sys
-from typing import Optional
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -67,7 +66,7 @@ def list_available_templates() -> None:
 
 
 def create_service_desk(
-    name: str, key: str, project_template_key: str, profile: Optional[str] = None
+    name: str, key: str, project_template_key: str, profile: str | None = None
 ) -> dict:
     """
     Create a new service desk.

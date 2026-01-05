@@ -15,7 +15,7 @@ import argparse
 import json
 import re
 import sys
-from typing import Any, Optional
+from typing import Any
 from urllib.parse import urlparse
 
 # Add shared lib path
@@ -98,10 +98,10 @@ def parse_pr_url(pr_url: str) -> dict[str, Any]:
 def build_pr_comment(
     pr_url: str,
     pr_number: int,
-    title: Optional[str] = None,
-    status: Optional[str] = None,
-    author: Optional[str] = None,
-    provider: Optional[str] = None,
+    title: str | None = None,
+    status: str | None = None,
+    author: str | None = None,
+    provider: str | None = None,
 ) -> str:
     """
     Build formatted PR comment for JIRA.
@@ -143,10 +143,10 @@ def build_pr_comment(
 def link_pr(
     issue_key: str,
     pr_url: str,
-    title: Optional[str] = None,
-    status: Optional[str] = None,
-    author: Optional[str] = None,
-    profile: Optional[str] = None,
+    title: str | None = None,
+    status: str | None = None,
+    author: str | None = None,
+    profile: str | None = None,
     client=None,
 ) -> dict[str, Any]:
     """

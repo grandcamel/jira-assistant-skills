@@ -11,7 +11,7 @@ Usage:
 
 import argparse
 import sys
-from typing import Any, Optional
+from typing import Any
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -23,8 +23,8 @@ from jira_assistant_skills_lib import (
 
 def delete_component(
     component_id: str,
-    move_issues_to: Optional[str] = None,
-    profile: Optional[str] = None,
+    move_issues_to: str | None = None,
+    profile: str | None = None,
 ) -> None:
     """
     Delete a component.
@@ -46,8 +46,8 @@ def delete_component(
 
 def delete_component_with_confirmation(
     component_id: str,
-    move_issues_to: Optional[str] = None,
-    profile: Optional[str] = None,
+    move_issues_to: str | None = None,
+    profile: str | None = None,
 ) -> bool:
     """
     Delete a component with confirmation prompt.
@@ -92,7 +92,7 @@ def delete_component_with_confirmation(
 
 
 def delete_component_dry_run(
-    component_id: str, profile: Optional[str] = None
+    component_id: str, profile: str | None = None
 ) -> dict[str, Any]:
     """
     Show what component would be deleted without deleting.

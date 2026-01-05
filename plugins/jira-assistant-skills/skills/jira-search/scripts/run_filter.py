@@ -9,7 +9,6 @@ Usage:
 
 import argparse
 import sys
-from typing import Optional
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -23,10 +22,10 @@ from jira_assistant_skills_lib import (
 
 
 def run_filter(
-    filter_id: Optional[str] = None,
-    filter_name: Optional[str] = None,
+    filter_id: str | None = None,
+    filter_name: str | None = None,
     max_results: int = 50,
-    profile: Optional[str] = None,
+    profile: str | None = None,
 ) -> dict:
     """
     Execute a saved filter.

@@ -10,7 +10,6 @@ Usage:
 
 import argparse
 import sys
-from typing import Optional
 
 # Add shared lib to path
 # Imports from shared library
@@ -28,11 +27,11 @@ from jira_assistant_skills_lib import (
 
 
 def add_to_epic(
-    epic_key: Optional[str] = None,
-    issue_keys: Optional[list[str]] = None,
+    epic_key: str | None = None,
+    issue_keys: list[str] | None = None,
     dry_run: bool = False,
     remove: bool = False,
-    profile: Optional[str] = None,
+    profile: str | None = None,
     client=None,
 ) -> dict:
     """

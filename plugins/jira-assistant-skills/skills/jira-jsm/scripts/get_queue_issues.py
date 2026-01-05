@@ -11,7 +11,7 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 from jira_assistant_skills_lib import JiraError, get_jira_client, print_error
 
@@ -21,7 +21,7 @@ def get_queue_issues(
     queue_id: int,
     start: int = 0,
     limit: int = 50,
-    profile: Optional[str] = None,
+    profile: str | None = None,
 ) -> dict[str, Any]:
     """Get issues in a queue."""
     with get_jira_client(profile) as client:

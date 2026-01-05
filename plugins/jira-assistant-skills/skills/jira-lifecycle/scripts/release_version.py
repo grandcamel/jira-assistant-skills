@@ -12,7 +12,7 @@ Usage:
 import argparse
 import sys
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -25,9 +25,9 @@ from jira_assistant_skills_lib import (
 
 def release_version(
     version_id: str,
-    release_date: Optional[str] = None,
-    description: Optional[str] = None,
-    profile: Optional[str] = None,
+    release_date: str | None = None,
+    description: str | None = None,
+    profile: str | None = None,
 ) -> dict[str, Any]:
     """
     Release a version by ID.
@@ -60,9 +60,9 @@ def release_version(
 def release_version_by_name(
     project: str,
     version_name: str,
-    release_date: Optional[str] = None,
-    description: Optional[str] = None,
-    profile: Optional[str] = None,
+    release_date: str | None = None,
+    description: str | None = None,
+    profile: str | None = None,
 ) -> dict[str, Any]:
     """
     Release a version by name (requires project lookup).
@@ -113,8 +113,8 @@ def release_version_by_name(
 
 def release_version_dry_run(
     version_id: str,
-    release_date: Optional[str] = None,
-    description: Optional[str] = None,
+    release_date: str | None = None,
+    description: str | None = None,
 ) -> dict[str, Any]:
     """
     Show what would be released without releasing.

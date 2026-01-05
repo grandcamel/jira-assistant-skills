@@ -11,7 +11,6 @@ Usage:
 
 import argparse
 import sys
-from typing import Optional
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -22,7 +21,7 @@ from jira_assistant_skills_lib import (
 
 
 def list_service_desks(
-    start: int = 0, limit: int = 50, profile: Optional[str] = None
+    start: int = 0, limit: int = 50, profile: str | None = None
 ) -> dict:
     """
     List all JSM service desks.
@@ -43,7 +42,7 @@ def list_service_desks(
 
 
 def filter_service_desks(
-    service_desks: dict, project_key_filter: Optional[str] = None
+    service_desks: dict, project_key_filter: str | None = None
 ) -> dict:
     """
     Filter service desks by project key pattern.

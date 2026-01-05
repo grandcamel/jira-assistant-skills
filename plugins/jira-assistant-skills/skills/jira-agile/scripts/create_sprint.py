@@ -12,7 +12,6 @@ import argparse
 import json
 import sys
 from datetime import datetime
-from typing import Optional
 
 # Add shared lib to path
 # Imports from shared library
@@ -29,10 +28,10 @@ from jira_assistant_skills_lib import (
 def create_sprint(
     board_id: int,
     name: str,
-    start_date: Optional[str] = None,
-    end_date: Optional[str] = None,
-    goal: Optional[str] = None,
-    profile: Optional[str] = None,
+    start_date: str | None = None,
+    end_date: str | None = None,
+    goal: str | None = None,
+    profile: str | None = None,
     client=None,
 ) -> dict:
     """

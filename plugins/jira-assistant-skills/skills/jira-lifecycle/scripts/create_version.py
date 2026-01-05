@@ -11,7 +11,7 @@ Usage:
 
 import argparse
 import sys
-from typing import Any, Optional
+from typing import Any
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -24,12 +24,12 @@ from jira_assistant_skills_lib import (
 def create_version(
     project: str,
     name: str,
-    description: Optional[str] = None,
-    start_date: Optional[str] = None,
-    release_date: Optional[str] = None,
+    description: str | None = None,
+    start_date: str | None = None,
+    release_date: str | None = None,
     released: bool = False,
     archived: bool = False,
-    profile: Optional[str] = None,
+    profile: str | None = None,
 ) -> dict[str, Any]:
     """
     Create a project version.
@@ -65,9 +65,9 @@ def create_version(
 def create_version_dry_run(
     project: str,
     name: str,
-    description: Optional[str] = None,
-    start_date: Optional[str] = None,
-    release_date: Optional[str] = None,
+    description: str | None = None,
+    start_date: str | None = None,
+    release_date: str | None = None,
     released: bool = False,
     archived: bool = False,
 ) -> dict[str, Any]:

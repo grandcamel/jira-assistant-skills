@@ -22,7 +22,8 @@ Usage:
 import argparse
 import sys
 import time
-from typing import Any, Callable, Optional
+from collections.abc import Callable
+from typing import Any
 
 try:
     from tqdm import tqdm
@@ -67,11 +68,11 @@ CUSTOM_FIELD_PREFIXES = ["customfield_"]
 def clone_issue(
     client,
     source_issue: dict[str, Any],
-    target_project: Optional[str] = None,
-    prefix: Optional[str] = None,
+    target_project: str | None = None,
+    prefix: str | None = None,
     include_subtasks: bool = False,
     include_links: bool = False,
-    created_mapping: Optional[dict[str, str]] = None,
+    created_mapping: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     """
     Clone a single issue.
@@ -246,17 +247,17 @@ def clone_issue(
 
 def bulk_clone(
     client=None,
-    issue_keys: Optional[list[str]] = None,
-    jql: Optional[str] = None,
-    target_project: Optional[str] = None,
-    prefix: Optional[str] = None,
+    issue_keys: list[str] | None = None,
+    jql: str | None = None,
+    target_project: str | None = None,
+    prefix: str | None = None,
     include_subtasks: bool = False,
     include_links: bool = False,
     dry_run: bool = False,
     max_issues: int = 100,
     delay_between_ops: float = 0.2,
-    progress_callback: Optional[Callable] = None,
-    profile: Optional[str] = None,
+    progress_callback: Callable | None = None,
+    profile: str | None = None,
     show_progress: bool = True,
     confirm_threshold: int = 50,
     skip_confirmation: bool = False,

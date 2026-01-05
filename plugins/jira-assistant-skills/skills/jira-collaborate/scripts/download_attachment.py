@@ -13,7 +13,7 @@ import argparse
 import json
 import os
 import sys
-from typing import Any, Optional
+from typing import Any
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -28,7 +28,7 @@ from jira_assistant_skills_lib import (
 
 
 def list_attachments(
-    issue_key: str, profile: Optional[str] = None
+    issue_key: str, profile: str | None = None
 ) -> list[dict[str, Any]]:
     """
     List all attachments for an issue.
@@ -51,10 +51,10 @@ def list_attachments(
 
 def download_attachment(
     issue_key: str,
-    attachment_id: Optional[str] = None,
-    attachment_name: Optional[str] = None,
-    output_dir: Optional[str] = None,
-    profile: Optional[str] = None,
+    attachment_id: str | None = None,
+    attachment_name: str | None = None,
+    output_dir: str | None = None,
+    profile: str | None = None,
 ) -> str:
     """
     Download a specific attachment.
@@ -126,7 +126,7 @@ def download_attachment(
 
 
 def download_all_attachments(
-    issue_key: str, output_dir: Optional[str] = None, profile: Optional[str] = None
+    issue_key: str, output_dir: str | None = None, profile: str | None = None
 ) -> list[str]:
     """
     Download all attachments from an issue.

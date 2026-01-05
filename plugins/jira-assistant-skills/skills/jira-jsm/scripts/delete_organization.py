@@ -9,7 +9,6 @@ Usage:
 
 import argparse
 import sys
-from typing import Optional
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -19,9 +18,7 @@ from jira_assistant_skills_lib import (
 )
 
 
-def delete_organization_func(
-    organization_id: int, profile: Optional[str] = None
-) -> None:
+def delete_organization_func(organization_id: int, profile: str | None = None) -> None:
     """
     Delete an organization.
 

@@ -9,7 +9,7 @@ return types and example usage patterns.
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared library to path
 from jira_assistant_skills_lib import (
@@ -47,9 +47,9 @@ FUNCTION_EXAMPLES = {
 
 def get_functions(
     client,
-    name_filter: Optional[str] = None,
+    name_filter: str | None = None,
     list_only: bool = False,
-    type_filter: Optional[str] = None,
+    type_filter: str | None = None,
 ) -> list[dict[str, Any]]:
     """
     Get JQL functions.

@@ -11,7 +11,6 @@ import argparse
 import json
 import sys
 from datetime import datetime
-from typing import Optional
 
 # Add shared lib to path
 from jira_assistant_skills_lib import handle_errors
@@ -25,7 +24,7 @@ def get_jira_client(profile=None):
 
 
 def format_pending_approvals_table(
-    approvals: list, user_email: Optional[str] = None
+    approvals: list, user_email: str | None = None
 ) -> None:
     """Format pending approvals as table."""
     if not approvals:

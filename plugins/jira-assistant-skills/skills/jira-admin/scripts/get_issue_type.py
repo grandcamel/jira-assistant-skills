@@ -9,7 +9,7 @@ Requires 'Administer Jira' global permission for some features.
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import JiraError, get_jira_client, print_error
@@ -18,7 +18,7 @@ from jira_assistant_skills_lib import JiraError, get_jira_client, print_error
 def get_issue_type(
     issue_type_id: str,
     client=None,
-    profile: Optional[str] = None,
+    profile: str | None = None,
     show_alternatives: bool = False,
 ) -> dict[str, Any]:
     """

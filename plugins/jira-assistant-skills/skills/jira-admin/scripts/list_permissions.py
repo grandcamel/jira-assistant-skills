@@ -22,7 +22,7 @@ Examples:
 
 import argparse
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -36,7 +36,7 @@ from jira_assistant_skills_lib import (
 
 
 def list_permissions(
-    client, permission_type: Optional[str] = None, search: Optional[str] = None
+    client, permission_type: str | None = None, search: str | None = None
 ) -> list[dict[str, Any]]:
     """
     List all available permissions.

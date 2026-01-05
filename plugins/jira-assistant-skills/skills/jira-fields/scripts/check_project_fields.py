@@ -10,7 +10,7 @@ Usage:
 
 import argparse
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -35,9 +35,9 @@ AGILE_FIELDS = {
 
 def check_project_fields(
     project_key: str,
-    issue_type: Optional[str] = None,
+    issue_type: str | None = None,
     check_agile: bool = False,
-    profile: Optional[str] = None,
+    profile: str | None = None,
     client=None,
 ) -> dict[str, Any]:
     """

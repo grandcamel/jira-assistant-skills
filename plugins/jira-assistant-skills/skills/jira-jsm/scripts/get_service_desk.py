@@ -10,7 +10,6 @@ Usage:
 
 import argparse
 import sys
-from typing import Optional
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -20,7 +19,7 @@ from jira_assistant_skills_lib import (
 )
 
 
-def get_service_desk(service_desk_id: str, profile: Optional[str] = None) -> dict:
+def get_service_desk(service_desk_id: str, profile: str | None = None) -> dict:
     """
     Get JSM service desk details by ID.
 

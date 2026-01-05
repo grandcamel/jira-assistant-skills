@@ -9,7 +9,7 @@ with optional validation.
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared library to path
 from jira_assistant_skills_lib import JiraError, get_jira_client, print_error
@@ -33,7 +33,7 @@ TEMPLATES = {
 def build_jql(
     clauses: list[str],
     operator: str = "AND",
-    order_by: Optional[str] = None,
+    order_by: str | None = None,
     order_desc: bool = False,
 ) -> str:
     """
@@ -63,7 +63,7 @@ def build_jql(
 
 
 def build_from_template(
-    template_name: str, substitutions: Optional[dict[str, str]] = None
+    template_name: str, substitutions: dict[str, str] | None = None
 ) -> str:
     """
     Build JQL from a predefined template.
@@ -93,10 +93,10 @@ def build_from_template(
 
 def build_and_validate(
     client,
-    clauses: Optional[list[str]] = None,
-    template: Optional[str] = None,
+    clauses: list[str] | None = None,
+    template: str | None = None,
     operator: str = "AND",
-    order_by: Optional[str] = None,
+    order_by: str | None = None,
     order_desc: bool = False,
 ) -> dict[str, Any]:
     """

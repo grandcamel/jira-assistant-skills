@@ -12,7 +12,7 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -26,7 +26,7 @@ def get_service_request(
     issue_key: str,
     show_sla: bool = False,
     show_participants: bool = False,
-    profile: Optional[str] = None,
+    profile: str | None = None,
 ) -> dict[str, Any]:
     """
     Get service request details.

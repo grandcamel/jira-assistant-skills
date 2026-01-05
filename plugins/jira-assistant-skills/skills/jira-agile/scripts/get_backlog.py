@@ -12,7 +12,6 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Optional
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -27,10 +26,10 @@ from jira_assistant_skills_lib import (
 
 def get_backlog(
     board_id: int,
-    jql_filter: Optional[str] = None,
+    jql_filter: str | None = None,
     max_results: int = 100,
     group_by_epic: bool = False,
-    profile: Optional[str] = None,
+    profile: str | None = None,
     client=None,
 ) -> dict:
     """

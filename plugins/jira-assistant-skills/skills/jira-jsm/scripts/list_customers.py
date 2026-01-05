@@ -13,7 +13,6 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Optional
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -24,10 +23,10 @@ from jira_assistant_skills_lib import (
 
 def list_service_desk_customers(
     service_desk_id: str,
-    query: Optional[str] = None,
+    query: str | None = None,
     start: int = 0,
     limit: int = 50,
-    profile: Optional[str] = None,
+    profile: str | None = None,
 ) -> dict:
     """
     List customers for a service desk.

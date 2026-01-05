@@ -15,7 +15,7 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 from notification_utils import (
     format_recipient,
@@ -34,12 +34,12 @@ from jira_assistant_skills_lib import (
 
 def add_notification(
     client=None,
-    scheme_id: Optional[str] = None,
-    event_id: Optional[str] = None,
-    event_name: Optional[str] = None,
-    recipients: Optional[list[str]] = None,
+    scheme_id: str | None = None,
+    event_id: str | None = None,
+    event_name: str | None = None,
+    recipients: list[str] | None = None,
     dry_run: bool = False,
-    profile: Optional[str] = None,
+    profile: str | None = None,
 ) -> dict[str, Any]:
     """
     Add notifications to a notification scheme.

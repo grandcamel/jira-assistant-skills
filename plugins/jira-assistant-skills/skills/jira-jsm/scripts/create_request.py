@@ -11,7 +11,7 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -27,10 +27,10 @@ def create_service_request(
     request_type_id: str,
     summary: str,
     description: str,
-    custom_fields: Optional[dict[str, Any]] = None,
-    participants: Optional[list[str]] = None,
-    on_behalf_of: Optional[str] = None,
-    profile: Optional[str] = None,
+    custom_fields: dict[str, Any] | None = None,
+    participants: list[str] | None = None,
+    on_behalf_of: str | None = None,
+    profile: str | None = None,
 ) -> dict[str, Any]:
     """
     Create a service request.

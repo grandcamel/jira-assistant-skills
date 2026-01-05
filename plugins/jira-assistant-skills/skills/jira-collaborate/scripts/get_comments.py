@@ -11,7 +11,7 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -27,7 +27,7 @@ def get_comments(
     limit: int = 50,
     offset: int = 0,
     order: str = "desc",
-    profile: Optional[str] = None,
+    profile: str | None = None,
 ) -> dict[str, Any]:
     """
     Get all comments on an issue.
@@ -56,7 +56,7 @@ def get_comments(
 
 
 def get_comment_by_id(
-    issue_key: str, comment_id: str, profile: Optional[str] = None
+    issue_key: str, comment_id: str, profile: str | None = None
 ) -> dict[str, Any]:
     """
     Get a specific comment by ID.

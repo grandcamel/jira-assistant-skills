@@ -7,7 +7,7 @@ Provides paginated listing with filtering capabilities.
 
 import argparse
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -21,7 +21,7 @@ from jira_assistant_skills_lib import (
 
 def list_screen_schemes(
     client=None,
-    filter_pattern: Optional[str] = None,
+    filter_pattern: str | None = None,
     fetch_all: bool = False,
     max_results: int = 100,
 ) -> list[dict[str, Any]]:

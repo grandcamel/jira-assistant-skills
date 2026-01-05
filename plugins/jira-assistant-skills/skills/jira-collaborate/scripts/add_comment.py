@@ -10,7 +10,6 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Optional
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -24,7 +23,7 @@ from jira_assistant_skills_lib import (
 
 
 def add_comment(
-    issue_key: str, body: str, format_type: str = "text", profile: Optional[str] = None
+    issue_key: str, body: str, format_type: str = "text", profile: str | None = None
 ) -> dict:
     """
     Add a public comment to an issue.
@@ -58,9 +57,9 @@ def add_comment_with_visibility(
     issue_key: str,
     body: str,
     format_type: str = "text",
-    visibility_type: Optional[str] = None,
-    visibility_value: Optional[str] = None,
-    profile: Optional[str] = None,
+    visibility_type: str | None = None,
+    visibility_value: str | None = None,
+    profile: str | None = None,
 ) -> dict:
     """
     Add a comment with visibility restrictions.

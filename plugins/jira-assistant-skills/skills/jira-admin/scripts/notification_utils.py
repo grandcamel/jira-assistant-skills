@@ -7,7 +7,7 @@ Provides helper functions for:
 - Notification formatting
 """
 
-from typing import Any, Optional
+from typing import Any
 
 # Common notification events with their IDs
 # Note: Event IDs may vary by JIRA instance
@@ -77,7 +77,7 @@ def get_event_name(event_id: str) -> str:
     return NOTIFICATION_EVENTS.get(str(event_id), f"Unknown Event ({event_id})")
 
 
-def get_event_id(event_name: str) -> Optional[str]:
+def get_event_id(event_name: str) -> str | None:
     """
     Get event ID by name (case-insensitive).
 
@@ -247,8 +247,8 @@ def find_notification_by_event_and_recipient(
     scheme: dict[str, Any],
     event_id: str,
     recipient_type: str,
-    parameter: Optional[str] = None,
-) -> Optional[dict[str, Any]]:
+    parameter: str | None = None,
+) -> dict[str, Any] | None:
     """
     Find a specific notification in a scheme by event and recipient.
 

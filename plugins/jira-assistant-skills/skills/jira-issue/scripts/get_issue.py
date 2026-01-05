@@ -12,7 +12,6 @@ Usage:
 
 import argparse
 import sys
-from typing import Optional
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -25,7 +24,7 @@ from jira_assistant_skills_lib import (
 
 
 def get_issue(
-    issue_key: str, fields: Optional[list] = None, profile: Optional[str] = None
+    issue_key: str, fields: list | None = None, profile: str | None = None
 ) -> dict:
     """
     Get a JIRA issue.

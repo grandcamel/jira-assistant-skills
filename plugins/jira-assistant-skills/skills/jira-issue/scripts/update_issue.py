@@ -11,7 +11,6 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Optional
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -26,15 +25,15 @@ from jira_assistant_skills_lib import (
 
 def update_issue(
     issue_key: str,
-    summary: Optional[str] = None,
-    description: Optional[str] = None,
-    priority: Optional[str] = None,
-    assignee: Optional[str] = None,
-    labels: Optional[list] = None,
-    components: Optional[list] = None,
-    custom_fields: Optional[dict] = None,
+    summary: str | None = None,
+    description: str | None = None,
+    priority: str | None = None,
+    assignee: str | None = None,
+    labels: list | None = None,
+    components: list | None = None,
+    custom_fields: dict | None = None,
     notify_users: bool = True,
-    profile: Optional[str] = None,
+    profile: str | None = None,
 ) -> None:
     """
     Update a JIRA issue.

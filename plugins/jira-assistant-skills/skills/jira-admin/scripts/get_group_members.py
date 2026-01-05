@@ -14,7 +14,7 @@ import csv
 import json
 import sys
 from io import StringIO
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import JiraError, get_jira_client, print_error
@@ -22,8 +22,8 @@ from jira_assistant_skills_lib import JiraError, get_jira_client, print_error
 
 def get_members(
     client,
-    group_name: Optional[str] = None,
-    group_id: Optional[str] = None,
+    group_name: str | None = None,
+    group_id: str | None = None,
     include_inactive: bool = False,
     start_at: int = 0,
     max_results: int = 50,

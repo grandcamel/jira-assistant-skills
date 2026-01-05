@@ -15,7 +15,7 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -32,7 +32,7 @@ def list_manual_rules(
     context_type: str = "issue",
     limit: int = 50,
     fetch_all: bool = False,
-    profile: Optional[str] = None,
+    profile: str | None = None,
 ) -> list[dict[str, Any]]:
     """
     List manually-triggered automation rules.

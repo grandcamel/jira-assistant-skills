@@ -10,13 +10,13 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 from jira_assistant_skills_lib import JiraError, get_jira_client, print_error
 
 
 def get_queue(
-    service_desk_id: int, queue_id: int, profile: Optional[str] = None
+    service_desk_id: int, queue_id: int, profile: str | None = None
 ) -> dict[str, Any]:
     """Get queue details."""
     with get_jira_client(profile) as client:

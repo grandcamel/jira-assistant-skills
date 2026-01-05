@@ -22,7 +22,7 @@ Examples:
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -148,7 +148,7 @@ def export_grants_template(scheme: dict[str, Any]) -> list[str]:
 
 
 def format_permission_scheme(
-    scheme: dict[str, Any], output_format: str = "table", group_by: Optional[str] = None
+    scheme: dict[str, Any], output_format: str = "table", group_by: str | None = None
 ) -> str:
     """
     Format a permission scheme for output.

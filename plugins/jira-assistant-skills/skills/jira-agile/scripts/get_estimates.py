@@ -13,7 +13,6 @@ import argparse
 import json
 import sys
 from collections import defaultdict
-from typing import Optional
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -28,10 +27,10 @@ from jira_assistant_skills_lib import (
 
 
 def get_estimates(
-    sprint_id: Optional[int] = None,
-    epic_key: Optional[str] = None,
-    group_by: Optional[str] = None,
-    profile: Optional[str] = None,
+    sprint_id: int | None = None,
+    epic_key: str | None = None,
+    group_by: str | None = None,
+    profile: str | None = None,
     client=None,
 ) -> dict:
     """

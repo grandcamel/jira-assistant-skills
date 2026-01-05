@@ -10,7 +10,6 @@ Usage:
 
 import argparse
 import sys
-from typing import Optional
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -25,7 +24,7 @@ from jira_assistant_skills_lib import (
 )
 
 
-def list_watchers(issue_key: str, profile: Optional[str] = None) -> list:
+def list_watchers(issue_key: str, profile: str | None = None) -> list:
     """List watchers on an issue."""
     issue_key = validate_issue_key(issue_key)
     client = get_jira_client(profile)
@@ -37,7 +36,7 @@ def list_watchers(issue_key: str, profile: Optional[str] = None) -> list:
     return result.get("watchers", [])
 
 
-def add_watcher(issue_key: str, user: str, profile: Optional[str] = None) -> None:
+def add_watcher(issue_key: str, user: str, profile: str | None = None) -> None:
     """Add a watcher to an issue."""
     issue_key = validate_issue_key(issue_key)
     client = get_jira_client(profile)
@@ -56,7 +55,7 @@ def add_watcher(issue_key: str, user: str, profile: Optional[str] = None) -> Non
     client.close()
 
 
-def remove_watcher(issue_key: str, user: str, profile: Optional[str] = None) -> None:
+def remove_watcher(issue_key: str, user: str, profile: str | None = None) -> None:
     """Remove a watcher from an issue."""
     issue_key = validate_issue_key(issue_key)
     client = get_jira_client(profile)

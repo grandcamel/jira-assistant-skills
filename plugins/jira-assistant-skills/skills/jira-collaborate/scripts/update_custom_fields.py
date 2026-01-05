@@ -11,7 +11,6 @@ import argparse
 import contextlib
 import json
 import sys
-from typing import Optional
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -25,10 +24,10 @@ from jira_assistant_skills_lib import (
 
 def update_custom_fields(
     issue_key: str,
-    field: Optional[str] = None,
-    value: Optional[str] = None,
-    fields_json: Optional[str] = None,
-    profile: Optional[str] = None,
+    field: str | None = None,
+    value: str | None = None,
+    fields_json: str | None = None,
+    profile: str | None = None,
 ) -> None:
     """
     Update custom fields on an issue.

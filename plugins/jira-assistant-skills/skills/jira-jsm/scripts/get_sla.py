@@ -11,7 +11,7 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -26,7 +26,7 @@ from jira_assistant_skills_lib import (
 
 
 def get_slas(
-    issue_key: str, sla_id: Optional[str] = None, profile: Optional[str] = None
+    issue_key: str, sla_id: str | None = None, profile: str | None = None
 ) -> dict[str, Any]:
     """
     Get SLA information for a service request.

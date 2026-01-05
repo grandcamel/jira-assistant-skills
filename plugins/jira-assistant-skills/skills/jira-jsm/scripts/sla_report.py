@@ -14,7 +14,7 @@ import csv
 import json
 import sys
 from io import StringIO
-from typing import Any, Optional
+from typing import Any
 
 from jira_assistant_skills_lib import (
     get_jira_client,
@@ -23,12 +23,12 @@ from jira_assistant_skills_lib import (
 
 
 def generate_sla_report(
-    project: Optional[str] = None,
-    service_desk_id: Optional[int] = None,
-    jql: Optional[str] = None,
-    sla_name: Optional[str] = None,
+    project: str | None = None,
+    service_desk_id: int | None = None,
+    jql: str | None = None,
+    sla_name: str | None = None,
     breached_only: bool = False,
-    profile: Optional[str] = None,
+    profile: str | None = None,
 ) -> dict[str, Any]:
     """Generate SLA compliance report."""
     with get_jira_client(profile) as client:

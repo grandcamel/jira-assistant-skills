@@ -8,7 +8,6 @@ Requires 'Administer Jira' global permission.
 
 import argparse
 import sys
-from typing import Optional
 
 # Add shared lib to path
 from jira_assistant_skills_lib import JiraError, get_jira_client, print_error
@@ -18,7 +17,7 @@ def assign_issue_type_scheme(
     scheme_id: str,
     project_id: str,
     client=None,
-    profile: Optional[str] = None,
+    profile: str | None = None,
     dry_run: bool = False,
 ) -> bool:
     """

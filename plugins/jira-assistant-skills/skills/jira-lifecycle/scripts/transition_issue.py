@@ -16,7 +16,6 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Optional
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -40,7 +39,7 @@ def get_context_workflow_hint(
     project_key: str,
     issue_type: str,
     current_status: str,
-    profile: Optional[str] = None,
+    profile: str | None = None,
 ) -> str:
     """
     Get workflow hint from project context if available.
@@ -75,13 +74,13 @@ def get_context_workflow_hint(
 
 def transition_issue(
     issue_key: str,
-    transition_id: Optional[str] = None,
-    transition_name: Optional[str] = None,
-    resolution: Optional[str] = None,
-    comment: Optional[str] = None,
-    fields: Optional[dict] = None,
-    sprint_id: Optional[int] = None,
-    profile: Optional[str] = None,
+    transition_id: str | None = None,
+    transition_name: str | None = None,
+    resolution: str | None = None,
+    comment: str | None = None,
+    fields: dict | None = None,
+    sprint_id: int | None = None,
+    profile: str | None = None,
     dry_run: bool = False,
 ) -> dict:
     """

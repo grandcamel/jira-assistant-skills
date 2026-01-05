@@ -27,7 +27,7 @@ Examples:
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -90,8 +90,8 @@ def load_template(file_path: str) -> list[str]:
 def create_permission_scheme(
     client,
     name: str,
-    description: Optional[str] = None,
-    grants: Optional[list[str]] = None,
+    description: str | None = None,
+    grants: list[str] | None = None,
     dry_run: bool = False,
 ) -> dict[str, Any]:
     """
@@ -137,8 +137,8 @@ def clone_permission_scheme(
     client,
     source_id: int,
     new_name: str,
-    description: Optional[str] = None,
-    additional_grants: Optional[list[str]] = None,
+    description: str | None = None,
+    additional_grants: list[str] | None = None,
 ) -> dict[str, Any]:
     """
     Clone an existing permission scheme.

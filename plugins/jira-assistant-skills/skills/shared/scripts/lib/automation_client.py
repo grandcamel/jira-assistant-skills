@@ -7,7 +7,7 @@ which uses a different base URL than the standard Jira REST API.
 API Documentation: https://developer.atlassian.com/cloud/automation/rest/
 """
 
-from typing import Any, Optional
+from typing import Any
 
 import requests
 from requests.adapters import HTTPAdapter
@@ -34,7 +34,7 @@ class AutomationClient:
         site_url: str,
         email: str,
         api_token: str,
-        cloud_id: Optional[str] = None,
+        cloud_id: str | None = None,
         product: str = "jira",
         use_gateway: bool = False,
         timeout: int = 30,
@@ -238,7 +238,7 @@ class AutomationClient:
     def get(
         self,
         endpoint: str,
-        params: Optional[dict[str, Any]] = None,
+        params: dict[str, Any] | None = None,
         operation: str = "fetch automation data",
     ) -> dict[str, Any]:
         """
@@ -259,7 +259,7 @@ class AutomationClient:
     def post(
         self,
         endpoint: str,
-        data: Optional[dict[str, Any]] = None,
+        data: dict[str, Any] | None = None,
         operation: str = "create automation resource",
     ) -> dict[str, Any]:
         """
@@ -280,7 +280,7 @@ class AutomationClient:
     def put(
         self,
         endpoint: str,
-        data: Optional[dict[str, Any]] = None,
+        data: dict[str, Any] | None = None,
         operation: str = "update automation resource",
     ) -> dict[str, Any]:
         """
@@ -319,9 +319,7 @@ class AutomationClient:
     # Rule Discovery & Inspection
     # -------------------------------------------------------------------------
 
-    def get_rules(
-        self, limit: int = 50, cursor: Optional[str] = None
-    ) -> dict[str, Any]:
+    def get_rules(self, limit: int = 50, cursor: str | None = None) -> dict[str, Any]:
         """
         List automation rules with pagination.
 
@@ -342,11 +340,11 @@ class AutomationClient:
 
     def search_rules(
         self,
-        trigger: Optional[str] = None,
-        state: Optional[str] = None,
-        scope: Optional[str] = None,
+        trigger: str | None = None,
+        state: str | None = None,
+        scope: str | None = None,
         limit: int = 50,
-        cursor: Optional[str] = None,
+        cursor: str | None = None,
     ) -> dict[str, Any]:
         """
         Search automation rules with filters.
@@ -445,7 +443,7 @@ class AutomationClient:
     # -------------------------------------------------------------------------
 
     def get_manual_rules(
-        self, context_type: str = "issue", limit: int = 50, cursor: Optional[str] = None
+        self, context_type: str = "issue", limit: int = 50, cursor: str | None = None
     ) -> dict[str, Any]:
         """
         List manually-triggered automation rules.
@@ -470,7 +468,7 @@ class AutomationClient:
         self,
         rule_id: str,
         context: dict[str, Any],
-        properties: Optional[dict[str, Any]] = None,
+        properties: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """
         Invoke a manual automation rule.
@@ -499,9 +497,9 @@ class AutomationClient:
 
     def get_templates(
         self,
-        category: Optional[str] = None,
+        category: str | None = None,
         limit: int = 50,
-        cursor: Optional[str] = None,
+        cursor: str | None = None,
     ) -> dict[str, Any]:
         """
         List available automation templates.
@@ -553,8 +551,8 @@ class AutomationClient:
         self,
         template_id: str,
         parameters: dict[str, Any],
-        name: Optional[str] = None,
-        scope: Optional[str] = None,
+        name: str | None = None,
+        scope: str | None = None,
     ) -> dict[str, Any]:
         """
         Create an automation rule from a template.
@@ -587,8 +585,8 @@ class AutomationClient:
         name: str,
         trigger: dict[str, Any],
         components: list[dict[str, Any]],
-        scope: Optional[dict[str, Any]] = None,
-        description: Optional[str] = None,
+        scope: dict[str, Any] | None = None,
+        description: str | None = None,
         state: str = "ENABLED",
     ) -> dict[str, Any]:
         """

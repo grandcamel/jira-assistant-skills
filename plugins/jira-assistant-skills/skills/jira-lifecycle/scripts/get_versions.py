@@ -12,7 +12,7 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -22,7 +22,7 @@ from jira_assistant_skills_lib import (
 )
 
 
-def get_versions(project: str, profile: Optional[str] = None) -> list[dict[str, Any]]:
+def get_versions(project: str, profile: str | None = None) -> list[dict[str, Any]]:
     """
     Get all versions for a project.
 
@@ -40,7 +40,7 @@ def get_versions(project: str, profile: Optional[str] = None) -> list[dict[str, 
     return result
 
 
-def get_version_by_id(version_id: str, profile: Optional[str] = None) -> dict[str, Any]:
+def get_version_by_id(version_id: str, profile: str | None = None) -> dict[str, Any]:
     """
     Get a specific version by ID.
 
@@ -60,8 +60,8 @@ def get_version_by_id(version_id: str, profile: Optional[str] = None) -> dict[st
 
 def filter_versions(
     versions: list[dict[str, Any]],
-    released: Optional[bool] = None,
-    archived: Optional[bool] = None,
+    released: bool | None = None,
+    archived: bool | None = None,
 ) -> list[dict[str, Any]]:
     """
     Filter versions by status.
@@ -86,7 +86,7 @@ def filter_versions(
 
 
 def get_version_issue_counts(
-    version_id: str, profile: Optional[str] = None
+    version_id: str, profile: str | None = None
 ) -> dict[str, Any]:
     """
     Get issue counts for a version.
@@ -106,7 +106,7 @@ def get_version_issue_counts(
 
 
 def get_version_unresolved_count(
-    version_id: str, profile: Optional[str] = None
+    version_id: str, profile: str | None = None
 ) -> dict[str, Any]:
     """
     Get unresolved issue count for a version.

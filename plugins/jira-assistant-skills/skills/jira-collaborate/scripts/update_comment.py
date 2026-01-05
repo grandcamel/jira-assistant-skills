@@ -10,7 +10,7 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -28,7 +28,7 @@ def update_comment(
     comment_id: str,
     body: str,
     format_type: str = "text",
-    profile: Optional[str] = None,
+    profile: str | None = None,
 ) -> dict[str, Any]:
     """
     Update an existing comment.

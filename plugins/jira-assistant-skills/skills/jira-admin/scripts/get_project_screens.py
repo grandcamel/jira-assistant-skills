@@ -10,7 +10,7 @@ Shows the complete 3-tier screen hierarchy for a project:
 
 import argparse
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -24,8 +24,8 @@ from jira_assistant_skills_lib import (
 def get_project_screens(
     project_key: str,
     client=None,
-    issue_type: Optional[str] = None,
-    operation: Optional[str] = None,
+    issue_type: str | None = None,
+    operation: str | None = None,
     show_issue_types: bool = False,
     show_full_hierarchy: bool = False,
     show_available_fields: bool = False,

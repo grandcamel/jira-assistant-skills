@@ -24,12 +24,11 @@ shared_lib_path = str(
 if shared_lib_path not in sys.path:
     sys.path.insert(0, shared_lib_path)
 
-from typing import Optional
 
 from jira_assistant_skills_lib import get_jira_client
 
 
-def find_affected_assets(iql: str, object_type: Optional[str] = None):
+def find_affected_assets(iql: str, object_type: str | None = None):
     """
     Find assets matching criteria.
 

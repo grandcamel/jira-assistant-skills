@@ -10,7 +10,7 @@ import json
 import sys
 from collections import defaultdict
 from datetime import datetime, timedelta
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -24,11 +24,11 @@ from jira_assistant_skills_lib import (
 
 def generate_report(
     client,
-    project: Optional[str] = None,
-    author: Optional[str] = None,
-    since: Optional[str] = None,
-    until: Optional[str] = None,
-    group_by: Optional[str] = None,
+    project: str | None = None,
+    author: str | None = None,
+    since: str | None = None,
+    until: str | None = None,
+    group_by: str | None = None,
 ) -> dict[str, Any]:
     """
     Generate a time report.

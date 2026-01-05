@@ -8,7 +8,6 @@ Requires 'Administer Jira' global permission.
 
 import argparse
 import sys
-from typing import Optional
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -23,7 +22,7 @@ def add_issue_types_to_scheme(
     scheme_id: str,
     issue_type_ids: list[str],
     client=None,
-    profile: Optional[str] = None,
+    profile: str | None = None,
 ) -> bool:
     """
     Add issue types to a scheme.

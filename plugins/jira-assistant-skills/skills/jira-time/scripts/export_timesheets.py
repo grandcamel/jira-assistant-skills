@@ -11,7 +11,7 @@ import json
 import sys
 from datetime import datetime, timedelta
 from io import StringIO
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -97,10 +97,10 @@ def write_export(data: dict[str, Any], output_file: str, format_type: str) -> No
 
 def fetch_timesheet_data(
     client,
-    project: Optional[str] = None,
-    author: Optional[str] = None,
-    since: Optional[str] = None,
-    until: Optional[str] = None,
+    project: str | None = None,
+    author: str | None = None,
+    since: str | None = None,
+    until: str | None = None,
 ) -> dict[str, Any]:
     """
     Fetch timesheet data from JIRA.

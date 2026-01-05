@@ -13,14 +13,14 @@ Supports:
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import JiraError, get_jira_client, print_error
 
 
 def get_user_by_id(
-    client, account_id: str, expand: Optional[list[str]] = None
+    client, account_id: str, expand: list[str] | None = None
 ) -> dict[str, Any]:
     """
     Get user details by account ID.
@@ -37,7 +37,7 @@ def get_user_by_id(
 
 
 def get_user_by_email(
-    client, email: str, expand: Optional[list[str]] = None
+    client, email: str, expand: list[str] | None = None
 ) -> dict[str, Any]:
     """
     Get user details by email address.
@@ -55,7 +55,7 @@ def get_user_by_email(
     return client.get_user(email=email, expand=expand)
 
 
-def get_current_user(client, expand: Optional[list[str]] = None) -> dict[str, Any]:
+def get_current_user(client, expand: list[str] | None = None) -> dict[str, Any]:
     """
     Get the current authenticated user.
 

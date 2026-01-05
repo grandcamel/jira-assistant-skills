@@ -7,7 +7,7 @@ Adds a field to a specific tab or the default tab.
 
 import argparse
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -23,8 +23,8 @@ from jira_assistant_skills_lib import (
 def add_field_to_screen(
     screen_id: int,
     field_id: str,
-    tab_id: Optional[int] = None,
-    tab_name: Optional[str] = None,
+    tab_id: int | None = None,
+    tab_name: str | None = None,
     client=None,
     dry_run: bool = False,
 ) -> dict[str, Any]:

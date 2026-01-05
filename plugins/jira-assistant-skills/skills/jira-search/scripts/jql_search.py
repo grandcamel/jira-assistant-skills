@@ -14,7 +14,6 @@ Usage:
 
 import argparse
 import sys
-from typing import Optional
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -49,7 +48,7 @@ def save_search_as_filter(
     client,
     jql: str,
     name: str,
-    description: Optional[str] = None,
+    description: str | None = None,
     favourite: bool = False,
 ) -> dict:
     """
@@ -70,10 +69,10 @@ def save_search_as_filter(
 
 def search_issues(
     jql: str,
-    fields: Optional[list] = None,
+    fields: list | None = None,
     max_results: int = 50,
-    next_page_token: Optional[str] = None,
-    profile: Optional[str] = None,
+    next_page_token: str | None = None,
+    profile: str | None = None,
     include_agile: bool = False,
     include_links: bool = False,
     include_time: bool = False,

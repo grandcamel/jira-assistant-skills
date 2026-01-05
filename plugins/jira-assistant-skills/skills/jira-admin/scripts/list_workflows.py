@@ -9,7 +9,7 @@ Requires 'Administer Jira' global permission.
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -23,8 +23,8 @@ from jira_assistant_skills_lib import (
 def list_workflows(
     client,
     details: bool = False,
-    name_filter: Optional[str] = None,
-    scope: Optional[str] = None,
+    name_filter: str | None = None,
+    scope: str | None = None,
     show_usage: bool = False,
     max_results: int = 50,
     start_at: int = 0,

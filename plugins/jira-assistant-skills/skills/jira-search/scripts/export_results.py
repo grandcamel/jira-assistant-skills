@@ -10,7 +10,6 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Optional
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -26,9 +25,9 @@ def export_results(
     jql: str,
     output_file: str,
     format_type: str = "csv",
-    fields: Optional[list] = None,
+    fields: list | None = None,
     max_results: int = 1000,
-    profile: Optional[str] = None,
+    profile: str | None = None,
 ) -> None:
     """
     Export search results to file.

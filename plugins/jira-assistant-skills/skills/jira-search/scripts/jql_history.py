@@ -18,7 +18,7 @@ import json
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -71,7 +71,7 @@ def save_history(history: dict[str, Any]) -> None:
 
 
 def add_query(
-    jql: str, name: Optional[str] = None, description: Optional[str] = None
+    jql: str, name: str | None = None, description: str | None = None
 ) -> dict[str, Any]:
     """
     Add a query to history.
@@ -110,7 +110,7 @@ def add_query(
     return entry
 
 
-def get_query(identifier: str) -> Optional[dict[str, Any]]:
+def get_query(identifier: str) -> dict[str, Any] | None:
     """
     Get a query by ID or name.
 
@@ -200,9 +200,7 @@ def clear_history() -> int:
     return count
 
 
-def list_queries(
-    top: Optional[int] = None, sort_by: str = "id"
-) -> list[dict[str, Any]]:
+def list_queries(top: int | None = None, sort_by: str = "id") -> list[dict[str, Any]]:
     """
     List queries from history.
 

@@ -11,7 +11,6 @@ Usage:
 
 import argparse
 import sys
-from typing import Optional
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -22,7 +21,7 @@ from jira_assistant_skills_lib import (
 
 
 def list_request_types(
-    service_desk_id: str, start: int = 0, limit: int = 50, profile: Optional[str] = None
+    service_desk_id: str, start: int = 0, limit: int = 50, profile: str | None = None
 ) -> dict:
     """
     List request types for a service desk.
@@ -43,9 +42,7 @@ def list_request_types(
     return request_types
 
 
-def filter_request_types(
-    request_types: dict, name_filter: Optional[str] = None
-) -> dict:
+def filter_request_types(request_types: dict, name_filter: str | None = None) -> dict:
     """
     Filter request types by name pattern.
 

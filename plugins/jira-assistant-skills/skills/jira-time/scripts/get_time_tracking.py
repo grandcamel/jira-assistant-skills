@@ -8,7 +8,7 @@ Displays original estimate, remaining estimate, time spent, and progress.
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -37,7 +37,7 @@ def get_time_tracking(client, issue_key: str) -> dict[str, Any]:
     return client.get_time_tracking(issue_key)
 
 
-def calculate_progress(time_tracking: dict[str, Any]) -> Optional[int]:
+def calculate_progress(time_tracking: dict[str, Any]) -> int | None:
     """
     Calculate completion percentage.
 

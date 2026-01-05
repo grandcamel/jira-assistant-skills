@@ -19,7 +19,7 @@ import sys
 from collections import defaultdict
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from jira_assistant_skills_lib import (
     JiraError,
@@ -736,7 +736,7 @@ def save_to_settings_local(
 
 def discover_project(
     project_key: str,
-    profile: Optional[str] = None,
+    profile: str | None = None,
     sample_size: int = 100,
     sample_period_days: int = 30,
     save_skill: bool = True,

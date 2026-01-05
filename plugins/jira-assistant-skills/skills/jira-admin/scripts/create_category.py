@@ -16,7 +16,7 @@ Examples:
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -29,7 +29,7 @@ from jira_assistant_skills_lib import (
 
 
 def create_category(
-    name: str, description: Optional[str] = None, client=None
+    name: str, description: str | None = None, client=None
 ) -> dict[str, Any]:
     """
     Create a new project category.

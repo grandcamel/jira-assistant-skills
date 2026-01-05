@@ -9,7 +9,7 @@ or search for filters by name, owner, or project.
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared library to path
 from jira_assistant_skills_lib import (
@@ -20,7 +20,7 @@ from jira_assistant_skills_lib import (
 )
 
 
-def get_my_filters(client, expand: Optional[str] = None) -> list[dict[str, Any]]:
+def get_my_filters(client, expand: str | None = None) -> list[dict[str, Any]]:
     """
     Get current user's filters.
 
@@ -34,7 +34,7 @@ def get_my_filters(client, expand: Optional[str] = None) -> list[dict[str, Any]]
     return client.get_my_filters(expand=expand)
 
 
-def get_favourite_filters(client, expand: Optional[str] = None) -> list[dict[str, Any]]:
+def get_favourite_filters(client, expand: str | None = None) -> list[dict[str, Any]]:
     """
     Get current user's favourite filters.
 
@@ -50,10 +50,10 @@ def get_favourite_filters(client, expand: Optional[str] = None) -> list[dict[str
 
 def search_filters(
     client,
-    filter_name: Optional[str] = None,
-    account_id: Optional[str] = None,
-    project_key: Optional[str] = None,
-    expand: Optional[str] = None,
+    filter_name: str | None = None,
+    account_id: str | None = None,
+    project_key: str | None = None,
+    expand: str | None = None,
     max_results: int = 50,
 ) -> dict[str, Any]:
     """
@@ -80,7 +80,7 @@ def search_filters(
 
 
 def get_filter_by_id(
-    client, filter_id: str, expand: Optional[str] = None
+    client, filter_id: str, expand: str | None = None
 ) -> dict[str, Any]:
     """
     Get a specific filter by ID.

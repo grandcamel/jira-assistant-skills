@@ -9,7 +9,7 @@ Requires 'Administer Jira' global permission.
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared lib to path
 from jira_assistant_skills_lib import (
@@ -23,10 +23,10 @@ from jira_assistant_skills_lib import (
 def create_issue_type_scheme(
     name: str,
     issue_type_ids: list[str],
-    description: Optional[str] = None,
-    default_issue_type_id: Optional[str] = None,
+    description: str | None = None,
+    default_issue_type_id: str | None = None,
     client=None,
-    profile: Optional[str] = None,
+    profile: str | None = None,
 ) -> dict[str, Any]:
     """
     Create a new issue type scheme.

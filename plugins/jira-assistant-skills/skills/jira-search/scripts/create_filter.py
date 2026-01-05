@@ -9,7 +9,7 @@ sharing it with projects, groups, or globally.
 import argparse
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add shared library to path
 from jira_assistant_skills_lib import JiraError, get_jira_client, print_error
@@ -55,9 +55,9 @@ def create_filter(
     client,
     name: str,
     jql: str,
-    description: Optional[str] = None,
+    description: str | None = None,
     favourite: bool = False,
-    share_permissions: Optional[list[dict[str, Any]]] = None,
+    share_permissions: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """
     Create a new filter.
