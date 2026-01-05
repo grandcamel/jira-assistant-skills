@@ -7,7 +7,7 @@ name = "jira-assistant-skills"
 version = "2.2.6"
 description = "A collection of CLI-based assistant skills for interacting with Jira."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = "MIT"
 dependencies = [
     "click>=8.0",
@@ -52,7 +52,7 @@ include = [
 # Ruff - Fast Python linter and formatter (replaces flake8, isort, black)
 # =============================================================================
 [tool.ruff]
-target-version = "py39"
+target-version = "py310"
 line-length = 88
 src = ["jira_assistant_skills", "jira-assistant-skills-lib/src", "plugins"]
 
@@ -112,7 +112,7 @@ line-ending = "lf"
 # Mypy - Static type checking
 # =============================================================================
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.10"
 warn_return_any = true
 warn_unused_configs = true
 warn_redundant_casts = true
