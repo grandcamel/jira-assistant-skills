@@ -189,15 +189,20 @@ def request_transition(ctx, issue_key: str, status: str, comment: str):
 @request.command(name="comment")
 @click.argument("issue_key")
 @click.argument("body")
-@click.option("--public", "-p", is_flag=True, help="Make comment public to customer")
+@click.option(
+    "--internal",
+    "-i",
+    is_flag=True,
+    help="Internal comment (agent-only, not visible to customers)",
+)
 @click.pass_context
-def request_comment(ctx, issue_key: str, body: str, public: bool):
+def request_comment(ctx, issue_key: str, body: str, internal: bool):
     """Add a comment to a request."""
     script_path = SKILLS_ROOT_DIR / "jira-jsm" / "scripts" / "add_request_comment.py"
 
-    script_args = [issue_key, body]
-    if public:
-        script_args.append("--public")
+    script_args = [issue_key, "--body", body]
+    if internal:
+        script_args.append("--internal")
 
     run_skill_script_subprocess(script_path, script_args, ctx)
 
