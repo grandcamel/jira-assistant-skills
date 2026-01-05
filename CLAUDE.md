@@ -906,6 +906,57 @@ Use the version sync script to keep all version files in sync:
 
 **Why this matters**: Users installing via marketplace (`/plugin marketplace update`) rely on `plugin.json` version to detect updates. PyPI users need `pyproject.toml` version for `pip install` upgrades.
 
+### Plugin Distribution Channels
+
+The plugin is distributed through two channels that serve different purposes:
+
+| Channel | Package | Install Command | Use Case |
+|---------|---------|-----------------|----------|
+| **PyPI** | `jira-assistant-skills` | `pip install jira-assistant-skills` | CLI tool (`jira` command) |
+| **GitHub** | Plugin manifest | `claude plugin marketplace add https://github.com/grandcamel/jira-assistant-skills.git#main` | Claude Code plugin (skills, commands) |
+
+**Both must be updated** when releasing:
+1. PyPI receives the CLI package via `twine upload`
+2. GitHub receives the plugin via `git push` (main branch or tag)
+
+### Dependent Projects
+
+Projects that depend on this plugin (e.g., jira-demo) typically use **runtime installation** rather than cached copies:
+
+```bash
+# Example from jira-demo/demo-container/entrypoint.sh
+pip install --quiet --no-cache-dir jira-assistant-skills  # CLI from PyPI
+claude plugin marketplace add https://github.com/grandcamel/jira-assistant-skills.git#main  # Plugin from GitHub
+```
+
+**Key insight:** If a dependent project installs from PyPI/GitHub at runtime, no code changes are needed in that project when releasing a new version. The container simply rebuilds and picks up the latest.
+
+**When local plugin caches are NOT needed:**
+- Container installs fresh from sources at startup
+- Development uses `pip install -e .` for live changes
+- CI/CD pulls latest from PyPI/GitHub
+
+**When local plugin caches ARE needed:**
+- Offline environments without network access
+- Pinning to specific versions for reproducibility
+- Air-gapped deployments
+
+### Verifying Dependent Project Updates
+
+After releasing a new version, verify dependent projects will receive it:
+
+```bash
+# Check what version PyPI has
+pip index versions jira-assistant-skills
+
+# Check what version GitHub main has
+curl -s https://raw.githubusercontent.com/grandcamel/jira-assistant-skills/main/plugins/jira-assistant-skills/plugin.json | jq -r '.version'
+
+# In dependent project, rebuild container to verify
+make build && make dev
+# Container output should show: "✓ jira CLI vX.Y.Z installed"
+```
+
 ### Environment Setup
 
 Use the interactive setup script to configure environment variables:
