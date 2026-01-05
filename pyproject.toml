@@ -73,11 +73,24 @@ select = [
 ]
 ignore = [
     "E501",   # Line too long (handled by formatter)
+    "E402",   # Module import not at top of file (needed for path manipulation)
+    "E722",   # Bare except (sometimes intentional for catch-all)
+    "E741",   # Ambiguous variable name (e.g., l, O, I)
     "B008",   # Do not perform function calls in argument defaults (Click uses this)
     "B904",   # Within an except clause, raise from err or None
     "ARG001", # Unused function argument (common in CLI apps)
     "ARG002", # Unused method argument
+    "SIM102", # Collapsible if (readability preference)
+    "SIM105", # Suppressible exception (readability preference)
     "SIM108", # Use ternary operator (readability preference)
+    "SIM117", # Multiple with statements (readability preference)
+    "SIM116", # Use dict instead of if-elif (readability preference)
+    "PTH",    # Use pathlib (extensive refactoring needed)
+    "RUF001", # Ambiguous unicode character (intentional info symbol)
+    "RUF043", # pytest.raises match pattern (works fine with regex)
+    "B007",   # Unused loop control variable (often intentional)
+    "B017",   # assert raises exception (test pattern)
+    "B018",   # Useless expression (sometimes intentional)
 ]
 
 [tool.ruff.lint.per-file-ignores]

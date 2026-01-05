@@ -14,16 +14,17 @@ Features:
 """
 
 import asyncio
-import uuid
 import time
-from dataclasses import dataclass, field
-from typing import Dict, Any, Optional, Callable, List, Union
+import uuid
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass
+from typing import Any, Callable, Optional
 
 
 @dataclass
 class BatchResult:
     """Result of a single batched request."""
+
     request_id: str
     method: str
     endpoint: str
@@ -35,6 +36,7 @@ class BatchResult:
 
 class BatchError(Exception):
     """Error during batch execution."""
+
     pass
 
 
@@ -61,13 +63,17 @@ class RequestBatcher:
         """
         self.client = client
         self.max_concurrent = max_concurrent
-        self.requests: List[Dict[str, Any]] = []
+        self.requests: list[dict[str, Any]] = []
         self._executor = ThreadPoolExecutor(max_workers=max_concurrent)
 
-    def add(self, method: str, endpoint: str,
-            params: Optional[Dict[str, Any]] = None,
-            data: Optional[Dict[str, Any]] = None,
-            operation: Optional[str] = None) -> str:
+    def add(
+        self,
+        method: str,
+        endpoint: str,
+        params: Optional[dict[str, Any]] = None,
+        data: Optional[dict[str, Any]] = None,
+        operation: Optional[str] = None,
+    ) -> str:
         """
         Add request to batch.
 
@@ -83,14 +89,16 @@ class RequestBatcher:
         """
         request_id = str(uuid.uuid4())
 
-        self.requests.append({
-            "id": request_id,
-            "method": method.upper(),
-            "endpoint": endpoint,
-            "params": params,
-            "data": data,
-            "operation": operation or f"{method} {endpoint}"
-        })
+        self.requests.append(
+            {
+                "id": request_id,
+                "method": method.upper(),
+                "endpoint": endpoint,
+                "params": params,
+                "data": data,
+                "operation": operation or f"{method} {endpoint}",
+            }
+        )
 
         return request_id
 
@@ -98,9 +106,9 @@ class RequestBatcher:
         """Clear all pending requests."""
         self.requests.clear()
 
-    async def execute(self,
-                      progress_callback: Optional[Callable[[int, int], None]] = None
-                      ) -> Dict[str, BatchResult]:
+    async def execute(
+        self, progress_callback: Optional[Callable[[int, int], None]] = None
+    ) -> dict[str, BatchResult]:
         """
         Execute all batched requests in parallel.
 
@@ -114,13 +122,13 @@ class RequestBatcher:
             return {}
 
         total = len(self.requests)
-        results: Dict[str, BatchResult] = {}
+        results: dict[str, BatchResult] = {}
         completed = 0
         completed_lock = asyncio.Lock()
 
         semaphore = asyncio.Semaphore(self.max_concurrent)
 
-        async def execute_request(request: Dict[str, Any]) -> None:
+        async def execute_request(request: dict[str, Any]) -> None:
             nonlocal completed
 
             async with semaphore:
@@ -131,9 +139,7 @@ class RequestBatcher:
                     # Execute the request synchronously in thread pool
                     loop = asyncio.get_event_loop()
                     data = await loop.run_in_executor(
-                        self._executor,
-                        self._execute_single_request,
-                        request
+                        self._executor, self._execute_single_request, request
                     )
 
                     duration_ms = (time.time() - start_time) * 1000
@@ -143,7 +149,7 @@ class RequestBatcher:
                         endpoint=request["endpoint"],
                         success=True,
                         data=data,
-                        duration_ms=duration_ms
+                        duration_ms=duration_ms,
                     )
 
                 except Exception as e:
@@ -154,7 +160,7 @@ class RequestBatcher:
                         endpoint=request["endpoint"],
                         success=False,
                         error=str(e),
-                        duration_ms=duration_ms
+                        duration_ms=duration_ms,
                     )
 
                 # Update progress
@@ -169,7 +175,7 @@ class RequestBatcher:
 
         return results
 
-    def _execute_single_request(self, request: Dict[str, Any]) -> Any:
+    def _execute_single_request(self, request: dict[str, Any]) -> Any:
         """
         Execute a single request synchronously.
 
@@ -199,9 +205,9 @@ class RequestBatcher:
         else:
             raise BatchError(f"Unsupported HTTP method: {method}")
 
-    def execute_sync(self,
-                     progress_callback: Optional[Callable[[int, int], None]] = None
-                     ) -> Dict[str, BatchResult]:
+    def execute_sync(
+        self, progress_callback: Optional[Callable[[int, int], None]] = None
+    ) -> dict[str, BatchResult]:
         """
         Execute batch synchronously (wrapper for async execute).
 
@@ -216,6 +222,7 @@ class RequestBatcher:
             if loop.is_running():
                 # If already in async context, create new loop
                 import nest_asyncio
+
                 nest_asyncio.apply()
         except RuntimeError:
             loop = asyncio.new_event_loop()
@@ -242,9 +249,11 @@ class RequestBatcher:
         return False
 
 
-def batch_fetch_issues(client, issue_keys: List[str],
-                       progress_callback: Optional[Callable[[int, int], None]] = None
-                       ) -> Dict[str, Any]:
+def batch_fetch_issues(
+    client,
+    issue_keys: list[str],
+    progress_callback: Optional[Callable[[int, int], None]] = None,
+) -> dict[str, Any]:
     """
     Convenience function to fetch multiple issues in batch.
 
