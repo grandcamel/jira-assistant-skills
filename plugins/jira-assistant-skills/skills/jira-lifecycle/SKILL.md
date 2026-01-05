@@ -31,8 +31,8 @@ Workflow and lifecycle management for JIRA issues.
 | **Assignments** | Control ownership | `jira lifecycle assign PROJ-123 --self` or `--user email` |
 | **Resolution** | Mark issues complete | `jira lifecycle resolve PROJ-123 --resolution Fixed` |
 | **Reopen** | Restore resolved issues | `jira lifecycle reopen PROJ-123` |
-| **Versions** | Plan and track releases | `jira lifecycle version create PROJ "v2.0.0"` |
-| **Components** | Organize by subsystem | `jira lifecycle component create PROJ "API"` |
+| **Versions** | Plan and track releases | `jira lifecycle version create PROJ --name "v2.0.0"` |
+| **Components** | Organize by subsystem | `jira lifecycle component create PROJ --name "API"` |
 | **Discovery** | View available options | `jira lifecycle transitions PROJ-123` |
 
 All commands support `--help` for full option documentation.
@@ -42,8 +42,12 @@ All commands support `--help` for full option documentation.
 ### Workflow Transitions
 ```bash
 jira lifecycle transitions PROJ-123                    # List available transitions
-jira lifecycle transition PROJ-123 --to "In Progress"  # Transition issue
+jira lifecycle transition PROJ-123 --to "In Progress"  # Transition by status name
+jira lifecycle transition PROJ-123 --id 31             # Transition by ID
 jira lifecycle transition PROJ-123 --to Done --resolution Fixed  # With resolution
+jira lifecycle transition PROJ-123 --to "In Progress" --sprint 42  # Move to sprint after transition
+jira lifecycle transition PROJ-123 --to Done --dry-run             # Preview without executing
+jira lifecycle transition PROJ-123 --to Done --fields '{"customfield_10001": "value"}'  # With custom fields
 ```
 
 ### Assignments
@@ -55,24 +59,40 @@ jira lifecycle assign PROJ-123 --unassign              # Remove assignee
 
 ### Resolution
 ```bash
-jira lifecycle resolve PROJ-123 --resolution Fixed     # Resolve issue
-jira lifecycle reopen PROJ-123                         # Reopen issue
+jira lifecycle resolve PROJ-123                         # Resolve with default resolution (Done)
+jira lifecycle resolve PROJ-123 --resolution Fixed      # Resolve with specific resolution
+jira lifecycle reopen PROJ-123                          # Reopen issue
+jira lifecycle reopen PROJ-123 --comment "Reopening for additional work"  # Reopen with comment
 ```
 
 ### Version Management
 ```bash
 jira lifecycle version list PROJ                       # List versions
-jira lifecycle version create PROJ "v2.0.0" --start-date 2024-01-01
-jira lifecycle version release PROJ "v1.0.0"
-jira lifecycle version archive PROJ "v0.9.0"
+jira lifecycle version list PROJ --unreleased          # Show only unreleased versions
+jira lifecycle version list PROJ --archived            # Filter for archived versions only
+jira lifecycle version create PROJ --name "v2.0.0"     # Create version
+jira lifecycle version create PROJ --name "v2.0.0" --start-date 2025-01-01 --release-date 2025-03-01
+jira lifecycle version create PROJ --name "v2.0.0" --released --dry-run  # Preview creation
+jira lifecycle version release PROJ "v1.0.0"           # Release a version
+jira lifecycle version archive PROJ "v0.9.0"           # Archive a version
 ```
 
 ### Component Management
+
+**Note:** Component update and delete operations require the component ID (not name). Use `jira lifecycle component list PROJ` to find component IDs. The `--lead` option requires an account ID, not email.
+
 ```bash
-jira lifecycle component list PROJ                     # List components
-jira lifecycle component create PROJ "API"
-jira lifecycle component update PROJ "API" --lead user@example.com
-jira lifecycle component delete PROJ "Legacy" --force
+jira lifecycle component list PROJ                     # List components (shows IDs)
+jira lifecycle component create PROJ --name "API"      # Create component
+jira lifecycle component create PROJ --name "Backend" --lead 5b10a2844c20165700ede21g
+jira lifecycle component create PROJ --name "Frontend" --assignee-type COMPONENT_LEAD
+jira lifecycle component update --id 10000 --name "New Name"           # Update by ID
+jira lifecycle component update --id 10000 --lead 5b10a2844c20165700ede22h
+jira lifecycle component update --id 10000 --assignee-type PROJECT_LEAD --dry-run
+jira lifecycle component delete --id 10000             # Delete with confirmation prompt
+jira lifecycle component delete --id 10000 --yes       # Delete without confirmation
+jira lifecycle component delete --id 10000 --move-to 10001  # Move issues before deletion
+jira lifecycle component delete --id 10000 --dry-run   # Preview deletion
 ```
 
 ## Common Options
@@ -88,11 +108,15 @@ Query commands (`transitions`, `version list`, `component list`) also support `-
 
 ### Dry Run Support
 
-Some commands support `--dry-run` to preview changes:
+Most modification commands support `--dry-run` to preview changes without executing:
 
 ```bash
+jira lifecycle transition PROJ-123 --to Done --dry-run
 jira lifecycle assign PROJ-123 --self --dry-run
-jira lifecycle component delete PROJ "API" --dry-run
+jira lifecycle version create PROJ --name "v1.0.0" --dry-run
+jira lifecycle component create PROJ --name "API" --dry-run
+jira lifecycle component update --id 10000 --name "New Name" --dry-run
+jira lifecycle component delete --id 10000 --dry-run
 ```
 
 ## Exit Codes
