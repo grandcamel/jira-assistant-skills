@@ -1062,6 +1062,12 @@ git checkout main && git add . && git commit
 
 For large-scale analysis or review tasks across multiple skills, use parallel subagents to maximize throughput while ensuring results persist even if context is exhausted.
 
+**Mental Model:** Treat subagents as **talented but inexperienced interns**:
+- **Worktrees** are separate cubicles so they don't bump into each other
+- **Context files** are task sheets on their desk explaining exactly what to do
+- **Chunked execution** is checking their work every hour, not waiting until Friday
+- **File-persisted results** ensure their work survives even if they go home early
+
 ### When to Use
 
 - Reviewing all 14 skills for consistency issues
@@ -1073,9 +1079,19 @@ For large-scale analysis or review tasks across multiple skills, use parallel su
 
 **Key principle:** Each subagent writes its results to a file, so work is preserved even if the orchestrator session ends.
 
+**Structured context files for each subagent:**
+
+| File | Purpose |
+|------|---------|
+| `TASK.md` | Specific task instructions and constraints |
+| `log.md` | Observation-Thought-Action execution trace |
+| `commit.md` | Progress summary (allows "memory" across sessions) |
+| `SKILL_FIX_PLAN.md` | Final output/deliverable |
+
 ```
 # Output files are written to each skill directory:
 plugins/jira-assistant-skills/skills/<skill>/SKILL_FIX_PLAN.md
+plugins/jira-assistant-skills/skills/<skill>/log.md  # Optional execution trace
 ```
 
 ### Example: Skill Review Subagents
@@ -1162,6 +1178,49 @@ grep "SubagentStart" ~/.claude/debug/<session-id>.txt
 4. **Specify format** - Define the exact output structure expected
 5. **Limit scope** - Each subagent should have a focused, completable task
 6. **Track with TodoWrite** - Use TodoWrite in the orchestrator to track subagent status
+7. **Chunked execution** - Don't ask for "the whole feature." Ask for "just step 1," verify, then proceed
+8. **Explicit context injection** - Reference specific filenames, domain terms, and expected behaviors in prompts
+
+### Multi-Agent Coordination
+
+When multiple subagents work on related tasks, use coordination patterns to prevent conflicts.
+
+**Agent Archetypes:** Assign specialized roles to different subagents:
+
+| Archetype | Role | Example Task |
+|-----------|------|--------------|
+| **Architect** | Designs system patterns | "Design the API structure for bulk operations" |
+| **Detective** | Debugging and edge cases | "Find all places where error handling is missing" |
+| **Craftsman** | Code quality and implementation | "Implement the fix according to the plan" |
+| **Reviewer** | Verification and QA | "Review changes for consistency and test coverage" |
+
+**Shared State Coordination:** Use a `WORKTREE_COORDINATION.md` file for multi-agent awareness:
+
+```markdown
+# WORKTREE_COORDINATION.md
+
+## Active Tasks
+| Task | Agent | Status | Worktree |
+|------|-------|--------|----------|
+| fix/jira-issue | agent-1 | in_progress | .worktrees/jira-issue-fix |
+| fix/jira-search | agent-2 | completed | .worktrees/jira-search-fix |
+| fix/jira-agile | unclaimed | pending | - |
+
+## Completed Work
+- [x] jira-search: CLI wrapper aligned (agent-2, 2024-01-05)
+- [ ] jira-issue: In progress (agent-1)
+```
+
+**TODO-Claim Protocol:** Agents should:
+1. Read `WORKTREE_COORDINATION.md` before starting
+2. Claim a task by updating the file (`Status: in_progress`, `Agent: agent-N`)
+3. Mark as completed when done
+4. **Back off** if task is already claimed by another agent
+
+**Observation-Driven Coordination:** Instruct agents to check shared state and skip work if:
+- Another agent has already claimed the task
+- The task is marked as completed
+- Git status shows the target files have already been modified
 
 ## Coding Subagent Pattern with Git Worktrees
 
@@ -1181,13 +1240,44 @@ Each coding subagent:
 3. Commits changes independently
 4. Writes a summary file (not committed to main)
 
+**Worktree Naming Convention:** Use a strict schema to maintain order:
+
 ```
-# Worktree structure:
+# Pattern: .worktrees/<task-type>-<component>--<agent-role>
+.worktrees/fix-jira-issue--craftsman
+.worktrees/fix-jira-search--craftsman
+.worktrees/review-all-skills--detective
+```
+
+**Worktree structure:**
+
+```
 ../Jira-Assistant-Skills-fix/
 ├── jira-issue-fix/        [fix/jira-issue]
 ├── jira-lifecycle-fix/    [fix/jira-lifecycle]
 ├── jira-search-fix/       [fix/jira-search]
 └── ...                    [fix/<skill>]
+```
+
+**Configuration Guards:** Place a `.claude/rules.md` in each worktree to bound agent behavior:
+
+```markdown
+# .claude/rules.md - Constraints for this worktree
+
+## Allowed
+- Modify files in plugins/jira-assistant-skills/skills/jira-issue/
+- Update SKILL.md documentation
+- Run tests with pytest
+
+## Off-Limits
+- Do NOT modify files outside the jira-issue skill
+- Do NOT change shared library code
+- Do NOT commit directly to main branch
+
+## Coding Standards
+- Use Python 3.10+ type hints
+- Follow conventional commit format
+- Run ruff format before committing
 ```
 
 ### Coding Subagent Prompt Template
