@@ -61,7 +61,7 @@ All scripts support these common options:
 | Option | Description |
 |--------|-------------|
 | `--profile PROFILE` | Use specific JIRA profile (development, staging, production) |
-| `--output FORMAT` | Output format: table (default), json, or csv |
+| `--format FORMAT` | Output format: text (default), json, or csv |
 | `--help` | Show help message with all available options |
 
 ### Worklog-specific options
@@ -77,11 +77,12 @@ All scripts support these common options:
 
 | Option | Description |
 |--------|-------------|
-| `--period PERIOD` | Time period: today, this-week, last-week, this-month, 2025-01 |
+| `--period PERIOD` | Time period: today, yesterday, this-week, last-week, this-month, last-month |
 | `--user USER` | Filter by user (use currentUser() for yourself) |
 | `--project PROJECT` | Filter by project key |
 | `--since DATE` | Start date for filtering |
 | `--until DATE` | End date for filtering |
+| `--group-by FIELD` | Group results by: issue, day, or user |
 
 ## Exit Codes
 
@@ -123,8 +124,8 @@ jira time worklogs PROJ-123 --author currentUser()
 # Filter by date range
 jira time worklogs PROJ-123 --since 2025-01-01 --until 2025-01-31
 
-# Output as JSON
-jira time worklogs PROJ-123 --output json
+# Output as JSON (via script directly)
+python scripts/get_worklogs.py PROJ-123 --output json
 ```
 
 ### Manage estimates
@@ -150,10 +151,26 @@ jira time report --user currentUser() --period last-week
 jira time report --project PROJ --period this-month
 
 # Export to CSV for billing
-jira time report --project PROJ --period 2025-01 --output csv > timesheet.csv
+jira time report --project PROJ --since 2025-01-01 --until 2025-01-31 --format csv > timesheet.csv
 
-# Export detailed CSV with all fields
-jira time report --project PROJ --period this-month --output csv --include-issue-details
+# Group by day for daily summary
+jira time report --project PROJ --period this-week --group-by day
+
+# Group by user for team summary
+jira time report --project PROJ --period this-month --group-by user --format json
+```
+
+### Export timesheets
+
+```bash
+# Export last month's timesheets to CSV
+jira time export --project PROJ --period last-month --output timesheets.csv
+
+# Export to JSON for integration
+jira time export --project PROJ --since 2025-01-01 --until 2025-01-31 --format json
+
+# Export user's timesheets for billing
+jira time export --user alice@company.com --period this-month --output billing.csv
 ```
 
 ### Bulk operations
@@ -183,6 +200,9 @@ jira time delete-worklog PROJ-123 --worklog-id 12345 --adjust-estimate auto
 
 # Delete without modifying estimate
 jira time delete-worklog PROJ-123 --worklog-id 12345 --adjust-estimate leave
+
+# Delete without confirmation prompt
+jira time delete-worklog PROJ-123 --worklog-id 12345 --yes
 ```
 
 ## Dry Run Support

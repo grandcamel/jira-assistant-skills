@@ -64,15 +64,18 @@ def time_log(
 @time.command(name="worklogs")
 @click.argument("issue_key")
 @click.option("--since", "-s", help="Show worklogs since date (YYYY-MM-DD)")
+@click.option("--until", "-u", help="Show worklogs until date (YYYY-MM-DD)")
 @click.option("--author", "-a", help="Filter by author")
 @click.pass_context
-def time_worklogs(ctx, issue_key: str, since: str, author: str):
+def time_worklogs(ctx, issue_key: str, since: str, until: str, author: str):
     """Get worklogs for an issue."""
     script_path = SKILLS_ROOT_DIR / "jira-time" / "scripts" / "get_worklogs.py"
 
     script_args = [issue_key]
     if since:
         script_args.extend(["--since", since])
+    if until:
+        script_args.extend(["--until", until])
     if author:
         script_args.extend(["--author", author])
 
@@ -81,8 +84,8 @@ def time_worklogs(ctx, issue_key: str, since: str, author: str):
 
 @time.command(name="update-worklog")
 @click.argument("issue_key")
-@click.argument("worklog_id")
-@click.option("--time-spent", "-t", help="New time spent")
+@click.option("--worklog-id", "-w", required=True, help="Worklog ID to update")
+@click.option("--time", "-t", "time_spent", help="New time spent")
 @click.option("--comment", "-c", help="New comment")
 @click.option("--started", "-s", help="New start time")
 @click.pass_context
@@ -92,9 +95,9 @@ def time_update_worklog(
     """Update an existing worklog."""
     script_path = SKILLS_ROOT_DIR / "jira-time" / "scripts" / "update_worklog.py"
 
-    script_args = [issue_key, worklog_id]
+    script_args = [issue_key, "--worklog-id", worklog_id]
     if time_spent:
-        script_args.extend(["--time-spent", time_spent])
+        script_args.extend(["--time", time_spent])
     if comment:
         script_args.extend(["--comment", comment])
     if started:
@@ -113,24 +116,28 @@ def time_update_worklog(
     default="auto",
     help="How to adjust remaining estimate",
 )
-@click.option("--force", "-f", is_flag=True, help="Skip confirmation")
+@click.option("--dry-run", "-n", is_flag=True, help="Preview deletion without deleting")
+@click.option("--yes", "-y", is_flag=True, help="Skip confirmation")
 @click.pass_context
 def time_delete_worklog(
-    ctx, issue_key: str, worklog_id: str, adjust_estimate: str, force: bool
+    ctx, issue_key: str, worklog_id: str, adjust_estimate: str, dry_run: bool, yes: bool
 ):
     """Delete a worklog.
 
     Examples:
         jira time delete-worklog PROJ-123 --worklog-id 12345
         jira time delete-worklog PROJ-123 --worklog-id 12345 --adjust-estimate leave
+        jira time delete-worklog PROJ-123 --worklog-id 12345 --dry-run
     """
     script_path = SKILLS_ROOT_DIR / "jira-time" / "scripts" / "delete_worklog.py"
 
-    script_args = [issue_key, worklog_id]
+    script_args = [issue_key, "--worklog-id", worklog_id]
     if adjust_estimate != "auto":
         script_args.extend(["--adjust-estimate", adjust_estimate])
-    if force:
-        script_args.append("--force")
+    if dry_run:
+        script_args.append("--dry-run")
+    if yes:
+        script_args.append("--yes")
 
     run_skill_script_subprocess(script_path, script_args, ctx)
 
@@ -179,6 +186,19 @@ def time_tracking(ctx, issue_key: str):
 @click.option("--since", "-s", help="Start date (YYYY-MM-DD)")
 @click.option("--until", help="End date (YYYY-MM-DD)")
 @click.option(
+    "--period",
+    type=click.Choice(
+        ["today", "yesterday", "this-week", "last-week", "this-month", "last-month"]
+    ),
+    help="Predefined time period",
+)
+@click.option(
+    "--group-by",
+    "-g",
+    type=click.Choice(["issue", "day", "user"]),
+    help="Group results by field",
+)
+@click.option(
     "--format",
     "-f",
     "output_format",
@@ -188,7 +208,14 @@ def time_tracking(ctx, issue_key: str):
 )
 @click.pass_context
 def time_report(
-    ctx, project: str, user: str, since: str, until: str, output_format: str
+    ctx,
+    project: str,
+    user: str,
+    since: str,
+    until: str,
+    period: str,
+    group_by: str,
+    output_format: str,
 ):
     """Generate a time report."""
     script_path = SKILLS_ROOT_DIR / "jira-time" / "scripts" / "time_report.py"
@@ -202,8 +229,12 @@ def time_report(
         script_args.extend(["--since", since])
     if until:
         script_args.extend(["--until", until])
+    if period:
+        script_args.extend(["--period", period])
+    if group_by:
+        script_args.extend(["--group-by", group_by])
     if output_format != "text":
-        script_args.extend(["--format", output_format])
+        script_args.extend(["--output", output_format])
 
     run_skill_script_subprocess(script_path, script_args, ctx)
 
@@ -214,10 +245,17 @@ def time_report(
 @click.option("--since", "-s", help="Start date (YYYY-MM-DD)")
 @click.option("--until", help="End date (YYYY-MM-DD)")
 @click.option(
+    "--period",
+    type=click.Choice(
+        ["today", "yesterday", "this-week", "last-week", "this-month", "last-month"]
+    ),
+    help="Predefined time period (or YYYY-MM format)",
+)
+@click.option(
     "--format",
     "-f",
     "output_format",
-    type=click.Choice(["csv", "xlsx"]),
+    type=click.Choice(["csv", "json"]),
     default="csv",
     help="Export format",
 )
@@ -229,10 +267,11 @@ def time_export(
     user: str,
     since: str,
     until: str,
+    period: str,
     output_format: str,
     output_file: str,
 ):
-    """Export timesheets to CSV or Excel."""
+    """Export timesheets to CSV or JSON."""
     script_path = SKILLS_ROOT_DIR / "jira-time" / "scripts" / "export_timesheets.py"
 
     script_args = []
@@ -244,6 +283,8 @@ def time_export(
         script_args.extend(["--since", since])
     if until:
         script_args.extend(["--until", until])
+    if period:
+        script_args.extend(["--period", period])
     if output_format:
         script_args.extend(["--format", output_format])
     if output_file:
