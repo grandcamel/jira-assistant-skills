@@ -18,18 +18,22 @@ def issue():
 @click.option('--detailed', '-d', is_flag=True, help='Show detailed information including description')
 @click.option('--show-links', '-l', is_flag=True, help='Show issue links (blocks, relates to, etc.)')
 @click.option('--show-time', '-t', is_flag=True, help='Show time tracking information')
+@click.option('--output', '-o', type=click.Choice(['text', 'json']), help='Output format (text, json)')
 @click.pass_context
-def get_issue(ctx, issue_key: str, fields: str, detailed: bool, show_links: bool, show_time: bool):
+def get_issue(ctx, issue_key: str, fields: str, detailed: bool, show_links: bool, show_time: bool, output: str):
     """Get the details of a specific issue."""
     script_module_path = SKILLS_ROOT_DIR / "jira-issue" / "scripts" / "get_issue.py"
-    
+
     # Arguments for the script's main(argv)
     script_args = [issue_key]
     if fields: script_args.extend(["--fields", fields])
     if detailed: script_args.append("--detailed")
     if show_links: script_args.append("--show-links")
     if show_time: script_args.append("--show-time")
-    # Global options are passed via env vars, so not explicitly added here
+
+    # Use explicit --output if provided, otherwise fall back to global OUTPUT
+    output_format = output if output else ctx.obj.get('OUTPUT', 'text')
+    script_args.extend(["--output", output_format])
 
     try:
         # --- Primary: Direct call to callable API ---
@@ -44,7 +48,7 @@ def get_issue(ctx, issue_key: str, fields: str, detailed: bool, show_links: bool
         # Check if the script has a main() function
         if hasattr(module, 'main') and callable(getattr(module, 'main')):
             # Call script's main with mapped args
-            module.main(script_args + ["--output", ctx.obj['OUTPUT']])
+            module.main(script_args)
             # Success - exit cleanly (don't use ctx.exit inside try block)
         else:
             # Fallback to subprocess if main is not found or not callable.
@@ -55,7 +59,7 @@ def get_issue(ctx, issue_key: str, fields: str, detailed: bool, show_links: bool
         click.echo(f"Warning: Falling back to subprocess for {script_module_path.name} ({e})", err=True)
         run_skill_script_subprocess(
             script_path=script_module_path,
-            args=script_args + ["--output", ctx.obj['OUTPUT']],
+            args=script_args,
             ctx=ctx
         )
     except click.exceptions.Exit:
@@ -84,11 +88,12 @@ def get_issue(ctx, issue_key: str, fields: str, detailed: bool, show_links: bool
 @click.option('--relates-to', help='Comma-separated issue keys this issue relates to')
 @click.option('--estimate', help='Original time estimate (e.g., 2d, 4h, 1w)')
 @click.option('--no-defaults', is_flag=True, help='Disable project context defaults')
+@click.option('--output', '-o', type=click.Choice(['text', 'json']), help='Output format (text, json)')
 @click.pass_context
 def create_issue(ctx, project: str, type: str, summary: str, description: str, priority: str,
                  assignee: str, labels: str, components: str, template: str, custom_fields: str,
                  epic: str, sprint: int, story_points: float, blocks: str, relates_to: str,
-                 estimate: str, no_defaults: bool):
+                 estimate: str, no_defaults: bool, output: str):
     """Create a new JIRA issue."""
     script_module_path = SKILLS_ROOT_DIR / "jira-issue" / "scripts" / "create_issue.py"
 
@@ -112,6 +117,10 @@ def create_issue(ctx, project: str, type: str, summary: str, description: str, p
     if estimate: script_args.extend(["--estimate", estimate])
     if no_defaults: script_args.append("--no-defaults")
 
+    # Use explicit --output if provided, otherwise fall back to global OUTPUT
+    output_format = output if output else ctx.obj.get('OUTPUT', 'text')
+    script_args.extend(["--output", output_format])
+
     try:
         spec = importlib.util.spec_from_file_location(
             "jira_issue_create_script", str(script_module_path)
@@ -121,7 +130,7 @@ def create_issue(ctx, project: str, type: str, summary: str, description: str, p
         spec.loader.exec_module(module)
 
         if hasattr(module, 'main') and callable(getattr(module, 'main')):
-            module.main(script_args + ["--output", ctx.obj['OUTPUT']])
+            module.main(script_args)
         else:
             raise ImportError("Callable 'main' function not found in script.")
 
@@ -129,7 +138,7 @@ def create_issue(ctx, project: str, type: str, summary: str, description: str, p
         click.echo(f"Warning: Falling back to subprocess for {script_module_path.name} ({e})", err=True)
         run_skill_script_subprocess(
             script_path=script_module_path,
-            args=script_args + ["--output", ctx.obj['OUTPUT']],
+            args=script_args,
             ctx=ctx
         )
     except click.exceptions.Exit:
