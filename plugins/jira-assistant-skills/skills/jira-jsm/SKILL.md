@@ -63,19 +63,16 @@ This skill provides comprehensive JSM operations organized into 6 key ITSM capab
 jira jsm service-desk list
 
 # 2. List request types for your service desk
-jira jsm request-type list --service-desk 1
+jira jsm request-type list 1
 
 # 3. Create an incident
-jira jsm request create \
-  --service-desk 1 \
-  --request-type 10 \
-  --summary "Email service down"
+jira jsm request create 1 10 --summary "Email service down"
 
 # 4. Check SLA status
 jira jsm sla get SD-123
 
-# 5. Approve a pending request
-jira jsm approval approve SD-124 --comment "Approved"
+# 5. Approve a pending request (issue_key, approval_id)
+jira jsm approval approve SD-124 1001 --comment "Approved"
 ```
 
 For detailed setup instructions, see [docs/QUICK_START.md](docs/QUICK_START.md).
@@ -182,7 +179,7 @@ export JSM_DEFAULT_SERVICE_DESK="1"
 
 ```bash
 # Use production profile
-jira jsm request create --profile prod --service-desk 1 --request-type 10 --summary "Issue"
+jira jsm request create 1 10 --summary "Issue" --profile prod
 ```
 
 For full configuration options, see [references/CONFIG_REFERENCE.md](references/CONFIG_REFERENCE.md).
@@ -195,8 +192,8 @@ Service desk IDs are numeric identifiers required by most scripts.
 # Method 1: List all service desks
 jira jsm service-desk list
 
-# Method 2: Get by project key
-jira jsm service-desk get --project-key ITS
+# Method 2: Get details by ID
+jira jsm service-desk get 1
 ```
 
 **Tip**: Store frequently used IDs in environment variables:

@@ -89,18 +89,17 @@ jira collaborate comment add PROJ-123 --body "Internal note" --visibility-role A
 # Upload attachment
 jira collaborate attachment upload PROJ-123 --file screenshot.png
 
-# List attachments
-jira collaborate attachment download PROJ-123 --list
-
-# Download all attachments
-jira collaborate attachment download PROJ-123 --all --output-dir ./downloads
+# Download attachment (use attachment ID from issue details)
+jira collaborate attachment download PROJ-123 12345 --output ./downloaded-file.png
 
 # Add watcher
 jira collaborate watchers PROJ-123 --add user@example.com
 
-# Send notification (preview first)
-jira collaborate notify PROJ-123 --watchers --dry-run
-jira collaborate notify PROJ-123 --watchers --subject "Update" --body "Issue resolved"
+# Remove watcher
+jira collaborate watchers PROJ-123 --remove user@example.com
+
+# Send notification to users
+jira collaborate notify PROJ-123 --users user1@example.com,user2@example.com --subject "Update" --body "Issue resolved"
 
 # View activity history
 jira collaborate activity PROJ-123 --format table

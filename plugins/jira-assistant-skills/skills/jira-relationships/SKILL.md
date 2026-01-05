@@ -116,20 +116,23 @@ jira relationships link PROJ-1 --relates-to PROJ-2
 
 # View and remove links
 jira relationships get-links PROJ-123
-jira relationships unlink PROJ-1 --from PROJ-2
+jira relationships unlink PROJ-1 PROJ-2
 
 # Clone an issue with its relationships
-jira relationships clone PROJ-123 --include-subtasks --include-links
+jira relationships clone PROJ-123 --clone-subtasks --clone-links
 ```
 
 ### Advanced - Blocker Analysis & Statistics
 
 ```bash
 # Find blocker chains for sprint planning
-jira relationships get-blockers PROJ-123 --recursive --depth 3
+jira relationships get-blockers PROJ-123 --recursive
 
-# Project-wide link statistics (find orphans, hubs)
-jira relationships stats --project PROJ --top 10
+# Analyze dependencies with depth control
+jira relationships get-dependencies PROJ-123 --depth 3
+
+# Project-wide link statistics
+jira relationships stats PROJ
 
 # Bulk link issues from JQL query
 jira relationships bulk-link --jql "project=PROJ AND fixVersion=1.0" --relates-to PROJ-500 --dry-run

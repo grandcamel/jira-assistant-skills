@@ -70,14 +70,11 @@ List all custom fields in the JIRA instance.
 # List all custom fields
 jira fields list
 
-# Filter by name pattern
-jira fields list --filter "epic"
+# Filter by field type
+jira fields list --type custom
 
-# Show Agile fields only
-jira fields list --agile
-
-# Output as JSON
-jira fields list --output json
+# Search by name pattern
+jira fields list --search "story"
 
 # Use specific profile
 jira fields list --profile production
@@ -89,58 +86,52 @@ Check field availability for a specific project.
 # Check what fields are available for issue creation
 jira fields check-project PROJ
 
-# Check specific issue type
-jira fields check-project PROJ --type Story
-
-# Check Agile field availability
-jira fields check-project PROJ --check-agile
-
-# Output as JSON for programmatic use
-jira fields check-project PROJ --output json
+# Check specific field availability
+jira fields check-project PROJ --field customfield_10016
 ```
 
 ### configure_agile_fields.py
 Configure Agile fields for a company-managed project.
 ```bash
-# Add Agile fields to a project's screens
+# Configure default Agile fields for a project
 jira fields configure-agile PROJ
 
-# Check what would be done without making changes
-jira fields configure-agile PROJ --dry-run
-
 # Specify custom field IDs
-jira fields configure-agile PROJ --story-points customfield_10016
+jira fields configure-agile PROJ --story-points customfield_10016 --epic-link customfield_10014
+
+# Configure all Agile field IDs
+jira fields configure-agile PROJ --story-points customfield_10016 --epic-link customfield_10014 --epic-name customfield_10011 --sprint customfield_10020
 ```
 
 ### create_field.py
 Create a new custom field (requires admin permissions).
 ```bash
 # Create Story Points field
-jira fields create --name "Story Points" --type number
+jira fields create "Story Points" --type number
 
 # Create Epic Link field
-jira fields create --name "Epic Link" --type select
+jira fields create "Epic Link" --type select
 
 # Create with description
-jira fields create --name "Effort" --type number --description "Effort in hours"
+jira fields create "Effort" --type number --description "Effort in hours"
 
-# Output created field as JSON
-jira fields create --name "Priority Score" --type number --output json
+# Make field searchable
+jira fields create "Priority Score" --type number --searchable
 ```
 
-## JSON Output Support
+## Searching for Agile Fields
 
-All scripts support `--output json` for programmatic integration:
+To find Agile-specific fields in your instance:
 
 ```bash
-# Get field list as JSON
-jira fields list --agile --output json
+# Search for Story Points field
+jira fields list --search "story"
 
-# Parse with jq
-jira fields list --output json | jq '.[] | select(.name | contains("Story"))'
+# Search for Epic fields
+jira fields list --search "epic"
 
-# Check project fields as JSON
-jira fields check-project PROJ --check-agile --output json
+# Search for Sprint field
+jira fields list --search "sprint"
 ```
 
 JSON output includes:
@@ -193,15 +184,15 @@ Always run `jira fields list --agile` to verify IDs for your instance.
 
 ### Setting up Agile for a new project
 ```bash
-# 1. Check project type
-jira fields check-project NEWPROJ --check-agile
+# 1. Check what fields are available in the project
+jira fields check-project NEWPROJ
 
-# 2. If company-managed, configure Agile fields
-jira fields configure-agile NEWPROJ --dry-run
-jira fields configure-agile NEWPROJ
+# 2. Find Agile field IDs in your instance
+jira fields list --search "story"
+jira fields list --search "epic"
 
-# 3. Verify configuration
-jira fields check-project NEWPROJ --type Story
+# 3. Configure Agile fields with correct IDs
+jira fields configure-agile NEWPROJ --story-points customfield_10016 --epic-link customfield_10014
 ```
 
 ### Creating a company-managed Scrum project
@@ -214,13 +205,14 @@ jira fields check-project NEWPROJ --type Story
 
 ### Diagnosing missing fields
 ```bash
-# List all Agile fields in instance
-jira fields list --agile
+# Search for fields by name
+jira fields list --search "story"
 
 # Check what's available for the project
-jira fields check-project PROJ --check-agile
+jira fields check-project PROJ
 
-# Compare to identify missing fields
+# Check specific field availability
+jira fields check-project PROJ --field customfield_10016
 ```
 
 ## Troubleshooting
@@ -230,9 +222,9 @@ jira fields check-project PROJ --check-agile
 **Symptom**: Script reports field ID doesn't exist or field not available.
 
 **Solutions**:
-1. Run `jira fields list --agile` to find correct field IDs for your instance
+1. Run `jira fields list --search "field name"` to find correct field IDs for your instance
 2. Field IDs vary between JIRA instances - never assume default IDs
-3. Check if the field exists: `jira fields list --filter "field name"`
+3. Check if the field exists: `jira fields list --search "field name"`
 
 ### "Permission denied" when creating fields
 
@@ -248,10 +240,10 @@ jira fields check-project PROJ --check-agile
 **Symptom**: Field exists but not shown when creating issues.
 
 **Solutions**:
-1. Check project type: `jira fields check-project PROJ --check-agile`
+1. Check project type: `jira fields check-project PROJ`
 2. For company-managed projects, fields must be added to the appropriate screen
 3. For team-managed projects, configure fields in Project Settings > Features
-4. Run `jira fields configure-agile PROJ` for Agile fields (company-managed only)
+4. Run `jira fields configure-agile PROJ --story-points customfield_10016` for Agile fields (company-managed only)
 
 ### Team-managed project limitations
 
@@ -268,7 +260,7 @@ jira fields check-project PROJ --check-agile
 **Symptom**: Story Points or Sprint fields show unexpected data.
 
 **Solutions**:
-1. Verify field IDs match your instance: `jira fields list --agile`
+1. Verify field IDs match your instance: `jira fields list --search "story"` or `jira fields list --search "sprint"`
 2. Check field is configured for the correct issue types
 3. Ensure the board is configured to use the correct Story Points field
 4. For Sprint issues, verify the board includes your project

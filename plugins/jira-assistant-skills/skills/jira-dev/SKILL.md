@@ -83,16 +83,25 @@ All scripts support `--help` for detailed usage. See [scripts/REFERENCE.md](scri
 
 ```bash
 # Generate branch name
-jira dev branch-name PROJ-123 --auto-prefix
+jira dev branch-name PROJ-123 --format feature
 
-# Extract issues from commits
-git log --oneline -10 | jira dev parse-commits --from-stdin
+# Extract issues from commit messages
+jira dev parse-commits "feat(PROJ-123): add login" "fix(PROJ-456): bug fix"
+
+# Extract issues from file
+jira dev parse-commits --file commits.txt
 
 # Generate PR description
-jira dev pr-description PROJ-123 --include-checklist
+jira dev pr-description PROJ-123 --include-commits
 
 # Link PR to issue
-jira dev link-pr PROJ-123 --pr https://github.com/org/repo/pull/456
+jira dev link-pr PROJ-123 https://github.com/org/repo/pull/456
+
+# Link commit to issue
+jira dev link-commit PROJ-123 abc123def --message "feat: add login" --repo myrepo
+
+# Get commits linked to issue
+jira dev get-commits PROJ-123 --limit 10
 ```
 
 ## Configuration

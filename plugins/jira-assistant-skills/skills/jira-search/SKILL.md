@@ -53,7 +53,7 @@ For detailed setup, see [docs/QUICK_START.md](docs/QUICK_START.md).
 | `jira search export` | Export to CSV/JSON | `jira search export "JQL" -o report.csv` |
 | `jira search filter create` | Save a reusable filter | `jira search filter create "Name" "JQL"` |
 | `jira search validate` | Check JQL syntax | `jira search validate "your query"` |
-| `jira search filter run` | Run a saved filter | `jira search filter run --name "Filter"` |
+| `jira search filter run` | Run a saved filter | `jira search filter run 10042` |
 
 All commands support `--help` for full documentation.
 
@@ -98,11 +98,14 @@ jira search query "project = PROJ" --max-results 50
 # Validate syntax
 jira search validate "project = PROJ AND status = Open"
 
-# Interactive builder
-jira search interactive
+# Build JQL from options
+jira search build --project PROJ --status Open --assignee currentUser()
 
 # Get field suggestions
-jira search suggest status
+jira search suggest "project = " --field project
+
+# List available fields and operators
+jira search fields
 ```
 
 ### Saved Filters
@@ -112,13 +115,16 @@ jira search suggest status
 jira search filter create "Sprint Issues" "sprint IN openSprints()" --favourite
 
 # List filters
-jira search filter list --mine
+jira search filter list --favourite
 
-# Run filter
-jira search filter run --name "Sprint Issues"
+# Run filter (by filter ID)
+jira search filter run 10042
 
 # Share filter
 jira search filter share 10042 --project PROJ
+
+# Delete filter
+jira search filter delete 10042 --force
 ```
 
 ### Export
@@ -134,17 +140,17 @@ jira search export "project = PROJ" --output data.json --format json
 jira search export "project = PROJ" --output report.csv --enable-checkpoint
 ```
 
-### Query History
+### Using Filters in Queries
 
 ```bash
-# Save query locally
-jira search history --add "project = PROJ" --name my-query
+# Run a query using a saved filter ID
+jira search query --filter 10042
 
-# List saved queries
-jira search history --list
+# Combine filter with additional criteria
+jira search query --filter 10042 --max-results 100
 
-# Run saved query
-jira search history --run my-query
+# Save search results as a new filter
+jira search query "project = PROJ" --save-as "My New Filter"
 ```
 
 ## Streaming Export for Large Datasets

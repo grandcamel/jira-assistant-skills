@@ -43,16 +43,16 @@ Use this skill when you need to:
 
 ```bash
 # Discover project context for intelligent defaults
-jira ops discover-project PROJ --profile development
+jira ops discover-project PROJ --save
 
 # Check cache status
-jira ops cache-status
+jira ops cache-status --detailed
 
 # Clear cache
 jira ops cache-clear --force
 
-# Warm cache with project/field data
-jira ops cache-warm --all --profile production
+# Warm cache for a specific project
+jira ops cache-warm PROJ --max-issues 100
 ```
 
 ## Common Tasks (30-Second Solutions)
@@ -62,9 +62,9 @@ jira ops cache-warm --all --profile production
 jira ops cache-status
 ```
 
-### Warm the cache
+### Warm the cache for a project
 ```bash
-jira ops cache-warm --all --profile production
+jira ops cache-warm PROJ --type issues --max-issues 100
 ```
 
 ### Clear stale cache
