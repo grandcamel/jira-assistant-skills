@@ -65,7 +65,7 @@ def get_active_sprint_for_project(
         board_id = scrum_boards[0]["id"] if scrum_boards else boards[0]["id"]
 
         # Get active sprints for the board
-        sprints_result = client.get_all_sprints(board_id, state="active")
+        sprints_result = client.get_board_sprints(board_id, state="active")
         sprints = sprints_result.get("values", [])
 
         if not sprints:

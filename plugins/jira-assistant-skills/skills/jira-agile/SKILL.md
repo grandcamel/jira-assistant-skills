@@ -22,6 +22,7 @@ Use this skill when you need to:
 - Move issues between sprints and backlog
 - Prioritize and rank backlog issues
 - Estimate issues with story points
+- Calculate team velocity from completed sprints
 
 **Do not use this skill when:**
 - Creating individual stories/tasks without epic context (use jira-issue)
@@ -74,6 +75,12 @@ Set story points on single or bulk issues, validate against Fibonacci sequence, 
 
 See [estimation examples](examples/estimation.md) for detailed usage.
 
+### 6. Velocity Tracking
+
+Calculate team velocity from completed sprints. Shows average story points per sprint, trends, and historical data for planning.
+
+**Scripts:** `get_velocity.py`
+
 ## Available scripts
 
 ### Epic Management
@@ -98,6 +105,9 @@ See [estimation examples](examples/estimation.md) for detailed usage.
 ### Story Points and Estimation
 - `estimate_issue.py` - Set story points on issues (single, bulk, JQL)
 - `get_estimates.py` - Get story point summaries for sprints, projects, or epics
+
+### Velocity Tracking
+- `get_velocity.py` - Calculate velocity from completed sprints
 
 ## Quick examples
 
@@ -129,6 +139,11 @@ jira agile sprint manage --sprint 456 --close --move-incomplete-to 457
 jira agile estimate PROJ-101 --points 5
 jira agile estimates --project PROJ
 jira agile estimates --sprint 456 --group-by assignee
+
+# Velocity tracking
+jira agile velocity --project PROJ                     # Last 3 sprints
+jira agile velocity --project PROJ --sprints 5         # Last 5 sprints
+jira agile velocity --board 123 --output json          # JSON output
 ```
 
 See [Quick Start Guide](docs/QUICK_START.md) for essential workflows.
