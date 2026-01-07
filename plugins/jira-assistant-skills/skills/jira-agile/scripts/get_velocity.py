@@ -149,8 +149,12 @@ def get_velocity(
                     "sprint_name": sprint_name,
                     "completed_points": completed_points,
                     "completed_issues": completed_count,
-                    "start_date": sprint.get("startDate", "")[:10] if sprint.get("startDate") else None,
-                    "end_date": sprint.get("endDate", "")[:10] if sprint.get("endDate") else None,
+                    "start_date": sprint.get("startDate", "")[:10]
+                    if sprint.get("startDate")
+                    else None,
+                    "end_date": sprint.get("endDate", "")[:10]
+                    if sprint.get("endDate")
+                    else None,
                 }
             )
 
