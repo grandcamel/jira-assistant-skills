@@ -106,8 +106,8 @@ def get_velocity(
 
         if not sprints:
             raise ValidationError(
-                f"No closed sprints found. Velocity requires completed sprints. "
-                f"Close a sprint to start tracking velocity."
+                "No closed sprints found. Velocity requires completed sprints. "
+                "Close a sprint to start tracking velocity."
             )
 
         # Sort by end date descending (most recent first)
