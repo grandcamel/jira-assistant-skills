@@ -125,6 +125,45 @@ def sprint():
     pass
 
 
+@sprint.command(name="list")
+@click.option("--board", "-b", type=int, help="Board ID")
+@click.option("--project", "-p", help="Project key (will find board automatically)")
+@click.option(
+    "--state",
+    "-s",
+    type=click.Choice(["active", "closed", "future"]),
+    help="Filter by sprint state",
+)
+@click.option("--max-results", "-m", type=int, default=50, help="Maximum sprints")
+@click.pass_context
+def sprint_list(ctx, board: int, project: str, state: str, max_results: int):
+    """List sprints for a board or project.
+
+    Specify board using either --board (ID) or --project (key).
+
+    Examples:
+        jira agile sprint list --project DEMO
+        jira agile sprint list --board 123
+        jira agile sprint list --project DEMO --state active
+    """
+    if not board and not project:
+        raise click.UsageError("Either --board or --project is required")
+    if board and project:
+        raise click.UsageError("--board and --project are mutually exclusive")
+
+    script_path = SKILLS_ROOT_DIR / "jira-agile" / "scripts" / "list_sprints.py"
+
+    script_args = ["--max-results", str(max_results)]
+    if board:
+        script_args.extend(["--board", str(board)])
+    if project:
+        script_args.extend(["--project", project])
+    if state:
+        script_args.extend(["--state", state])
+
+    run_skill_script_subprocess(script_path, script_args, ctx)
+
+
 @sprint.command(name="create")
 @click.option("--board", "-b", "board_id", type=int, required=True, help="Board ID")
 @click.option("--name", "-n", required=True, help="Sprint name")
@@ -155,16 +194,38 @@ def sprint_create(
 
 
 @sprint.command(name="get")
-@click.argument("sprint_id", type=int)
+@click.argument("sprint_id", type=int, required=False)
+@click.option("--board", "-b", type=int, help="Board ID (use with --active)")
+@click.option("--active", "-a", is_flag=True, help="Get active sprint for board")
 @click.option("--include-issues", "-i", is_flag=True, help="Include issues in sprint")
 @click.pass_context
-def sprint_get(ctx, sprint_id: int, include_issues: bool):
-    """Get sprint details."""
+def sprint_get(ctx, sprint_id: int, board: int, active: bool, include_issues: bool):
+    """Get sprint details.
+
+    Get a specific sprint by ID, or find the active sprint for a board.
+
+    Examples:
+        jira agile sprint get 456
+        jira agile sprint get 456 --include-issues
+        jira agile sprint get --board 123 --active
+    """
+    if active:
+        if not board:
+            raise click.UsageError("--board is required with --active")
+        if sprint_id:
+            raise click.UsageError("Cannot specify both SPRINT_ID and --active")
+    elif not sprint_id:
+        raise click.UsageError("SPRINT_ID is required (or use --board with --active)")
+
     script_path = SKILLS_ROOT_DIR / "jira-agile" / "scripts" / "get_sprint.py"
 
-    script_args = [str(sprint_id)]
+    script_args = []
+    if active:
+        script_args.extend(["--board", str(board), "--active"])
+    else:
+        script_args.append(str(sprint_id))
     if include_issues:
-        script_args.append("--include-issues")
+        script_args.append("--with-issues")
 
     run_skill_script_subprocess(script_path, script_args, ctx)
 
