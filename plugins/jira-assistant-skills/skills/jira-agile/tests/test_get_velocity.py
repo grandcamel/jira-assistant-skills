@@ -128,7 +128,12 @@ class TestGetVelocity:
 
     @patch("get_velocity.get_agile_fields")
     def test_calculates_velocity_by_project(
-        self, mock_agile_fields, mock_client, mock_boards_response, mock_closed_sprints, mock_sprint_issues
+        self,
+        mock_agile_fields,
+        mock_client,
+        mock_boards_response,
+        mock_closed_sprints,
+        mock_sprint_issues,
     ):
         """Test calculating velocity for a project."""
         mock_agile_fields.return_value = {"story_points": "customfield_10016"}
@@ -140,7 +145,9 @@ class TestGetVelocity:
 
         assert result["project_key"] == "DEMO"
         assert result["sprints_analyzed"] == 3
-        assert result["average_velocity"] == 8.0  # 8 points per sprint (3 sprints, same issues)
+        assert (
+            result["average_velocity"] == 8.0
+        )  # 8 points per sprint (3 sprints, same issues)
         assert len(result["sprints"]) == 3
 
     @patch("get_velocity.get_agile_fields")
@@ -162,11 +169,15 @@ class TestGetVelocity:
         """Test error when neither board nor project specified."""
         from jira_assistant_skills_lib import ValidationError
 
-        with pytest.raises(ValidationError, match="Either --board or --project is required"):
+        with pytest.raises(
+            ValidationError, match="Either --board or --project is required"
+        ):
             get_velocity(client=mock_client)
 
     @patch("get_velocity.get_agile_fields")
-    def test_raises_error_when_no_closed_sprints(self, mock_agile_fields, mock_client, mock_boards_response):
+    def test_raises_error_when_no_closed_sprints(
+        self, mock_agile_fields, mock_client, mock_boards_response
+    ):
         """Test error when no closed sprints exist."""
         from jira_assistant_skills_lib import ValidationError
 
@@ -310,6 +321,7 @@ class TestVelocityCLI:
     def test_cli_main_exists(self):
         """Test that main function exists."""
         from get_velocity import main as velocity_main
+
         assert callable(velocity_main)
 
     def test_cli_help_output(self, capsys):

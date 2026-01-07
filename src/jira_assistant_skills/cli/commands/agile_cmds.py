@@ -451,7 +451,11 @@ def agile_estimates(ctx, sprint: int, project: str, epic: str, group_by: str):
     help="Number of closed sprints to analyze (default: 3)",
 )
 @click.option(
-    "--output", "-o", type=click.Choice(["text", "json"]), default="text", help="Output format"
+    "--output",
+    "-o",
+    type=click.Choice(["text", "json"]),
+    default="text",
+    help="Output format",
 )
 @click.pass_context
 def agile_velocity(ctx, board: int, project: str, sprints: int, output: str):
