@@ -52,7 +52,6 @@ jira search query "project = PROJ"
 
 - **Python 3.10+**: Minimum version for union syntax (`X | Y`) and modern type hints
 - **No external CLI tools**: All operations via Python/requests
-- **Profile-aware**: All scripts must support `--profile` override
 - **Validation first**: Call validators before API operations to fail fast
 - **HTTP client reuse**: Use `get_jira_client()` for session management and retry
 
@@ -68,7 +67,7 @@ jira search query "project = PROJ"
 
 1. Place in skill's `scripts/` directory
 2. Import: `from jira_assistant_skills_lib import ...`
-3. Use argparse with `--profile` argument
+3. Use argparse for script arguments
 4. Catch `JiraError`, call `print_error()`, `sys.exit(1)`
 5. Add shebang `#!/usr/bin/env python3`, make executable
 6. Update skill's SKILL.md
@@ -84,11 +83,11 @@ from jira_assistant_skills_lib.validators import validate_issue_key
 
 def main(argv: list[str] | None = None):
     parser = argparse.ArgumentParser(...)
-    parser.add_argument('--profile', help='JIRA profile to use')
+    # Add script-specific arguments here
     args = parser.parse_args(argv)
 
     try:
-        client = get_jira_client(profile=args.profile)
+        client = get_jira_client()
         # Perform operation
     except JiraError as e:
         print_error(e)
@@ -155,7 +154,6 @@ Types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`
 - **Library embedding**: Plugin has embedded lib copy at `skills/shared/scripts/lib/`. This is SEPARATE from pip-installed `jira-assistant-skills-lib`. Changes to standalone lib don't affect plugin until manually synced.
 - **Skill routing**: The `jira-assistant` hub skill routes to specific skills based on descriptions. If routing fails (goes to setup instead of skill), check SKILL.md "When to use" sections.
 - **Script imports**: Scripts must use `from jira_assistant_skills_lib import ...` not relative imports. The library is installed separately.
-- **Profile argument**: All scripts must accept `--profile` for multi-instance JIRA support even if not used.
 - **SKILL.md discovery**: Claude reads SKILL.md files to understand capabilities. Keep "When to use this skill" section accurate and specific.
 
 ## Best Practices
