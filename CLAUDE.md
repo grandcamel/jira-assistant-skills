@@ -155,6 +155,8 @@ Types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`
 - **Skill routing**: The `jira-assistant` hub skill routes to specific skills based on descriptions. If routing fails (goes to setup instead of skill), check SKILL.md "When to use" sections.
 - **Script imports**: Scripts must use `from jira_assistant_skills_lib import ...` not relative imports. The library is installed separately.
 - **SKILL.md discovery**: Claude reads SKILL.md files to understand capabilities. Keep "When to use this skill" section accurate and specific.
+- **jira CLI from wheel, not editable**: The `jira` CLI is defined in root `pyproject.toml`. Editable installs (`pip install -e .`) fail due to broken venv symlinks in skill directories. Use `pip install dist/*.whl` or build fresh wheel with `hatch build`.
+- **Rebuild wheel after changes**: Changes to the package (CLI, skills) require rebuilding the wheel (`hatch build`) before they take effect. The wheel is NOT auto-rebuilt.
 
 ## Best Practices
 
