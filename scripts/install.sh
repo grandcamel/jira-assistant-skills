@@ -86,7 +86,7 @@ check_python_version() {
 
 # Check if we're in the repo already
 check_in_repo() {
-    if [ -f "setup.py" ] && [ -d ".claude/skills" ]; then
+    if [ -f "pyproject.toml" ] && [ -d "plugins/jira-assistant-skills/skills" ]; then
         return 0
     fi
     return 1
@@ -125,28 +125,26 @@ get_repository() {
 # Install Python dependencies
 install_dependencies() {
     local python_cmd=$1
-    local requirements=".claude/skills/shared/scripts/lib/requirements.txt"
-
-    if [ ! -f "$requirements" ]; then
-        print_error "Cannot find requirements.txt"
-        print_info "Expected at: $requirements"
-        return 1
-    fi
 
     print_info "Installing Python dependencies..."
 
-    # Try pip install
-    if $python_cmd -m pip install --user -r "$requirements" 2>/dev/null; then
-        print_ok "Dependencies installed"
-        return 0
+    # Install the package and its dependencies
+    if $python_cmd -m pip install --user -e . 2>/dev/null; then
+        print_ok "Package installed"
+        # Also install the library
+        if $python_cmd -m pip install --user jira-assistant-skills-lib 2>/dev/null; then
+            print_ok "Library installed"
+            return 0
+        fi
     else
         print_warn "pip install failed, trying without --user flag..."
-        if $python_cmd -m pip install -r "$requirements" 2>/dev/null; then
-            print_ok "Dependencies installed"
+        if $python_cmd -m pip install -e . 2>/dev/null; then
+            print_ok "Package installed"
+            $python_cmd -m pip install jira-assistant-skills-lib 2>/dev/null
             return 0
         else
             print_error "Failed to install dependencies"
-            print_info "Try manually: $python_cmd -m pip install -r $requirements"
+            print_info "Try manually: $python_cmd -m pip install -e . && pip install jira-assistant-skills-lib"
             return 1
         fi
     fi
@@ -225,7 +223,7 @@ main() {
         print_ok "Installation complete!"
         echo ""
         echo "Quick test:"
-        echo "  $PYTHON_CMD .claude/skills/jira-issue/scripts/get_issue.py PROJ-123"
+        echo "  jira-as issue get PROJ-123"
         echo ""
         echo "Or ask Claude Code:"
         echo '  "Show me my open issues"'
