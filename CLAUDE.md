@@ -207,6 +207,16 @@ Scripts in `scripts/` for development and testing:
 
 **CRITICAL: Never push directly to `origin/main`.** Local `main` is read-only.
 
+### Repository Settings
+
+This repo enforces linear history (no merge commits):
+
+| Scope | Setting | Value |
+|-------|---------|-------|
+| Local | `pull.rebase` | `true` (auto-rebase on pull) |
+| Local | `rebase.autostash` | `true` (stash/unstash around rebase) |
+| GitHub | `required_linear_history` | `true` (rejects merge commits) |
+
 ```bash
 # Start work
 git checkout dev
@@ -238,7 +248,7 @@ Types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`
 - Always use `./scripts/sync-version.sh` when bumping versions
 - Run `./scripts/run_tests.sh` before committing
 - Use `--force-with-lease` for force pushes
-- Always use `--rebase` with git pull
+- Rebase is automatic via `pull.rebase=true` config
 - Ask for PR branch names before creating pull requests
 
 ## Related Resources
