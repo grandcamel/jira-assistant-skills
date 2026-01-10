@@ -7,7 +7,7 @@ Run these tests with specific sandbox profiles to validate restrictions.
 
 Usage:
     # Test read-only profile (should block creates)
-    SANDBOX_PROFILE=read-only CLAUDE_ALLOWED_TOOLS="Read Glob Grep WebFetch WebSearch Bash(jira issue get:*) Bash(jira search:*)" \
+    SANDBOX_PROFILE=read-only CLAUDE_ALLOWED_TOOLS="Read Glob Grep WebFetch WebSearch Bash(jira-as issue get:*) Bash(jira-as search:*)" \
         pytest test_sandbox_validation.py -v -k "readonly"
 
     # Test via run_sandboxed.sh
@@ -162,7 +162,7 @@ class TestReadOnlyProfile:
         """Read-only profile should allow viewing issues."""
         output = run_claude_with_prompt("show me details of issue TES-1")
 
-        # Should attempt jira issue get (or similar read operation)
+        # Should attempt jira-as issue get (or similar read operation)
         # In read-only, this should be allowed
         assert not response_indicates_blocked(output["result"]), (
             "Read operation should be allowed in read-only profile"
@@ -391,16 +391,16 @@ class TestProfileDetection:
                 "Read-only profile should allow Read tool"
             )
             assert (
-                "jira issue get" in allowed_tools
-                or "Bash(jira issue get" in allowed_tools
-            ), "Read-only profile should allow jira issue get"
+                "jira-as issue get" in allowed_tools
+                or "Bash(jira-as issue get" in allowed_tools
+            ), "Read-only profile should allow jira-as issue get"
         elif profile == "search-only":
             # Should only allow search
             assert (
-                "jira search" in allowed_tools or "Bash(jira search" in allowed_tools
-            ), "Search-only profile should allow jira search"
+                "jira-as search" in allowed_tools or "Bash(jira-as search" in allowed_tools
+            ), "Search-only profile should allow jira-as search"
         elif profile == "issue-only":
             # Should allow all issue operations
             assert (
-                "jira issue" in allowed_tools or "Bash(jira issue" in allowed_tools
-            ), "Issue-only profile should allow jira issue"
+                "jira-as issue" in allowed_tools or "Bash(jira-as issue" in allowed_tools
+            ), "Issue-only profile should allow jira-as issue"

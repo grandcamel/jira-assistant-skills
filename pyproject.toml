@@ -28,7 +28,7 @@ dev = [
 ]
 
 [project.scripts]
-jira = "jira_assistant_skills.cli.main:cli"
+jira-as = "jira_assistant_skills.cli.main:cli"
 
 # =============================================================================
 # Hatch Build Configuration

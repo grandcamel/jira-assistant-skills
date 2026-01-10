@@ -37,7 +37,7 @@ Use this skill when you need to:
 
 ## What this skill does
 
-**IMPORTANT:** Always use the `jira` CLI. Never run Python scripts directly.
+**IMPORTANT:** Always use the `jira-as` CLI. Never run Python scripts directly.
 
 1. **Comments**: Add/edit/delete comments with rich text support
 2. **Attachments**: Upload and download files
@@ -78,57 +78,57 @@ Use this skill when you need to:
 
 ```bash
 # Add a comment
-jira collaborate comment add PROJ-123 --body "Starting work on this now"
+jira-as collaborate comment add PROJ-123 --body "Starting work on this now"
 
 # Rich text comment
-jira collaborate comment add PROJ-123 --body "**Bold** text" --format markdown
+jira-as collaborate comment add PROJ-123 --body "**Bold** text" --format markdown
 
 # Internal comment (role-restricted)
-jira collaborate comment add PROJ-123 --body "Internal note" --visibility-role Administrators
+jira-as collaborate comment add PROJ-123 --body "Internal note" --visibility-role Administrators
 
 # List comments
-jira collaborate comment list PROJ-123
-jira collaborate comment list PROJ-123 --limit 10 --order asc
+jira-as collaborate comment list PROJ-123
+jira-as collaborate comment list PROJ-123 --limit 10 --order asc
 
 # Update a comment (requires comment ID)
-jira collaborate comment update PROJ-123 --id 10001 --body "Updated text"
+jira-as collaborate comment update PROJ-123 --id 10001 --body "Updated text"
 
 # Delete a comment
-jira collaborate comment delete PROJ-123 --id 10001 --yes
+jira-as collaborate comment delete PROJ-123 --id 10001 --yes
 
 # Upload attachment
-jira collaborate attachment upload PROJ-123 --file screenshot.png
+jira-as collaborate attachment upload PROJ-123 --file screenshot.png
 
 # Download attachment (use attachment ID from issue details)
-jira collaborate attachment download PROJ-123 12345 --output ./downloads/
+jira-as collaborate attachment download PROJ-123 12345 --output ./downloads/
 
 # List watchers
-jira collaborate watchers PROJ-123 --list
+jira-as collaborate watchers PROJ-123 --list
 
 # Add watcher
-jira collaborate watchers PROJ-123 --add user@example.com
+jira-as collaborate watchers PROJ-123 --add user@example.com
 
 # Remove watcher
-jira collaborate watchers PROJ-123 --remove user@example.com
+jira-as collaborate watchers PROJ-123 --remove user@example.com
 
 # Send notification to watchers
-jira collaborate notify PROJ-123 --watchers --subject "Update" --body "Issue resolved"
+jira-as collaborate notify PROJ-123 --watchers --subject "Update" --body "Issue resolved"
 
 # Send notification to specific users (use account IDs)
-jira collaborate notify PROJ-123 --user 5b10a2844c20165700ede21g --subject "Review needed"
+jira-as collaborate notify PROJ-123 --user 5b10a2844c20165700ede21g --subject "Review needed"
 
 # Send notification to assignee and reporter
-jira collaborate notify PROJ-123 --assignee --reporter --subject "Please review"
+jira-as collaborate notify PROJ-123 --assignee --reporter --subject "Please review"
 
 # Preview notification without sending
-jira collaborate notify PROJ-123 --watchers --dry-run
+jira-as collaborate notify PROJ-123 --watchers --dry-run
 
 # View activity history
-jira collaborate activity PROJ-123
+jira-as collaborate activity PROJ-123
 
 # View activity with filters
-jira collaborate activity PROJ-123 --field status --field assignee --output table
-jira collaborate activity PROJ-123 --field-type custom --limit 10
+jira-as collaborate activity PROJ-123 --field status --field assignee --output table
+jira-as collaborate activity PROJ-123 --field-type custom --limit 10
 ```
 
 ## Common Options
@@ -142,8 +142,8 @@ All scripts support:
 
 For script-specific options, use `--help` on any script:
 ```bash
-jira collaborate comment add --help
-jira collaborate notify --help
+jira-as collaborate comment add --help
+jira-as collaborate notify --help
 ```
 
 See [references/SCRIPT_OPTIONS.md](references/SCRIPT_OPTIONS.md) for full option matrix.

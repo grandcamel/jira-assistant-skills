@@ -37,15 +37,15 @@ declare -A PROFILE_TOOLS
 declare -A PROFILE_DESCRIPTION
 
 # read-only: View and search, no modifications
-PROFILE_TOOLS["read-only"]="Read Glob Grep WebFetch WebSearch Bash(jira issue get:*) Bash(jira search:*) Bash(jira fields list:*) Bash(jira fields get:*)"
+PROFILE_TOOLS["read-only"]="Read Glob Grep WebFetch WebSearch Bash(jira-as issue get:*) Bash(jira-as search:*) Bash(jira-as fields list:*) Bash(jira-as fields get:*)"
 PROFILE_DESCRIPTION["read-only"]="View/search only - no create, update, or delete operations"
 
 # search-only: Just JQL search operations
-PROFILE_TOOLS["search-only"]="Read Glob Grep Bash(jira search:*)"
+PROFILE_TOOLS["search-only"]="Read Glob Grep Bash(jira-as search:*)"
 PROFILE_DESCRIPTION["search-only"]="JQL search operations only"
 
 # issue-only: JIRA issue CRUD operations
-PROFILE_TOOLS["issue-only"]="Read Glob Grep Bash(jira issue:*)"
+PROFILE_TOOLS["issue-only"]="Read Glob Grep Bash(jira-as issue:*)"
 PROFILE_DESCRIPTION["issue-only"]="JIRA issue operations only (get, create, update, delete)"
 
 # full: Everything allowed (default)

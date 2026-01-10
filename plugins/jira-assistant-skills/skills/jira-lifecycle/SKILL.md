@@ -21,19 +21,19 @@ Workflow and lifecycle management for JIRA issues.
 
 ## What this skill does
 
-**IMPORTANT:** Always use the `jira` CLI. Never run Python scripts directly.
+**IMPORTANT:** Always use the `jira-as` CLI. Never run Python scripts directly.
 
 7 command categories for complete lifecycle management:
 
 | Category | Purpose | Example |
 |----------|---------|---------|
-| **Transitions** | Move issues between statuses | `jira lifecycle transition PROJ-123 --to "In Progress"` |
-| **Assignments** | Control ownership | `jira lifecycle assign PROJ-123 --self` or `--user email` |
-| **Resolution** | Mark issues complete | `jira lifecycle resolve PROJ-123 --resolution Fixed` |
-| **Reopen** | Restore resolved issues | `jira lifecycle reopen PROJ-123` |
-| **Versions** | Plan and track releases | `jira lifecycle version create PROJ --name "v2.0.0"` |
-| **Components** | Organize by subsystem | `jira lifecycle component create PROJ --name "API"` |
-| **Discovery** | View available options | `jira lifecycle transitions PROJ-123` |
+| **Transitions** | Move issues between statuses | `jira-as lifecycle transition PROJ-123 --to "In Progress"` |
+| **Assignments** | Control ownership | `jira-as lifecycle assign PROJ-123 --self` or `--user email` |
+| **Resolution** | Mark issues complete | `jira-as lifecycle resolve PROJ-123 --resolution Fixed` |
+| **Reopen** | Restore resolved issues | `jira-as lifecycle reopen PROJ-123` |
+| **Versions** | Plan and track releases | `jira-as lifecycle version create PROJ --name "v2.0.0"` |
+| **Components** | Organize by subsystem | `jira-as lifecycle component create PROJ --name "API"` |
+| **Discovery** | View available options | `jira-as lifecycle transitions PROJ-123` |
 
 All commands support `--help` for full option documentation.
 
@@ -41,58 +41,58 @@ All commands support `--help` for full option documentation.
 
 ### Workflow Transitions
 ```bash
-jira lifecycle transitions PROJ-123                    # List available transitions
-jira lifecycle transition PROJ-123 --to "In Progress"  # Transition by status name
-jira lifecycle transition PROJ-123 --id 31             # Transition by ID
-jira lifecycle transition PROJ-123 --to Done --resolution Fixed  # With resolution
-jira lifecycle transition PROJ-123 --to "In Progress" --sprint 42  # Move to sprint after transition
-jira lifecycle transition PROJ-123 --to Done --dry-run             # Preview without executing
-jira lifecycle transition PROJ-123 --to Done --fields '{"customfield_10001": "value"}'  # With custom fields
+jira-as lifecycle transitions PROJ-123                    # List available transitions
+jira-as lifecycle transition PROJ-123 --to "In Progress"  # Transition by status name
+jira-as lifecycle transition PROJ-123 --id 31             # Transition by ID
+jira-as lifecycle transition PROJ-123 --to Done --resolution Fixed  # With resolution
+jira-as lifecycle transition PROJ-123 --to "In Progress" --sprint 42  # Move to sprint after transition
+jira-as lifecycle transition PROJ-123 --to Done --dry-run             # Preview without executing
+jira-as lifecycle transition PROJ-123 --to Done --fields '{"customfield_10001": "value"}'  # With custom fields
 ```
 
 ### Assignments
 ```bash
-jira lifecycle assign PROJ-123 --self                  # Assign to yourself
-jira lifecycle assign PROJ-123 --user email@example.com  # Assign to user
-jira lifecycle assign PROJ-123 --unassign              # Remove assignee
+jira-as lifecycle assign PROJ-123 --self                  # Assign to yourself
+jira-as lifecycle assign PROJ-123 --user email@example.com  # Assign to user
+jira-as lifecycle assign PROJ-123 --unassign              # Remove assignee
 ```
 
 ### Resolution
 ```bash
-jira lifecycle resolve PROJ-123                         # Resolve with default resolution (Done)
-jira lifecycle resolve PROJ-123 --resolution Fixed      # Resolve with specific resolution
-jira lifecycle reopen PROJ-123                          # Reopen issue
-jira lifecycle reopen PROJ-123 --comment "Reopening for additional work"  # Reopen with comment
+jira-as lifecycle resolve PROJ-123                         # Resolve with default resolution (Done)
+jira-as lifecycle resolve PROJ-123 --resolution Fixed      # Resolve with specific resolution
+jira-as lifecycle reopen PROJ-123                          # Reopen issue
+jira-as lifecycle reopen PROJ-123 --comment "Reopening for additional work"  # Reopen with comment
 ```
 
 ### Version Management
 ```bash
-jira lifecycle version list PROJ                       # List versions
-jira lifecycle version list PROJ --unreleased          # Show only unreleased versions
-jira lifecycle version list PROJ --archived            # Filter for archived versions only
-jira lifecycle version create PROJ --name "v2.0.0"     # Create version
-jira lifecycle version create PROJ --name "v2.0.0" --start-date 2025-01-01 --release-date 2025-03-01
-jira lifecycle version create PROJ --name "v2.0.0" --released --dry-run  # Preview creation
-jira lifecycle version release PROJ "v1.0.0"           # Release a version
-jira lifecycle version archive PROJ "v0.9.0"           # Archive a version
+jira-as lifecycle version list PROJ                       # List versions
+jira-as lifecycle version list PROJ --unreleased          # Show only unreleased versions
+jira-as lifecycle version list PROJ --archived            # Filter for archived versions only
+jira-as lifecycle version create PROJ --name "v2.0.0"     # Create version
+jira-as lifecycle version create PROJ --name "v2.0.0" --start-date 2025-01-01 --release-date 2025-03-01
+jira-as lifecycle version create PROJ --name "v2.0.0" --released --dry-run  # Preview creation
+jira-as lifecycle version release PROJ "v1.0.0"           # Release a version
+jira-as lifecycle version archive PROJ "v0.9.0"           # Archive a version
 ```
 
 ### Component Management
 
-**Note:** Component update and delete operations require the component ID (not name). Use `jira lifecycle component list PROJ` to find component IDs. The `--lead` option requires an account ID, not email.
+**Note:** Component update and delete operations require the component ID (not name). Use `jira-as lifecycle component list PROJ` to find component IDs. The `--lead` option requires an account ID, not email.
 
 ```bash
-jira lifecycle component list PROJ                     # List components (shows IDs)
-jira lifecycle component create PROJ --name "API"      # Create component
-jira lifecycle component create PROJ --name "Backend" --lead 5b10a2844c20165700ede21g
-jira lifecycle component create PROJ --name "Frontend" --assignee-type COMPONENT_LEAD
-jira lifecycle component update --id 10000 --name "New Name"           # Update by ID
-jira lifecycle component update --id 10000 --lead 5b10a2844c20165700ede22h
-jira lifecycle component update --id 10000 --assignee-type PROJECT_LEAD --dry-run
-jira lifecycle component delete --id 10000             # Delete with confirmation prompt
-jira lifecycle component delete --id 10000 --yes       # Delete without confirmation
-jira lifecycle component delete --id 10000 --move-to 10001  # Move issues before deletion
-jira lifecycle component delete --id 10000 --dry-run   # Preview deletion
+jira-as lifecycle component list PROJ                     # List components (shows IDs)
+jira-as lifecycle component create PROJ --name "API"      # Create component
+jira-as lifecycle component create PROJ --name "Backend" --lead 5b10a2844c20165700ede21g
+jira-as lifecycle component create PROJ --name "Frontend" --assignee-type COMPONENT_LEAD
+jira-as lifecycle component update --id 10000 --name "New Name"           # Update by ID
+jira-as lifecycle component update --id 10000 --lead 5b10a2844c20165700ede22h
+jira-as lifecycle component update --id 10000 --assignee-type PROJECT_LEAD --dry-run
+jira-as lifecycle component delete --id 10000             # Delete with confirmation prompt
+jira-as lifecycle component delete --id 10000 --yes       # Delete without confirmation
+jira-as lifecycle component delete --id 10000 --move-to 10001  # Move issues before deletion
+jira-as lifecycle component delete --id 10000 --dry-run   # Preview deletion
 ```
 
 ## Common Options
@@ -111,12 +111,12 @@ Query commands (`transitions`, `version list`, `component list`) also support `-
 Most modification commands support `--dry-run` to preview changes without executing:
 
 ```bash
-jira lifecycle transition PROJ-123 --to Done --dry-run
-jira lifecycle assign PROJ-123 --self --dry-run
-jira lifecycle version create PROJ --name "v1.0.0" --dry-run
-jira lifecycle component create PROJ --name "API" --dry-run
-jira lifecycle component update --id 10000 --name "New Name" --dry-run
-jira lifecycle component delete --id 10000 --dry-run
+jira-as lifecycle transition PROJ-123 --to Done --dry-run
+jira-as lifecycle assign PROJ-123 --self --dry-run
+jira-as lifecycle version create PROJ --name "v1.0.0" --dry-run
+jira-as lifecycle component create PROJ --name "API" --dry-run
+jira-as lifecycle component update --id 10000 --name "New Name" --dry-run
+jira-as lifecycle component delete --id 10000 --dry-run
 ```
 
 ## Exit Codes
@@ -139,7 +139,7 @@ Works with standard JIRA workflows, custom workflows, JIRA Service Management wo
 See [references/TROUBLESHOOTING.md](references/TROUBLESHOOTING.md) for common issues and solutions.
 
 **Quick fixes:**
-- "No transition found" - Run `jira lifecycle transitions ISSUE-KEY` to see available transitions
+- "No transition found" - Run `jira-as lifecycle transitions ISSUE-KEY` to see available transitions
 - "Transition requires fields" - Use `--fields '{"field": "value"}'` option
 - "User not found" - Verify user email and project permissions
 

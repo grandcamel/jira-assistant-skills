@@ -16,7 +16,7 @@ This hub routes requests to specialized JIRA skills. It does not execute JIRA op
 
 | I want to... | Use this skill | Risk |
 |--------------|----------------|:----:|
-| Create/edit/delete a single issue | jira-issue | ⚠️ |
+| Create/edit/delete a single issue, view/show issue details | jira-issue | ⚠️ |
 | Search with JQL, export results | jira-search | - |
 | Change status, assign, resolve, manage versions/components | jira-lifecycle | ⚠️ |
 | Manage sprints, epics, subtasks, story points | jira-agile | - |
@@ -40,6 +40,8 @@ This hub routes requests to specialized JIRA skills. It does not execute JIRA op
 2. **Entity signals** - Issue key present → likely jira-issue or jira-lifecycle
 3. **Quantity determines bulk** - More than 10 issues → jira-bulk
 4. **Keywords drive routing**:
+   - "show", "view", "display", "get", "retrieve", "see", "details", "look up", "check" (with issue reference) → jira-issue
+   - "create", "update", "delete" (single issue) → jira-issue
    - "search", "find", "JQL", "filter" → jira-search
    - "sprint", "epic", "backlog", "story points", "subtask" → jira-agile
    - "transition", "move to", "assign", "close" → jira-lifecycle
@@ -119,6 +121,10 @@ When user says "it" or "that issue":
 User: "create a bug in TES" → TES-789 created
 User: "assign it to me"
 → "it" = TES-789 (the issue just created)
+
+User: "create a bug in DEMO" → DEMO-105 created
+User: "show me the details of the bug we just created"
+→ "the bug we just created" = DEMO-105 (use jira-issue to retrieve details)
 ```
 
 **After SEARCH**:
@@ -149,7 +155,7 @@ After 5+ messages or 5+ minutes since last reference:
 ### Create Epic with Stories
 1. Use jira-agile to create the epic → Note epic key (e.g., TES-100)
 2. Use jira-issue to create each story with `--epic TES-100` flag to link during creation
-   - Alternatively: create stories first, then use `jira agile epic add-issues` to link existing issues
+   - Alternatively: create stories first, then use `jira-as agile epic add-issues` to link existing issues
 3. Confirm: "Created epic TES-100 with N stories"
 
 ### Bulk Close from Search

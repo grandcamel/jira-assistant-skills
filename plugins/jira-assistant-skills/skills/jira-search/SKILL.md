@@ -29,38 +29,38 @@ Query and discovery operations for JIRA issues using JQL (JIRA Query Language).
 
 ```bash
 # Find your open issues
-jira search query "assignee = currentUser() AND status != Done"
+jira-as search query "assignee = currentUser() AND status != Done"
 
 # Find bugs in a project
-jira search query "project = PROJ AND type = Bug AND status = Open"
+jira-as search query "project = PROJ AND type = Bug AND status = Open"
 
 # Export results to CSV
-jira search export "project = PROJ" --output report.csv
+jira-as search export "project = PROJ" --output report.csv
 
 # Save a filter for reuse
-jira search filter create "My Bugs" "type = Bug AND assignee = currentUser()" --favourite
+jira-as search filter create "My Bugs" "type = Bug AND assignee = currentUser()" --favourite
 ```
 
 For detailed setup, see [docs/QUICK_START.md](docs/QUICK_START.md).
 
 ## Available Commands
 
-**IMPORTANT:** Always use the `jira` CLI. Never run Python scripts directly.
+**IMPORTANT:** Always use the `jira-as` CLI. Never run Python scripts directly.
 
 | Command | Purpose | Example |
 |---------|---------|---------|
-| `jira search query` | Execute JQL queries | `jira search query "project = PROJ"` |
-| `jira search export` | Export to CSV/JSON | `jira search export "JQL" -o report.csv` |
-| `jira search validate` | Check JQL syntax | `jira search validate "your query"` |
-| `jira search build` | Build JQL from options | `jira search build --project PROJ --status Open` |
-| `jira search suggest` | Get field value suggestions | `jira search suggest --field status` |
-| `jira search fields` | List available JQL fields | `jira search fields` |
-| `jira search functions` | List available JQL functions | `jira search functions` |
-| `jira search filter list` | List saved filters | `jira search filter list --favourite` |
-| `jira search filter create` | Save a reusable filter | `jira search filter create "Name" "JQL"` |
-| `jira search filter run` | Run a saved filter | `jira search filter run 10042` |
-| `jira search filter share` | Share filter with users/groups | `jira search filter share 10042 --project PROJ` |
-| `jira search filter delete` | Delete a saved filter | `jira search filter delete 10042 --force` |
+| `jira-as search query` | Execute JQL queries | `jira-as search query "project = PROJ"` |
+| `jira-as search export` | Export to CSV/JSON | `jira-as search export "JQL" -o report.csv` |
+| `jira-as search validate` | Check JQL syntax | `jira-as search validate "your query"` |
+| `jira-as search build` | Build JQL from options | `jira-as search build --project PROJ --status Open` |
+| `jira-as search suggest` | Get field value suggestions | `jira-as search suggest --field status` |
+| `jira-as search fields` | List available JQL fields | `jira-as search fields` |
+| `jira-as search functions` | List available JQL functions | `jira-as search functions` |
+| `jira-as search filter list` | List saved filters | `jira-as search filter list --favourite` |
+| `jira-as search filter create` | Save a reusable filter | `jira-as search filter create "Name" "JQL"` |
+| `jira-as search filter run` | Run a saved filter | `jira-as search filter run 10042` |
+| `jira-as search filter share` | Share filter with users/groups | `jira-as search filter share 10042 --project PROJ` |
+| `jira-as search filter delete` | Delete a saved filter | `jira-as search filter delete 10042 --force` |
 
 All commands support `--help` for full documentation.
 
@@ -90,82 +90,82 @@ All commands support `--help` for full documentation.
 
 ```bash
 # Basic search
-jira search query "project = PROJ AND status = Open"
+jira-as search query "project = PROJ AND status = Open"
 
 # With field selection
-jira search query "project = PROJ" --fields key,summary,status,assignee
+jira-as search query "project = PROJ" --fields key,summary,status,assignee
 
 # With result limit
-jira search query "project = PROJ" --max-results 50
+jira-as search query "project = PROJ" --max-results 50
 ```
 
 ### JQL Building
 
 ```bash
 # Validate syntax
-jira search validate "project = PROJ AND status = Open"
+jira-as search validate "project = PROJ AND status = Open"
 
 # Build JQL from options
-jira search build --project PROJ --status Open --assignee currentUser()
+jira-as search build --project PROJ --status Open --assignee currentUser()
 
 # Get field suggestions
-jira search suggest --field status
-jira search suggest --field status --prefix "In"
-jira search suggest --field assignee --prefix "john"
+jira-as search suggest --field status
+jira-as search suggest --field status --prefix "In"
+jira-as search suggest --field assignee --prefix "john"
 
 # List available fields and operators
-jira search fields
+jira-as search fields
 
 # List available JQL functions
-jira search functions
+jira-as search functions
 ```
 
 ### Saved Filters
 
 ```bash
 # Create filter
-jira search filter create "Sprint Issues" "sprint IN openSprints()" --favourite
+jira-as search filter create "Sprint Issues" "sprint IN openSprints()" --favourite
 
 # List filters
-jira search filter list --favourite
+jira-as search filter list --favourite
 
 # Run filter (by filter ID)
-jira search filter run 10042
+jira-as search filter run 10042
 
 # Share filter
-jira search filter share 10042 --project PROJ
+jira-as search filter share 10042 --project PROJ
 
 # Delete filter
-jira search filter delete 10042 --force
+jira-as search filter delete 10042 --force
 ```
 
 ### Export
 
 ```bash
 # CSV export
-jira search export "project = PROJ" -o report.csv
+jira-as search export "project = PROJ" -o report.csv
 
 # JSON export
-jira search export "project = PROJ" -o data.json --format json
+jira-as search export "project = PROJ" -o data.json --format json
 
 # Export specific fields
-jira search export "project = PROJ" -o report.csv --fields key,summary,status,assignee
+jira-as search export "project = PROJ" -o report.csv --fields key,summary,status,assignee
 
 # Limit results
-jira search export "project = PROJ" -o report.csv --max-results 500
+jira-as search export "project = PROJ" -o report.csv --max-results 500
 ```
 
 ### Using Filters in Queries
 
 ```bash
 # Run a query using a saved filter ID
-jira search query --filter 10042
+jira-as search query --filter 10042
 
 # Combine filter with additional criteria
-jira search query --filter 10042 --max-results 100
+jira-as search query --filter 10042 --max-results 100
 
 # Save search results as a new filter
-jira search query "project = PROJ" --save-as "My New Filter"
+jira-as search query "project = PROJ" --save-as "My New Filter"
 ```
 
 ## Exporting Large Datasets
@@ -174,17 +174,17 @@ For large exports, optimize your query and field selection:
 
 | Result Size | Recommendation |
 |-------------|----------------|
-| < 1000 | `jira search export "JQL" -o file.csv` |
-| 1000-5000 | `jira search export "JQL" -o file.csv --fields key,summary,status` |
+| < 1000 | `jira-as search export "JQL" -o file.csv` |
+| 1000-5000 | `jira-as search export "JQL" -o file.csv --fields key,summary,status` |
 | > 5000 | Split by date ranges using created/updated filters |
 
 ```bash
 # Large export with minimal fields for speed
-jira search export "project = PROJ" -o report.csv --fields key,summary,status,assignee
+jira-as search export "project = PROJ" -o report.csv --fields key,summary,status,assignee
 
 # Split by time periods for very large datasets
-jira search export "project = PROJ AND created >= -30d" -o recent.csv
-jira search export "project = PROJ AND created >= -60d AND created < -30d" -o older.csv
+jira-as search export "project = PROJ AND created >= -30d" -o recent.csv
+jira-as search export "project = PROJ AND created >= -60d AND created < -30d" -o older.csv
 ```
 
 ## Exit Codes
@@ -200,10 +200,10 @@ jira search export "project = PROJ AND created >= -60d AND created < -30d" -o ol
 
 **Quick diagnostics:**
 ```bash
-jira search validate "your query"     # Check syntax
-jira search fields                    # List available fields
-jira search suggest --field status    # Get valid values for a field
-jira search functions                 # List available JQL functions
+jira-as search validate "your query"     # Check syntax
+jira-as search fields                    # List available fields
+jira-as search suggest --field status    # Get valid values for a field
+jira-as search functions                 # List available JQL functions
 ```
 
 For detailed troubleshooting, see [references/TROUBLESHOOTING.md](references/TROUBLESHOOTING.md).

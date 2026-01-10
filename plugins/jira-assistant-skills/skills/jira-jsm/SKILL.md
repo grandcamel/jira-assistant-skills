@@ -43,7 +43,7 @@ Use jira-jsm when you encounter:
 
 ## What this skill does
 
-**IMPORTANT:** Always use the `jira` CLI. Never run Python scripts directly.
+**IMPORTANT:** Always use the `jira-as` CLI. Never run Python scripts directly.
 
 This skill provides comprehensive JSM operations organized into 6 key ITSM capabilities:
 
@@ -60,28 +60,28 @@ This skill provides comprehensive JSM operations organized into 6 key ITSM capab
 
 ```bash
 # 1. List service desks to find your ID
-jira jsm service-desk list
+jira-as jsm service-desk list
 
 # 2. List request types for your service desk
-jira jsm request-type list 1
+jira-as jsm request-type list 1
 
 # 3. Create an incident (both summary AND description are required)
-jira jsm request create 1 10 --summary "Email service down" --description "Production email server is not responding to connections"
+jira-as jsm request create 1 10 --summary "Email service down" --description "Production email server is not responding to connections"
 
 # 4. Check SLA status
-jira jsm sla get SD-123
+jira-as jsm sla get SD-123
 
 # 5. Add a comment to a request (body is positional, before flags)
-jira jsm request comment SD-123 "Looking into this issue now"
+jira-as jsm request comment SD-123 "Looking into this issue now"
 
 # 6. Add an internal comment (agent-only, not visible to customers)
-jira jsm request comment SD-123 "Escalating to Tier 2 support" --internal
+jira-as jsm request comment SD-123 "Escalating to Tier 2 support" --internal
 
 # 7. Approve a pending request (issue_key, approval_id)
-jira jsm approval approve SD-124 1001 --comment "Approved" --yes
+jira-as jsm approval approve SD-124 1001 --comment "Approved" --yes
 
 # 8. Preview approval without executing (dry-run)
-jira jsm approval approve SD-124 1001 --dry-run
+jira-as jsm approval approve SD-124 1001 --dry-run
 ```
 
 For detailed setup instructions, see [docs/QUICK_START.md](docs/QUICK_START.md).
@@ -153,7 +153,7 @@ All scripts support these common options:
 
 | Option | Description | Example |
 |--------|-------------|---------|
-| `--help` | Show help and exit | `jira <command> --help` |
+| `--help` | Show help and exit | `jira-as <command> --help` |
 | `--profile PROFILE` | Use specific JIRA profile | `--profile production` |
 | `--output FORMAT` | Output format: text, json, table | `--output json` |
 | `--service-desk ID` | Service desk ID (numeric) | `--service-desk 1` |
@@ -188,7 +188,7 @@ export JSM_DEFAULT_SERVICE_DESK="1"
 
 ```bash
 # Use production profile
-jira jsm request create 1 10 --summary "Issue" --profile prod
+jira-as jsm request create 1 10 --summary "Issue" --profile prod
 ```
 
 For full configuration options, see [references/CONFIG_REFERENCE.md](references/CONFIG_REFERENCE.md).
@@ -199,10 +199,10 @@ Service desk IDs are numeric identifiers required by most scripts.
 
 ```bash
 # Method 1: List all service desks
-jira jsm service-desk list
+jira-as jsm service-desk list
 
 # Method 2: Get details by ID
-jira jsm service-desk get 1
+jira-as jsm service-desk get 1
 ```
 
 **Tip**: Store frequently used IDs in environment variables:
@@ -227,7 +227,7 @@ JSM requests (SD-* keys) are standard JIRA issues and work with all skills:
 
 ### "Service desk not found"
 ```bash
-jira jsm service-desk list  # Find correct ID
+jira-as jsm service-desk list  # Find correct ID
 ```
 
 ### "Authentication failed"

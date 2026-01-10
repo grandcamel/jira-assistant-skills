@@ -83,7 +83,7 @@ source ~/.bashrc  # or source ~/.zshrc
 Test the connection using the CLI:
 
 ```bash
-jira issue get {any_issue_key}
+jira-as issue get {any_issue_key}
 ```
 
 Or test with a Python script:
@@ -104,7 +104,7 @@ If validation succeeds, tell the user:
 
 **Test with a known issue:**
 ```bash
-jira issue get PROJ-123
+jira-as issue get PROJ-123
 ```
 
 **Or just ask me naturally:**
