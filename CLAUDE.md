@@ -139,7 +139,21 @@ plugins/jira-assistant-skills/skills/new-skill/
 - "Available scripts" with descriptions
 - "Examples" with concrete bash commands
 
-## Testing (Quick Reference)
+## Available Scripts
+
+Scripts in `scripts/` for development and testing:
+
+| Script | Purpose |
+|--------|---------|
+| `run_tests.sh` | Main unit test runner (runs each skill separately) |
+| `run_single_test.sh` | Run individual test file, class, or method |
+| `run_live_tests.sh` | Live integration tests with real JIRA credentials |
+| `run-e2e-tests.sh` | End-to-end tests with Claude Code (Docker or local) |
+| `setup-env.sh` | Interactive environment configuration wizard |
+| `sync-version.sh` | Synchronize version across all project files |
+| `install.sh` | Unix installer (clones repo, installs deps, runs setup) |
+
+### Testing Commands
 
 ```bash
 # Run all unit tests (required before merge)
@@ -153,6 +167,32 @@ plugins/jira-assistant-skills/skills/new-skill/
 
 # Run with coverage (95% required)
 ./scripts/run_tests.sh --coverage --min-coverage 95
+
+# Run live integration tests (requires JIRA credentials)
+./scripts/run_live_tests.sh
+
+# Run E2E tests
+./scripts/run-e2e-tests.sh --local
+```
+
+### Version Management
+
+```bash
+# Check if versions are in sync
+./scripts/sync-version.sh --check
+
+# Sync all files to VERSION
+./scripts/sync-version.sh
+
+# Set new version and sync
+./scripts/sync-version.sh --set 2.3.0
+```
+
+### Environment Setup
+
+```bash
+# Interactive setup (prompts for JIRA credentials, tests connection)
+./scripts/setup-env.sh
 ```
 
 ## Git (Quick Reference)

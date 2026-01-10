@@ -66,16 +66,20 @@ fi
 echo "JIRA Site: $JIRA_SITE_URL"
 echo ""
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+SKILLS_ROOT="$PROJECT_ROOT/plugins/jira-assistant-skills/skills"
+
 for skill in "${SKILLS[@]}"; do
     echo "----------------------------------------"
     echo "Testing: $skill"
     echo "----------------------------------------"
 
-    TEST_PATH=".claude/skills/$skill/tests/live_integration/"
+    TEST_PATH="$SKILLS_ROOT/$skill/tests/live_integration/"
 
     if [ -d "$TEST_PATH" ]; then
         # Build command with appropriate flags
-        CMD="./venv/bin/pytest $TEST_PATH --profile $PROFILE -v"
+        CMD="python -m pytest $TEST_PATH --profile $PROFILE -v"
 
         # Add skip-premium for JSM
         if [ "$skill" == "jira-jsm" ] && [ -n "$SKIP_PREMIUM" ]; then
