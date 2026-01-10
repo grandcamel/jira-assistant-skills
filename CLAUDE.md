@@ -216,6 +216,7 @@ This repo enforces linear history (no merge commits):
 | Local | `pull.rebase` | `true` (auto-rebase on pull) |
 | Local | `rebase.autostash` | `true` (stash/unstash around rebase) |
 | GitHub | `required_linear_history` | `true` (rejects merge commits) |
+| GitHub | `required_pull_request_reviews` | `1` (PRs require 1 approval) |
 
 ```bash
 # Start work
