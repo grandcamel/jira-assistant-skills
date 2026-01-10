@@ -9,7 +9,6 @@ Note: Common markers (unit, integration, lifecycle) are defined in the root pyte
 
 import sys
 from pathlib import Path
-from unittest.mock import Mock
 
 import pytest
 

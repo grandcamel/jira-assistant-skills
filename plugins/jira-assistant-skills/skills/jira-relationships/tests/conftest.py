@@ -10,7 +10,6 @@ Note: Common markers (unit, integration, relationships) are defined in the root 
 import copy
 import sys
 from pathlib import Path
-from unittest.mock import Mock
 
 import pytest
 

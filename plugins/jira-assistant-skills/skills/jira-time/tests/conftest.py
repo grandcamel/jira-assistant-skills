@@ -10,7 +10,6 @@ Note: Common markers (unit, integration, time) are defined in the root pytest.in
 import copy
 import sys
 from pathlib import Path
-from unittest.mock import Mock
 
 import pytest
 
