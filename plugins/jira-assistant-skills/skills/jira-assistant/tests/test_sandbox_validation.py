@@ -397,10 +397,12 @@ class TestProfileDetection:
         elif profile == "search-only":
             # Should only allow search
             assert (
-                "jira-as search" in allowed_tools or "Bash(jira-as search" in allowed_tools
+                "jira-as search" in allowed_tools
+                or "Bash(jira-as search" in allowed_tools
             ), "Search-only profile should allow jira-as search"
         elif profile == "issue-only":
             # Should allow all issue operations
             assert (
-                "jira-as issue" in allowed_tools or "Bash(jira-as issue" in allowed_tools
+                "jira-as issue" in allowed_tools
+                or "Bash(jira-as issue" in allowed_tools
             ), "Issue-only profile should allow jira-as issue"

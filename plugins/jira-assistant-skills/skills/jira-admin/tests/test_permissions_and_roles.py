@@ -153,7 +153,12 @@ class TestCheckMyPermissions:
         result = check_permissions(
             mock_jira_client,
             project_key="DEMO",
-            permissions=["BROWSE_PROJECTS", "DELETE_ISSUES", "CREATE_ISSUES", "EDIT_ISSUES"],
+            permissions=[
+                "BROWSE_PROJECTS",
+                "DELETE_ISSUES",
+                "CREATE_ISSUES",
+                "EDIT_ISSUES",
+            ],
         )
 
         # Verify - API returns what it has, we check what was returned
