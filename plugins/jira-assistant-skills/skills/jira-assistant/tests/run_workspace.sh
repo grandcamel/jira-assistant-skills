@@ -45,11 +45,11 @@ declare -A PROFILE_TOOLS
 declare -A PROFILE_DESCRIPTION
 
 # docs-jira: File operations + JIRA issue management (default)
-PROFILE_TOOLS["docs-jira"]="Read Write Edit Glob Grep Bash(jira issue:*) Bash(jira lifecycle:*)"
+PROFILE_TOOLS["docs-jira"]="Read Write Edit Glob Grep Bash(jira-as issue:*) Bash(jira-as lifecycle:*)"
 PROFILE_DESCRIPTION["docs-jira"]="File operations + JIRA issue/lifecycle management"
 
 # code-review: Read files + add JIRA comments
-PROFILE_TOOLS["code-review"]="Read Glob Grep Bash(jira issue get:*) Bash(jira collaborate:*)"
+PROFILE_TOOLS["code-review"]="Read Glob Grep Bash(jira-as issue get:*) Bash(jira-as collaborate:*)"
 PROFILE_DESCRIPTION["code-review"]="Read files + JIRA comments/collaboration"
 
 # docs-only: Just file operations, no JIRA

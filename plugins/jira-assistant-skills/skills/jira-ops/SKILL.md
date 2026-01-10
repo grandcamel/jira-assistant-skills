@@ -31,7 +31,7 @@ Use this skill when you need to:
 
 ## What This Skill Does
 
-**IMPORTANT:** Always use the `jira` CLI. Never run Python scripts directly.
+**IMPORTANT:** Always use the `jira-as` CLI. Never run Python scripts directly.
 
 - **Project Discovery**: Discover project metadata, workflows, and patterns for intelligent defaults
 - **Cache Status Monitoring**: Display cache statistics (size, entries, hit rates)
@@ -43,16 +43,16 @@ Use this skill when you need to:
 
 ```bash
 # Discover project context (saves to skill directory by default)
-jira ops discover-project PROJ
+jira-as ops discover-project PROJ
 
 # Check cache status
-jira ops cache-status
+jira-as ops cache-status
 
 # Clear all cache
-jira ops cache-clear --force
+jira-as ops cache-clear --force
 
 # Warm cache with all metadata
-jira ops cache-warm --all
+jira-as ops cache-warm --all
 ```
 
 ## Common Tasks (30-Second Solutions)
@@ -60,61 +60,61 @@ jira ops cache-warm --all
 ### Check cache status
 ```bash
 # Basic status
-jira ops cache-status
+jira-as ops cache-status
 
 # Output as JSON
-jira ops cache-status --json
+jira-as ops cache-status --json
 
 # Verbose output
-jira ops cache-status --verbose
+jira-as ops cache-status --verbose
 ```
 
 ### Warm the cache
 ```bash
 # Cache project list
-jira ops cache-warm --projects
+jira-as ops cache-warm --projects
 
 # Cache field definitions
-jira ops cache-warm --fields
+jira-as ops cache-warm --fields
 
 # Cache all available metadata with verbose output
-jira ops cache-warm --all --verbose
+jira-as ops cache-warm --all --verbose
 ```
 
 ### Clear cache
 ```bash
 # Clear all cache (with confirmation)
-jira ops cache-clear
+jira-as ops cache-clear
 
 # Clear all cache (skip confirmation)
-jira ops cache-clear --force
+jira-as ops cache-clear --force
 
 # Clear only issue cache
-jira ops cache-clear --category issue --force
+jira-as ops cache-clear --category issue --force
 
 # Preview what would be cleared
-jira ops cache-clear --dry-run
+jira-as ops cache-clear --dry-run
 
 # Clear keys matching pattern
-jira ops cache-clear --pattern "PROJ-*" --category issue --force
+jira-as ops cache-clear --pattern "PROJ-*" --category issue --force
 ```
 
 ### Discover project context
 ```bash
 # Discover and save to skill directory (default)
-jira ops discover-project PROJ
+jira-as ops discover-project PROJ
 
 # Save to settings.local.json for personal use
-jira ops discover-project PROJ --personal
+jira-as ops discover-project PROJ --personal
 
 # Save to both locations
-jira ops discover-project PROJ --both
+jira-as ops discover-project PROJ --both
 
 # Output JSON without saving
-jira ops discover-project PROJ --output json --no-save
+jira-as ops discover-project PROJ --output json --no-save
 
 # Custom sample size and period
-jira ops discover-project PROJ --sample-size 200 --days 60
+jira-as ops discover-project PROJ --sample-size 200 --days 60
 ```
 
 See [Scripts Guide](docs/SCRIPTS.md) for complete documentation.

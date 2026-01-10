@@ -13,7 +13,7 @@ Bulk operations for JIRA issue management at scale - transitions, assignments, p
 
 ## When to use this skill
 
-**IMPORTANT:** Always use the `jira` CLI. Never run Python scripts directly.
+**IMPORTANT:** Always use the `jira-as` CLI. Never run Python scripts directly.
 
 Use this skill when you need to:
 - Transition **multiple issues** through workflow states simultaneously
@@ -33,10 +33,10 @@ Use this skill when you need to:
 
 ```bash
 # Preview before making changes
-jira bulk transition --jql "project=PROJ AND status='In Progress'" --to "Done" --dry-run
+jira-as bulk transition --jql "project=PROJ AND status='In Progress'" --to "Done" --dry-run
 
 # Execute the transition
-jira bulk transition --jql "project=PROJ AND status='In Progress'" --to "Done"
+jira-as bulk transition --jql "project=PROJ AND status='In Progress'" --to "Done"
 ```
 
 For more patterns, see [Quick Start Guide](docs/QUICK_START.md).
@@ -66,7 +66,7 @@ All commands support these options:
 
 ### Transition-Only Options
 
-These options are only available for `jira bulk transition`:
+These options are only available for `jira-as bulk transition`:
 
 | Option | Purpose | When to Use |
 |--------|---------|-------------|
@@ -81,58 +81,58 @@ These options are only available for `jira bulk transition`:
 
 ```bash
 # By issue keys
-jira bulk transition --issues PROJ-1,PROJ-2,PROJ-3 --to "Done"
+jira-as bulk transition --issues PROJ-1,PROJ-2,PROJ-3 --to "Done"
 
 # By JQL query
-jira bulk transition --jql "project=PROJ AND status='In Progress'" --to "Done"
+jira-as bulk transition --jql "project=PROJ AND status='In Progress'" --to "Done"
 
 # With resolution
-jira bulk transition --jql "type=Bug AND status='Verified'" --to "Closed" --resolution "Fixed"
+jira-as bulk transition --jql "type=Bug AND status='Verified'" --to "Closed" --resolution "Fixed"
 ```
 
 ### Bulk Assign
 
 ```bash
 # Assign to user
-jira bulk assign --jql "project=PROJ AND status=Open" --assignee "john.doe"
+jira-as bulk assign --jql "project=PROJ AND status=Open" --assignee "john.doe"
 
 # Assign to self
-jira bulk assign --jql "project=PROJ AND assignee IS EMPTY" --assignee self
+jira-as bulk assign --jql "project=PROJ AND assignee IS EMPTY" --assignee self
 
 # Unassign
-jira bulk assign --jql "assignee=john.leaving" --unassign
+jira-as bulk assign --jql "assignee=john.leaving" --unassign
 ```
 
 ### Bulk Set Priority
 
 ```bash
-jira bulk set-priority --jql "type=Bug AND labels=critical" --priority Highest
+jira-as bulk set-priority --jql "type=Bug AND labels=critical" --priority Highest
 ```
 
 ### Bulk Clone
 
 ```bash
 # Clone with subtasks and links
-jira bulk clone --jql "sprint='Sprint 42'" --include-subtasks --include-links
+jira-as bulk clone --jql "sprint='Sprint 42'" --include-subtasks --include-links
 
 # Clone to different project
-jira bulk clone --issues PROJ-1,PROJ-2 --target-project NEWPROJ --prefix "[Clone]"
+jira-as bulk clone --issues PROJ-1,PROJ-2 --target-project NEWPROJ --prefix "[Clone]"
 ```
 
 ### Bulk Delete (DESTRUCTIVE)
 
 ```bash
 # ALWAYS preview first with dry-run
-jira bulk delete --jql "project=CLEANUP" --dry-run
+jira-as bulk delete --jql "project=CLEANUP" --dry-run
 
 # Delete by issue keys (preview first)
-jira bulk delete --issues DEMO-1,DEMO-2,DEMO-3 --dry-run
+jira-as bulk delete --issues DEMO-1,DEMO-2,DEMO-3 --dry-run
 
 # Execute deletion (after confirming dry-run output)
-jira bulk delete --jql "project=CLEANUP" --yes
+jira-as bulk delete --jql "project=CLEANUP" --yes
 
 # Delete without subtasks
-jira bulk delete --jql "project=CLEANUP" --no-subtasks --dry-run
+jira-as bulk delete --jql "project=CLEANUP" --no-subtasks --dry-run
 ```
 
 **Safety features:**
@@ -143,7 +143,7 @@ jira bulk delete --jql "project=CLEANUP" --no-subtasks --dry-run
 
 ## Parameter Tuning Guide (Transitions Only)
 
-The batching and checkpointing features are only available for `jira bulk transition`.
+The batching and checkpointing features are only available for `jira-as bulk transition`.
 Other commands (assign, set-priority, clone) process issues sequentially with built-in rate limiting.
 
 **How many issues?**
@@ -171,7 +171,7 @@ Other commands (assign, set-priority, clone) process issues sequentially with bu
 
 | Error | Solution |
 |-------|----------|
-| `Transition not available` | Check issue status with `jira issue get ISSUE-KEY --show-transitions` |
+| `Transition not available` | Check issue status with `jira-as issue get ISSUE-KEY --show-transitions` |
 | `Permission denied` | Verify JIRA project permissions (DELETE_ISSUES required for bulk delete) |
 | `Rate limit (429)` | Reduce `--batch-size` or run during off-peak hours (transitions only) |
 | `Invalid JQL` | Test JQL in JIRA search first |

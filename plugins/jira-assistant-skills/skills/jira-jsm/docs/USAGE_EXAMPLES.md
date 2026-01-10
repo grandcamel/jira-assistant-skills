@@ -226,14 +226,14 @@ python get_queue_issues.py 500 --filter "priority=High"
 
 ```bash
 # Add public comment (visible to customer) - default behavior
-jira jsm request comment SD-123 "We're investigating the issue"
+jira-as jsm request comment SD-123 "We're investigating the issue"
 
 # Add internal comment (agent-only, not visible to customers)
-jira jsm request comment SD-123 "Root cause: DNS server failure" --internal
+jira-as jsm request comment SD-123 "Root cause: DNS server failure" --internal
 
 # Get comments
-jira jsm request comments SD-123
-jira jsm request comments SD-123 --public-only
+jira-as jsm request comments SD-123
+jira-as jsm request comments SD-123 --public-only
 ```
 
 ### Managing Approvals

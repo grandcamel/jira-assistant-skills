@@ -129,7 +129,7 @@ cd jira-assistant-skills
 
 ```bash
 pip install jira-assistant-skills-lib
-pip install -e .  # Install the jira CLI
+pip install -e .  # Install the jira-as CLI
 ```
 
 ### 3. Get API Token
@@ -154,12 +154,12 @@ claude "Create a bug: Login button not working"
 claude "What's blocking the release?"
 
 # Or use the CLI directly
-jira issue get PROJ-123
-jira search query "project = PROJ AND status = Open"
-jira time log PROJ-123 2h
+jira-as issue get PROJ-123
+jira-as search query "project = PROJ AND status = Open"
+jira-as time log PROJ-123 2h
 ```
 
-**That's it.** Claude now has full JIRA access via natural language, and you can use the `jira` CLI directly from your terminal.
+**That's it.** Claude now has full JIRA access via natural language, and you can use the `jira-as` CLI directly from your terminal.
 
 <p align="center">
   <a href="docs/quick-start.md"><strong>Full Setup Guide →</strong></a>
@@ -572,8 +572,8 @@ pip install -e .  # Install CLI in editable mode
 pytest plugins/jira-assistant-skills/skills/*/tests/*.py -v
 
 # Verify CLI is working
-jira --version
-jira --help
+jira-as --version
+jira-as --help
 ```
 
 ---

@@ -27,10 +27,10 @@ Always suggest dry-run for:
 User: "Close all bugs in TES"
 Assistant: "This will close 47 bugs. Run with --dry-run first?
 
-            jira bulk transition "project=TES AND type=Bug" --to Done --dry-run
+            jira-as bulk transition "project=TES AND type=Bug" --to Done --dry-run
 
             Then confirm with:
-            jira bulk transition "project=TES AND type=Bug" --to Done --confirm"
+            jira-as bulk transition "project=TES AND type=Bug" --to Done --confirm"
 ```
 
 ### Undo Guidance
@@ -63,8 +63,8 @@ Assistant: "This will close 47 bugs. Run with --dry-run first?
 Error: "You don't have permission to edit issues"
 
 Recovery:
-1. Check current permissions: jira admin list-permissions --project TES
-2. If admin: jira admin add-permission --scheme ... --permission EDIT_ISSUES
+1. Check current permissions: jira-as admin list-permissions --project TES
+2. If admin: jira-as admin add-permission --scheme ... --permission EDIT_ISSUES
 3. If not admin: Contact project administrator
 ```
 
@@ -178,16 +178,16 @@ For high-risk operations, require explicit confirmation:
 
 ```bash
 # Dry run first
-jira bulk assign "project=TES" --to @alice --dry-run
+jira-as bulk assign "project=TES" --to @alice --dry-run
 
 # Review output, then confirm
-jira bulk assign "project=TES" --to @alice --confirm
+jira-as bulk assign "project=TES" --to @alice --confirm
 ```
 
 ### Rollback Strategy
 
 Before making bulk changes:
-1. Export current state: `jira search export "JQL" -o backup.csv`
+1. Export current state: `jira-as search export "JQL" -o backup.csv`
 2. Make changes with logging
 3. Keep change log for potential rollback
 

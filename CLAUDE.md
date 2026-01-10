@@ -44,8 +44,8 @@ export JIRA_EMAIL="your@email.com"
 export JIRA_SITE_URL="https://your-company.atlassian.net"
 
 # Test
-jira issue get PROJ-123
-jira search query "project = PROJ"
+jira-as issue get PROJ-123
+jira-as search query "project = PROJ"
 ```
 
 ## Key Constraints
@@ -69,7 +69,7 @@ jira search query "project = PROJ"
 
 **The pattern:**
 1. **Skill tool** → Loads SKILL.md content into Claude's context (triggered by YAML frontmatter matching)
-2. **Bash tool** → Claude executes the `jira` CLI commands described in the skill
+2. **Bash tool** → Claude executes the `jira-as` CLI commands described in the skill
 
 **Key behaviors:**
 - Once loaded, skill context persists for the entire conversation
@@ -84,7 +84,7 @@ jira search query "project = PROJ"
 | Knowledge question only | `['Skill']` |
 
 **SKILL.md implications:**
-- "Examples" section should show `jira` CLI commands Claude will run
+- "Examples" section should show `jira-as` CLI commands Claude will run
 - Clear command examples help Claude execute correctly on first try
 - Skill does NOT execute commands itself - it provides instructions for Claude to follow
 
@@ -180,7 +180,7 @@ Types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`
 - **Skill routing**: The `jira-assistant` hub skill routes to specific skills based on descriptions. If routing fails (goes to setup instead of skill), check SKILL.md "When to use" sections.
 - **Script imports**: Scripts must use `from jira_assistant_skills_lib import ...` not relative imports. The library is installed separately.
 - **SKILL.md discovery**: Claude reads SKILL.md files to understand capabilities. Keep "When to use this skill" section accurate and specific.
-- **jira CLI from wheel, not editable**: The `jira` CLI is defined in root `pyproject.toml`. Editable installs (`pip install -e .`) fail due to broken venv symlinks in skill directories. Use `pip install dist/*.whl` or build fresh wheel with `hatch build`.
+- **jira-as CLI from wheel, not editable**: The `jira-as` CLI is defined in root `pyproject.toml`. Editable installs (`pip install -e .`) fail due to broken venv symlinks in skill directories. Use `pip install dist/*.whl` or build fresh wheel with `hatch build`.
 - **Rebuild wheel after changes**: Changes to the package (CLI, skills) require rebuilding the wheel (`hatch build`) before they take effect. The wheel is NOT auto-rebuilt.
 
 ## Best Practices

@@ -35,7 +35,7 @@ Manage custom fields and screen configurations in JIRA for Agile and other workf
 
 ## What this skill does
 
-**IMPORTANT:** Always use the `jira` CLI. Never run Python scripts directly.
+**IMPORTANT:** Always use the `jira-as` CLI. Never run Python scripts directly.
 
 ### Field Discovery
 - List all custom fields in the JIRA instance
@@ -68,61 +68,61 @@ All scripts support these common options:
 List all custom fields in the JIRA instance.
 ```bash
 # List all custom fields
-jira fields list
+jira-as fields list
 
 # Filter by name pattern
-jira fields list --filter "story"
+jira-as fields list --filter "story"
 
 # Show only Agile-related fields
-jira fields list --agile
+jira-as fields list --agile
 
 # Show all fields (including system fields)
-jira fields list --all
+jira-as fields list --all
 
 # Use specific profile
-jira fields list --profile production
+jira-as fields list --profile production
 ```
 
 ### check_project_fields.py
 Check field availability for a specific project.
 ```bash
 # Check what fields are available for issue creation
-jira fields check-project PROJ
+jira-as fields check-project PROJ
 
 # Check fields for a specific issue type
-jira fields check-project PROJ --type Story
+jira-as fields check-project PROJ --type Story
 
 # Check Agile field availability
-jira fields check-project PROJ --check-agile
+jira-as fields check-project PROJ --check-agile
 ```
 
 ### configure_agile_fields.py
 Configure Agile fields for a company-managed project.
 ```bash
 # Configure default Agile fields for a project
-jira fields configure-agile PROJ
+jira-as fields configure-agile PROJ
 
 # Preview changes without applying (dry run)
-jira fields configure-agile PROJ --dry-run
+jira-as fields configure-agile PROJ --dry-run
 
 # Specify custom field IDs
-jira fields configure-agile PROJ --story-points customfield_10016 --epic-link customfield_10014
+jira-as fields configure-agile PROJ --story-points customfield_10016 --epic-link customfield_10014
 
 # Configure all Agile field IDs
-jira fields configure-agile PROJ --story-points customfield_10016 --epic-link customfield_10014 --sprint customfield_10020
+jira-as fields configure-agile PROJ --story-points customfield_10016 --epic-link customfield_10014 --sprint customfield_10020
 ```
 
 ### create_field.py
 Create a new custom field (requires admin permissions).
 ```bash
 # Create Story Points field
-jira fields create --name "Story Points" --type number
+jira-as fields create --name "Story Points" --type number
 
 # Create Epic Link field
-jira fields create --name "Epic Link" --type select
+jira-as fields create --name "Epic Link" --type select
 
 # Create with description
-jira fields create --name "Effort" --type number --description "Effort in hours"
+jira-as fields create --name "Effort" --type number --description "Effort in hours"
 ```
 
 ## Searching for Agile Fields
@@ -131,16 +131,16 @@ To find Agile-specific fields in your instance:
 
 ```bash
 # List all Agile-related fields
-jira fields list --agile
+jira-as fields list --agile
 
 # Filter for Story Points field
-jira fields list --filter "story"
+jira-as fields list --filter "story"
 
 # Filter for Epic fields
-jira fields list --filter "epic"
+jira-as fields list --filter "epic"
 
 # Filter for Sprint field
-jira fields list --filter "sprint"
+jira-as fields list --filter "sprint"
 ```
 
 JSON output includes:
@@ -183,23 +183,23 @@ All scripts use consistent exit codes:
 
 See [Agile Field IDs Reference](assets/agile-field-ids.md) for the complete list.
 
-Always run `jira fields list --agile` to verify IDs for your instance.
+Always run `jira-as fields list --agile` to verify IDs for your instance.
 
 ## Examples
 
 ### Setting up Agile for a new project
 ```bash
 # 1. Check what fields are available in the project
-jira fields check-project NEWPROJ --check-agile
+jira-as fields check-project NEWPROJ --check-agile
 
 # 2. Find Agile field IDs in your instance
-jira fields list --agile
+jira-as fields list --agile
 
 # 3. Preview configuration changes (dry run)
-jira fields configure-agile NEWPROJ --dry-run
+jira-as fields configure-agile NEWPROJ --dry-run
 
 # 4. Configure Agile fields with correct IDs
-jira fields configure-agile NEWPROJ --story-points customfield_10016 --epic-link customfield_10014
+jira-as fields configure-agile NEWPROJ --story-points customfield_10016 --epic-link customfield_10014
 ```
 
 ### Creating a company-managed Scrum project
@@ -213,13 +213,13 @@ jira fields configure-agile NEWPROJ --story-points customfield_10016 --epic-link
 ### Diagnosing missing fields
 ```bash
 # Filter for fields by name
-jira fields list --filter "story"
+jira-as fields list --filter "story"
 
 # Check what's available for the project
-jira fields check-project PROJ
+jira-as fields check-project PROJ
 
 # Check Agile field availability
-jira fields check-project PROJ --check-agile
+jira-as fields check-project PROJ --check-agile
 ```
 
 ## Troubleshooting
@@ -229,9 +229,9 @@ jira fields check-project PROJ --check-agile
 **Symptom**: Script reports field ID doesn't exist or field not available.
 
 **Solutions**:
-1. Run `jira fields list --filter "field name"` to find correct field IDs for your instance
+1. Run `jira-as fields list --filter "field name"` to find correct field IDs for your instance
 2. Field IDs vary between JIRA instances - never assume default IDs
-3. Check if the field exists: `jira fields list --filter "field name"`
+3. Check if the field exists: `jira-as fields list --filter "field name"`
 
 ### "Permission denied" when creating fields
 
@@ -247,17 +247,17 @@ jira fields check-project PROJ --check-agile
 **Symptom**: Field exists but not shown when creating issues.
 
 **Solutions**:
-1. Check project type: `jira fields check-project PROJ`
+1. Check project type: `jira-as fields check-project PROJ`
 2. For company-managed projects, fields must be added to the appropriate screen
 3. For team-managed projects, configure fields in Project Settings > Features
-4. Run `jira fields configure-agile PROJ --story-points customfield_10016` for Agile fields (company-managed only)
+4. Run `jira-as fields configure-agile PROJ --story-points customfield_10016` for Agile fields (company-managed only)
 
 ### Team-managed project limitations
 
 **Symptom**: API operations fail or fields behave differently.
 
 **Solutions**:
-1. Detect project type: `jira fields check-project PROJ`
+1. Detect project type: `jira-as fields check-project PROJ`
 2. Team-managed projects have limited API support for field configuration
 3. Most field configuration must be done through the JIRA UI
 4. Consider converting to company-managed if full API control is needed
@@ -267,7 +267,7 @@ jira fields check-project PROJ --check-agile
 **Symptom**: Story Points or Sprint fields show unexpected data.
 
 **Solutions**:
-1. Verify field IDs match your instance: `jira fields list --agile` or `jira fields list --filter "story"`
+1. Verify field IDs match your instance: `jira-as fields list --agile` or `jira-as fields list --filter "story"`
 2. Check field is configured for the correct issue types
 3. Ensure the board is configured to use the correct Story Points field
 4. For Sprint issues, verify the board includes your project

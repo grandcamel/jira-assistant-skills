@@ -35,7 +35,7 @@ See [Skill Selection Guide](docs/SKILL_SELECTION.md) for detailed guidance.
 
 ## What this skill does
 
-**IMPORTANT:** Always use the `jira` CLI. Never run Python scripts directly.
+**IMPORTANT:** Always use the `jira-as` CLI. Never run Python scripts directly.
 
 ### 1. Epic Management
 
@@ -113,37 +113,37 @@ Calculate team velocity from completed sprints. Shows average story points per s
 
 ```bash
 # Create epic and add issues
-jira agile epic create --project PROJ --summary "Mobile App MVP"
-jira agile epic create --project PROJ --summary "MVP" --epic-name "Mobile MVP" --color blue
-jira agile epic get PROJ-100 --with-children
-jira agile epic add-issues --epic PROJ-100 --issues PROJ-101,PROJ-102
+jira-as agile epic create --project PROJ --summary "Mobile App MVP"
+jira-as agile epic create --project PROJ --summary "MVP" --epic-name "Mobile MVP" --color blue
+jira-as agile epic get PROJ-100 --with-children
+jira-as agile epic add-issues --epic PROJ-100 --issues PROJ-101,PROJ-102
 
 # Create subtasks
-jira agile subtask --parent PROJ-101 --summary "Implement login API"
-jira agile subtask --parent PROJ-101 --summary "Task" --assignee self --estimate 4h
+jira-as agile subtask --parent PROJ-101 --summary "Implement login API"
+jira-as agile subtask --parent PROJ-101 --summary "Task" --assignee self --estimate 4h
 
 # List and discover sprints
-jira agile sprint list --project DEMO                    # List all sprints for project
-jira agile sprint list --project DEMO --state active     # Find active sprint
-jira agile sprint list --board 123 --state closed        # List closed sprints
-jira agile sprint get --board 123 --active               # Get active sprint details
-jira agile sprint get 456 --include-issues               # Get sprint with issues
+jira-as agile sprint list --project DEMO                    # List all sprints for project
+jira-as agile sprint list --project DEMO --state active     # Find active sprint
+jira-as agile sprint list --board 123 --state closed        # List closed sprints
+jira-as agile sprint get --board 123 --active               # Get active sprint details
+jira-as agile sprint get 456 --include-issues               # Get sprint with issues
 
 # Create and manage sprints
-jira agile sprint create --board 123 --name "Sprint 42" --goal "Launch MVP"
-jira agile sprint move-issues --sprint 456 --issues PROJ-101,PROJ-102
-jira agile sprint manage --sprint 456 --start
-jira agile sprint manage --sprint 456 --close --move-incomplete-to 457
+jira-as agile sprint create --board 123 --name "Sprint 42" --goal "Launch MVP"
+jira-as agile sprint move-issues --sprint 456 --issues PROJ-101,PROJ-102
+jira-as agile sprint manage --sprint 456 --start
+jira-as agile sprint manage --sprint 456 --close --move-incomplete-to 457
 
 # Estimate and track
-jira agile estimate PROJ-101 --points 5
-jira agile estimates --project PROJ
-jira agile estimates --sprint 456 --group-by assignee
+jira-as agile estimate PROJ-101 --points 5
+jira-as agile estimates --project PROJ
+jira-as agile estimates --sprint 456 --group-by assignee
 
 # Velocity tracking
-jira agile velocity --project PROJ                     # Last 3 sprints
-jira agile velocity --project PROJ --sprints 5         # Last 5 sprints
-jira agile velocity --board 123 --output json          # JSON output
+jira-as agile velocity --project PROJ                     # Last 3 sprints
+jira-as agile velocity --project PROJ --sprints 5         # Last 5 sprints
+jira-as agile velocity --board 123 --output json          # JSON output
 ```
 
 See [Quick Start Guide](docs/QUICK_START.md) for essential workflows.

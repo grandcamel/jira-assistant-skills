@@ -40,7 +40,7 @@ Use this skill when you need to:
 - Fix Smart Commits not working
 - Resolve PR linking issues
 
-**IMPORTANT:** Always use the `jira` CLI. Never run Python scripts directly.
+**IMPORTANT:** Always use the `jira-as` CLI. Never run Python scripts directly.
 
 ## Learning Path
 
@@ -83,52 +83,52 @@ All scripts support `--help` for detailed usage. See [scripts/REFERENCE.md](scri
 
 ```bash
 # Generate branch name with default prefix (feature)
-jira dev branch-name PROJ-123
+jira-as dev branch-name PROJ-123
 
 # Generate branch name with explicit prefix
-jira dev branch-name PROJ-123 --prefix bugfix
+jira-as dev branch-name PROJ-123 --prefix bugfix
 
 # Auto-detect prefix from issue type (Bug -> bugfix, Story -> feature, etc.)
-jira dev branch-name PROJ-123 --auto-prefix
+jira-as dev branch-name PROJ-123 --auto-prefix
 
 # Output git checkout command directly
-jira dev branch-name PROJ-123 --output git
+jira-as dev branch-name PROJ-123 --output git
 
 # Extract issues from a single commit message
-jira dev parse-commits "feat(PROJ-123): add login"
+jira-as dev parse-commits "feat(PROJ-123): add login"
 
 # Extract issues from git log via pipe
-git log --oneline -10 | jira dev parse-commits --from-stdin
+git log --oneline -10 | jira-as dev parse-commits --from-stdin
 
 # Filter to specific project
-jira dev parse-commits "Fix PROJ-123 and OTHER-456" --project PROJ
+jira-as dev parse-commits "Fix PROJ-123 and OTHER-456" --project PROJ
 
 # Generate PR description with testing checklist
-jira dev pr-description PROJ-123 --include-checklist
+jira-as dev pr-description PROJ-123 --include-checklist
 
 # Generate PR description with labels and components
-jira dev pr-description PROJ-123 --include-labels --include-components
+jira-as dev pr-description PROJ-123 --include-labels --include-components
 
 # Link PR to issue (--pr is required)
-jira dev link-pr PROJ-123 --pr https://github.com/org/repo/pull/456
+jira-as dev link-pr PROJ-123 --pr https://github.com/org/repo/pull/456
 
 # Link PR with status and author
-jira dev link-pr PROJ-123 --pr https://github.com/org/repo/pull/456 --status merged --author "Jane Doe"
+jira-as dev link-pr PROJ-123 --pr https://github.com/org/repo/pull/456 --status merged --author "Jane Doe"
 
 # Link commit to issue (--commit is required)
-jira dev link-commit PROJ-123 --commit abc123def --message "feat: add login" --repo https://github.com/org/repo
+jira-as dev link-commit PROJ-123 --commit abc123def --message "feat: add login" --repo https://github.com/org/repo
 
 # Link commit with additional metadata
-jira dev link-commit PROJ-123 --commit abc123def --author "John Doe" --branch feature/login
+jira-as dev link-commit PROJ-123 --commit abc123def --author "John Doe" --branch feature/login
 
 # Get commits linked to issue
-jira dev get-commits PROJ-123
+jira-as dev get-commits PROJ-123
 
 # Get commits with detailed information
-jira dev get-commits PROJ-123 --detailed
+jira-as dev get-commits PROJ-123 --detailed
 
 # Get commits filtered by repository
-jira dev get-commits PROJ-123 --repo "org/repo" --output table
+jira-as dev get-commits PROJ-123 --repo "org/repo" --output table
 ```
 
 ## Configuration

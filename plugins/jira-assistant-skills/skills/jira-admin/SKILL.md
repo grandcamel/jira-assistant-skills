@@ -107,119 +107,119 @@ Reach for this skill when you need to:
 
 ## Available Commands
 
-**IMPORTANT:** Always use the `jira` CLI. Never run Python scripts directly.
+**IMPORTANT:** Always use the `jira-as` CLI. Never run Python scripts directly.
 
 All commands support `--help` for full documentation.
 
 ### Project Management
 ```bash
-jira admin project list                    # List all projects
-jira admin project get PROJ                # Get project details
-jira admin project create                  # Create a new project
-jira admin project update PROJ             # Update project settings
-jira admin project delete PROJ             # Delete a project
-jira admin project archive PROJ            # Archive a project
-jira admin project restore PROJ            # Restore archived project
-jira admin config get PROJ                 # Get project configuration
-jira admin category list                   # List project categories
-jira admin category create                 # Create a category
-jira admin category assign PROJ            # Assign category to project
+jira-as admin project list                    # List all projects
+jira-as admin project get PROJ                # Get project details
+jira-as admin project create                  # Create a new project
+jira-as admin project update PROJ             # Update project settings
+jira-as admin project delete PROJ             # Delete a project
+jira-as admin project archive PROJ            # Archive a project
+jira-as admin project restore PROJ            # Restore archived project
+jira-as admin config get PROJ                 # Get project configuration
+jira-as admin category list                   # List project categories
+jira-as admin category create                 # Create a category
+jira-as admin category assign PROJ            # Assign category to project
 ```
 
 ### Automation Rules
 ```bash
-jira admin automation list --project PROJ  # List automation rules
-jira admin automation get RULE_ID          # Get rule details
-jira admin automation enable RULE_ID       # Enable a rule
-jira admin automation disable RULE_ID      # Disable a rule
-jira admin automation invoke RULE_ID       # Invoke manual rule
-jira admin automation-template list        # List rule templates
+jira-as admin automation list --project PROJ  # List automation rules
+jira-as admin automation get RULE_ID          # Get rule details
+jira-as admin automation enable RULE_ID       # Enable a rule
+jira-as admin automation disable RULE_ID      # Disable a rule
+jira-as admin automation invoke RULE_ID       # Invoke manual rule
+jira-as admin automation-template list        # List rule templates
 ```
 
 ### Permission Schemes
 ```bash
-jira admin permission-scheme list          # List permission schemes
-jira admin permission-scheme get ID        # Get scheme details
-jira admin permission-scheme create        # Create new scheme
-jira admin permission-scheme assign        # Assign scheme to project
-jira admin permission list                 # List available permissions
+jira-as admin permission-scheme list          # List permission schemes
+jira-as admin permission-scheme get ID        # Get scheme details
+jira-as admin permission-scheme create        # Create new scheme
+jira-as admin permission-scheme assign        # Assign scheme to project
+jira-as admin permission list                 # List available permissions
 ```
 
 ### Permission Diagnostics
 ```bash
 # Check your permissions on a project
-jira admin permissions check --project DEMO
-jira admin permissions check --project DEMO --permission DELETE_ISSUES
-jira admin permissions check --project DEMO --only-missing
+jira-as admin permissions check --project DEMO
+jira-as admin permissions check --project DEMO --permission DELETE_ISSUES
+jira-as admin permissions check --project DEMO --only-missing
 
 # List project role memberships
-jira admin project roles --project DEMO
-jira admin project roles --project DEMO --role Administrators
+jira-as admin project roles --project DEMO
+jira-as admin project roles --project DEMO --role Administrators
 
 # Manage project role membership
-jira admin project role add --project DEMO --role Administrators --user user@example.com
-jira admin project role remove --project DEMO --role Administrators --user user@example.com
+jira-as admin project role add --project DEMO --role Administrators --user user@example.com
+jira-as admin project role remove --project DEMO --role Administrators --user user@example.com
 ```
 
 ### User & Group Management
 ```bash
-jira admin user search "name"              # Search for users by name or email
-jira admin user get ACCOUNT_ID             # Get user details
-jira admin group list                      # List all groups
-jira admin group members GROUP_NAME        # Get group members
-jira admin group create GROUP_NAME         # Create a group
-jira admin group delete GROUP_NAME --confirm  # Delete a group
-jira admin group add-user GROUP_NAME --user EMAIL  # Add user to group
-jira admin group remove-user GROUP_NAME --user EMAIL --confirm  # Remove user from group
+jira-as admin user search "name"              # Search for users by name or email
+jira-as admin user get ACCOUNT_ID             # Get user details
+jira-as admin group list                      # List all groups
+jira-as admin group members GROUP_NAME        # Get group members
+jira-as admin group create GROUP_NAME         # Create a group
+jira-as admin group delete GROUP_NAME --confirm  # Delete a group
+jira-as admin group add-user GROUP_NAME --user EMAIL  # Add user to group
+jira-as admin group remove-user GROUP_NAME --user EMAIL --confirm  # Remove user from group
 ```
 
 ### Notification Schemes
 ```bash
-jira admin notification-scheme list        # List notification schemes
-jira admin notification-scheme get ID      # Get scheme details
-jira admin notification-scheme create      # Create new scheme
-jira admin notification add                # Add notification to scheme
-jira admin notification remove             # Remove notification
+jira-as admin notification-scheme list        # List notification schemes
+jira-as admin notification-scheme get ID      # Get scheme details
+jira-as admin notification-scheme create      # Create new scheme
+jira-as admin notification add                # Add notification to scheme
+jira-as admin notification remove             # Remove notification
 ```
 
 ### Screen Management
 ```bash
-jira admin screen list                     # List screens
-jira admin screen get ID                   # Get screen details
-jira admin screen tabs ID                  # List screen tabs
-jira admin screen fields ID                # Get fields on screen
-jira admin screen add-field SCREEN_ID FIELD_ID  # Add field to screen
-jira admin screen remove-field SCREEN_ID FIELD_ID  # Remove field from screen
-jira admin screen-scheme list              # List screen schemes
+jira-as admin screen list                     # List screens
+jira-as admin screen get ID                   # Get screen details
+jira-as admin screen tabs ID                  # List screen tabs
+jira-as admin screen fields ID                # Get fields on screen
+jira-as admin screen add-field SCREEN_ID FIELD_ID  # Add field to screen
+jira-as admin screen remove-field SCREEN_ID FIELD_ID  # Remove field from screen
+jira-as admin screen-scheme list              # List screen schemes
 ```
 
 ### Issue Types
 ```bash
-jira admin issue-type list                 # List issue types
-jira admin issue-type get ID               # Get issue type details
-jira admin issue-type create               # Create issue type
-jira admin issue-type update ID            # Update issue type
-jira admin issue-type delete ID            # Delete issue type
+jira-as admin issue-type list                 # List issue types
+jira-as admin issue-type get ID               # Get issue type details
+jira-as admin issue-type create               # Create issue type
+jira-as admin issue-type update ID            # Update issue type
+jira-as admin issue-type delete ID            # Delete issue type
 ```
 
 ### Issue Type Schemes
 ```bash
-jira admin issue-type-scheme list          # List schemes
-jira admin issue-type-scheme get ID        # Get scheme details
-jira admin issue-type-scheme create        # Create new scheme
-jira admin issue-type-scheme assign        # Assign to project
-jira admin issue-type-scheme project       # Get project's scheme
+jira-as admin issue-type-scheme list          # List schemes
+jira-as admin issue-type-scheme get ID        # Get scheme details
+jira-as admin issue-type-scheme create        # Create new scheme
+jira-as admin issue-type-scheme assign        # Assign to project
+jira-as admin issue-type-scheme project       # Get project's scheme
 ```
 
 ### Workflow Management
 ```bash
-jira admin workflow list                   # List workflows
-jira admin workflow get --name "Name"      # Get workflow details
-jira admin workflow search --query "term"  # Search workflows
-jira admin workflow-scheme list            # List workflow schemes
-jira admin workflow-scheme get --id ID     # Get scheme details
-jira admin workflow-scheme assign          # Assign to project
-jira admin status list                     # List all statuses
+jira-as admin workflow list                   # List workflows
+jira-as admin workflow get --name "Name"      # Get workflow details
+jira-as admin workflow search --query "term"  # Search workflows
+jira-as admin workflow-scheme list            # List workflow schemes
+jira-as admin workflow-scheme get --id ID     # Get scheme details
+jira-as admin workflow-scheme assign          # Assign to project
+jira-as admin status list                     # List all statuses
 ```
 
 ---
@@ -230,13 +230,13 @@ jira admin status list                     # List all statuses
 
 ```bash
 # List all projects
-jira admin project list
+jira-as admin project list
 
 # See project configuration
-jira admin config get PROJ
+jira-as admin config get PROJ
 
 # Search for users
-jira admin user search "john" --include-groups
+jira-as admin user search "john" --include-groups
 ```
 
 ### Next Steps
@@ -253,21 +253,21 @@ jira admin user search "john" --include-groups
 
 ### Preview Before Changing
 ```bash
-jira admin project delete PROJ --dry-run
-jira admin group delete GROUP_NAME --dry-run
-jira admin permission-scheme assign --project PROJ --scheme 10050 --dry-run
+jira-as admin project delete PROJ --dry-run
+jira-as admin group delete GROUP_NAME --dry-run
+jira-as admin permission-scheme assign --project PROJ --scheme 10050 --dry-run
 ```
 
 ### JSON Output for Scripting
 ```bash
-jira admin project list --output json
-jira admin workflow get --name "Workflow" --output json
+jira-as admin project list --output json
+jira-as admin workflow get --name "Workflow" --output json
 ```
 
 ### Profile Selection
 ```bash
-jira admin project list --profile production
-jira admin project get PROJ --profile development
+jira-as admin project list --profile production
+jira-as admin project get PROJ --profile development
 ```
 
 ---
@@ -304,37 +304,37 @@ jira admin project get PROJ --profile development
 ### Diagnose 403 Forbidden Errors
 ```bash
 # Check what permissions you have on a project
-jira admin permissions check --project DEMO
+jira-as admin permissions check --project DEMO
 
 # Show only permissions you're missing
-jira admin permissions check --project DEMO --only-missing
+jira-as admin permissions check --project DEMO --only-missing
 
 # Check specific permission (e.g., DELETE_ISSUES)
-jira admin permissions check --project DEMO --permission DELETE_ISSUES
+jira-as admin permissions check --project DEMO --permission DELETE_ISSUES
 
 # See who has access via project roles
-jira admin project roles --project DEMO
+jira-as admin project roles --project DEMO
 
 # Add yourself to Administrators role if needed
-jira admin project role add --project DEMO --role Administrators --user your@email.com
+jira-as admin project role add --project DEMO --role Administrators --user your@email.com
 ```
 
 ### Verify Permissions
 ```bash
-jira admin user search "your.name" --include-groups
-jira admin project list --type software
+jira-as admin user search "your.name" --include-groups
+jira-as admin project list --type software
 ```
 
 ### Check Configuration
 ```bash
-jira admin config get PROJ --show-schemes
-jira admin issue-type-scheme project --project-id 10000
+jira-as admin config get PROJ --show-schemes
+jira-as admin issue-type-scheme project --project-id 10000
 ```
 
 ### Debug Scheme Assignments
 ```bash
-jira admin permission-scheme get 10000 --show-projects
-jira admin workflow-scheme get --id 10100 --show-projects
+jira-as admin permission-scheme get 10000 --show-projects
+jira-as admin workflow-scheme get --id 10100 --show-projects
 ```
 
 ---
