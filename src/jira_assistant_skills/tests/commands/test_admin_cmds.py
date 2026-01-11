@@ -15,105 +15,71 @@ import pytest
 from click.testing import CliRunner
 
 from jira_assistant_skills.cli.commands.admin_cmds import (
-    # Helper functions
-    _parse_comma_list,
-    _is_system_group,
     SYSTEM_GROUPS,
-    # Project implementation functions
-    _list_projects_impl,
-    _list_trash_projects_impl,
-    _get_project_impl,
-    _create_project_impl,
-    _update_project_impl,
-    _delete_project_impl,
-    _archive_project_impl,
-    _restore_project_impl,
-    _get_project_config_impl,
-    # Category implementation functions
-    _list_categories_impl,
-    _create_category_impl,
-    _assign_category_impl,
-    # User implementation functions
-    _search_users_impl,
-    _get_user_impl,
-    # Group implementation functions
-    _list_groups_impl,
-    _get_group_members_impl,
-    _create_group_impl,
-    _delete_group_impl,
     _add_user_to_group_impl,
-    _remove_user_from_group_impl,
-    # Automation implementation functions
-    _list_automation_rules_impl,
-    _get_automation_rule_impl,
-    _search_automation_rules_impl,
-    _enable_automation_rule_impl,
-    _disable_automation_rule_impl,
-    _toggle_automation_rule_impl,
-    _invoke_manual_rule_impl,
-    _list_automation_templates_impl,
-    _get_automation_template_impl,
-    # Permission scheme implementation functions
-    _list_permission_schemes_impl,
-    _get_permission_scheme_impl,
-    _create_permission_scheme_impl,
-    _assign_permission_scheme_impl,
-    _list_permissions_impl,
-    # Notification scheme implementation functions
-    _list_notification_schemes_impl,
-    _get_notification_scheme_impl,
-    _create_notification_scheme_impl,
-    _add_notification_impl,
-    _remove_notification_impl,
-    # Screen implementation functions
-    _list_screens_impl,
-    _get_screen_impl,
-    _list_screen_tabs_impl,
-    _get_screen_fields_impl,
-    _add_field_to_screen_impl,
-    _remove_field_from_screen_impl,
-    _list_screen_schemes_impl,
-    _get_screen_scheme_impl,
-    # Issue type implementation functions
-    _list_issue_types_impl,
-    _get_issue_type_impl,
+    _archive_project_impl,
+    _assign_category_impl,
+    _create_category_impl,
+    _create_group_impl,
     _create_issue_type_impl,
-    _update_issue_type_impl,
+    _create_permission_scheme_impl,
+    _create_project_impl,
+    _delete_group_impl,
     _delete_issue_type_impl,
-    _list_issue_type_schemes_impl,
-    _get_issue_type_scheme_impl,
-    _create_issue_type_scheme_impl,
-    _assign_issue_type_scheme_impl,
-    _get_project_issue_type_scheme_impl,
-    # Workflow implementation functions
-    _list_workflows_impl,
-    _get_workflow_impl,
-    _search_workflows_impl,
-    _get_workflow_for_issue_impl,
-    _list_workflow_schemes_impl,
-    _get_workflow_scheme_impl,
-    _assign_workflow_scheme_impl,
-    _list_statuses_impl,
+    _delete_project_impl,
+    _disable_automation_rule_impl,
+    _enable_automation_rule_impl,
+    _format_automation_rules,
+    _format_categories,
+    _format_groups,
+    _format_issue_types,
+    _format_permission_schemes,
+    _format_project,
     # Formatting functions
     _format_projects,
-    _format_trash_projects,
-    _format_project,
-    _format_categories,
-    _format_users,
-    _format_groups,
-    _format_group_members,
-    _format_automation_rules,
-    _format_permission_schemes,
-    _format_notification_schemes,
     _format_screens,
-    _format_issue_types,
-    _format_workflows,
     _format_statuses,
+    _format_users,
+    _format_workflows,
+    _get_automation_rule_impl,
+    _get_group_members_impl,
+    _get_issue_type_impl,
+    _get_notification_scheme_impl,
+    _get_permission_scheme_impl,
+    _get_project_impl,
+    _get_screen_impl,
+    _get_user_impl,
+    _get_workflow_for_issue_impl,
+    _get_workflow_impl,
+    _is_system_group,
+    # Automation implementation functions
+    _list_automation_rules_impl,
+    _list_categories_impl,
+    # Group implementation functions
+    _list_groups_impl,
+    _list_issue_types_impl,
+    # Notification scheme implementation functions
+    _list_notification_schemes_impl,
+    # Permission scheme implementation functions
+    _list_permission_schemes_impl,
+    _list_projects_impl,
+    _list_screen_tabs_impl,
+    # Screen implementation functions
+    _list_screens_impl,
+    _list_statuses_impl,
+    _list_trash_projects_impl,
+    _list_workflows_impl,
+    # Helper functions
+    _parse_comma_list,
+    _remove_user_from_group_impl,
+    _restore_project_impl,
+    _search_users_impl,
+    _toggle_automation_rule_impl,
+    _update_project_impl,
     # Click commands
     admin,
 )
 from jira_assistant_skills_lib import JiraError, ValidationError
-
 
 # =============================================================================
 # Fixtures
@@ -436,7 +402,7 @@ class TestProjectImplementation:
         mock_get_client.return_value = mock_client
         mock_client.search_projects.return_value = {"values": [], "total": 0}
 
-        result = _list_trash_projects_impl()
+        _list_trash_projects_impl()
 
         # Should call search_projects with status=["deleted"]
         mock_client.search_projects.assert_called_once()
@@ -498,7 +464,7 @@ class TestProjectImplementation:
         mock_get_client.return_value = mock_client
         mock_client.update_project.return_value = sample_project
 
-        result = _update_project_impl("TEST", name="New Name")
+        _update_project_impl("TEST", name="New Name")
 
         mock_client.update_project.assert_called_once()
         mock_client.close.assert_called_once()
@@ -535,7 +501,7 @@ class TestProjectImplementation:
         """Test archiving a project."""
         mock_get_client.return_value = mock_client
 
-        result = _archive_project_impl("TEST")
+        _archive_project_impl("TEST")
 
         mock_client.archive_project.assert_called_once_with("TEST")
         mock_client.close.assert_called_once()
@@ -545,7 +511,7 @@ class TestProjectImplementation:
         """Test restoring a project."""
         mock_get_client.return_value = mock_client
 
-        result = _restore_project_impl("TEST")
+        _restore_project_impl("TEST")
 
         mock_client.restore_project.assert_called_once_with("TEST")
         mock_client.close.assert_called_once()
@@ -590,7 +556,7 @@ class TestCategoryImplementation:
         mock_get_client.return_value = mock_client
         mock_client.update_project.return_value = sample_project
 
-        result = _assign_category_impl("TEST", 1)
+        _assign_category_impl("TEST", 1)
 
         mock_client.update_project.assert_called_once()
         mock_client.close.assert_called_once()
@@ -691,7 +657,7 @@ class TestGroupImplementation:
         mock_get_client.return_value = mock_client
         mock_client.find_groups.return_value = {"groups": sample_groups}
 
-        result = _list_groups_impl(query="dev")
+        _list_groups_impl(query="dev")
 
         mock_client.find_groups.assert_called_once()
         call_args = mock_client.find_groups.call_args
@@ -706,7 +672,7 @@ class TestGroupImplementation:
             "isLast": True,
         }
 
-        result = _get_group_members_impl("developers")
+        _get_group_members_impl("developers")
 
         mock_client.get_group_members.assert_called_once()
         mock_client.close.assert_called_once()
@@ -754,7 +720,7 @@ class TestGroupImplementation:
         mock_client.search_users.return_value = [{"accountId": "user123"}]
         mock_client.add_user_to_group.return_value = {"name": "developers"}
 
-        result = _add_user_to_group_impl("developers", "john@example.com")
+        _add_user_to_group_impl("developers", "john@example.com")
 
         mock_client.add_user_to_group.assert_called_once()
         mock_client.close.assert_called_once()
@@ -766,7 +732,7 @@ class TestGroupImplementation:
         mock_client.search_users.return_value = [{"accountId": "user123"}]
         mock_client.remove_user_from_group.return_value = None
 
-        result = _remove_user_from_group_impl("developers", "john@example.com")
+        _remove_user_from_group_impl("developers", "john@example.com")
 
         mock_client.remove_user_from_group.assert_called_once()
         mock_client.close.assert_called_once()
@@ -852,7 +818,7 @@ class TestAutomationImplementation:
         mock_automation_client.get_rule.return_value = {"id": "1", "state": "ENABLED"}
         mock_automation_client.disable_rule.return_value = {"id": "1", "state": "DISABLED"}
 
-        result = _toggle_automation_rule_impl("1")
+        _toggle_automation_rule_impl("1")
 
         mock_automation_client.disable_rule.assert_called_once()
 
@@ -1047,7 +1013,7 @@ class TestIssueTypeImplementation:
         mock_get_client.return_value = mock_client
         mock_client.delete_issue_type.return_value = None
 
-        result = _delete_issue_type_impl("10004")
+        _delete_issue_type_impl("10004")
 
         mock_client.delete_issue_type.assert_called_once_with("10004")
         mock_client.close.assert_called_once()

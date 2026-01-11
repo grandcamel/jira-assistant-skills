@@ -12,9 +12,9 @@ from urllib.parse import urlparse
 
 import click
 
+from jira_assistant_skills.cli.cli_utils import format_json, handle_jira_errors
 from jira_assistant_skills_lib import (
     ConfigManager,
-    JiraError,
     ValidationError,
     adf_to_text,
     format_table,
@@ -22,9 +22,6 @@ from jira_assistant_skills_lib import (
     validate_issue_key,
     wiki_markup_to_adf,
 )
-
-from jira_assistant_skills.cli.cli_utils import format_json, handle_jira_errors
-
 
 # =============================================================================
 # Constants

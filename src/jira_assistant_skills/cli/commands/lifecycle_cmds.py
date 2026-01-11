@@ -18,7 +18,6 @@ from typing import Any
 import click
 
 from jira_assistant_skills_lib import (
-    JiraError,
     ValidationError,
     find_transition_by_keywords,
     find_transition_by_name,
@@ -29,7 +28,6 @@ from jira_assistant_skills_lib import (
     get_project_context,
     get_valid_transitions,
     has_project_context,
-    print_error,
     print_info,
     print_success,
     text_to_adf,
@@ -38,7 +36,6 @@ from jira_assistant_skills_lib import (
 )
 
 from ..cli_utils import handle_jira_errors, parse_json_arg
-
 
 # =============================================================================
 # Transition Implementation Functions
@@ -806,7 +803,7 @@ def lifecycle_transition(
 
     fields_dict = parse_json_arg(fields)
 
-    result = _transition_issue_impl(
+    _transition_issue_impl(
         issue_key=issue_key,
         transition_id=transition_id,
         transition_name=status,
@@ -876,7 +873,7 @@ def lifecycle_assign(
     if sum([bool(user), assign_self, unassign]) != 1:
         raise click.UsageError("Specify exactly one of: --user, --self, or --unassign")
 
-    result = _assign_issue_impl(
+    _assign_issue_impl(
         issue_key=issue_key,
         user=user,
         assign_to_self=assign_self,

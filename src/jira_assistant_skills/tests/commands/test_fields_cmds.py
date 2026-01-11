@@ -9,7 +9,7 @@ Tests cover:
 """
 
 from copy import deepcopy
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -30,7 +30,6 @@ from jira_assistant_skills.cli.commands.fields_cmds import (
     _list_fields_impl,
     fields,
 )
-
 
 # =============================================================================
 # Constants Tests
@@ -288,7 +287,7 @@ class TestCreateFieldImpl:
             "jira_assistant_skills.cli.commands.fields_cmds.get_jira_client",
             return_value=mock_jira_client,
         ):
-            result = _create_field_impl(
+            _create_field_impl(
                 name="Custom Text Field",
                 field_type="text",
                 description="A custom text field",

@@ -8,7 +8,6 @@ Tests cover:
 - CLI commands
 """
 
-import json
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -18,11 +17,6 @@ from jira_assistant_skills.cli.commands.bulk_cmds import (
     # Constants
     CLONE_FIELDS,
     STANDARD_PRIORITIES,
-    # Helper functions
-    _find_transition,
-    _get_issues_to_process,
-    _resolve_user_id,
-    _validate_priority,
     # Implementation functions
     _bulk_assign_impl,
     _bulk_clone_impl,
@@ -30,13 +24,17 @@ from jira_assistant_skills.cli.commands.bulk_cmds import (
     _bulk_set_priority_impl,
     _bulk_transition_impl,
     _clone_issue,
+    # Helper functions
+    _find_transition,
     # Formatting functions
     _format_bulk_result,
+    _get_issues_to_process,
+    _resolve_user_id,
+    _validate_priority,
     # Click commands
     bulk,
 )
 from jira_assistant_skills_lib import JiraError, ValidationError
-
 
 # =============================================================================
 # Fixtures
@@ -483,7 +481,7 @@ class TestBulkCloneImplementation:
         mock_client.search_issues.return_value = {"issues": sample_issues[:1]}
         mock_client.create_issue.return_value = {"key": "TEST-NEW", "id": "99"}
 
-        result = _bulk_clone_impl(
+        _bulk_clone_impl(
             jql="project = TEST",
             prefix="[Clone]",
             dry_run=False,
@@ -585,7 +583,7 @@ class TestBulkDeleteImplementation:
         mock_validate.return_value = "project = TEST"
         mock_client.search_issues.return_value = {"issues": sample_issues[:1]}
 
-        result = _bulk_delete_impl(
+        _bulk_delete_impl(
             jql="project = TEST",
             delete_subtasks=False,
             dry_run=False,

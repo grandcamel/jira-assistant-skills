@@ -5,20 +5,16 @@ This module contains all logic for jira-fields operations.
 All implementation functions are inlined for direct CLI usage.
 """
 
-import json
-from pathlib import Path
 from typing import Any
 
 import click
 
+from jira_assistant_skills.cli.cli_utils import format_json, handle_jira_errors
 from jira_assistant_skills_lib import (
     JiraError,
     ValidationError,
     get_jira_client,
 )
-
-from jira_assistant_skills.cli.cli_utils import handle_jira_errors, format_json
-
 
 # =============================================================================
 # Constants

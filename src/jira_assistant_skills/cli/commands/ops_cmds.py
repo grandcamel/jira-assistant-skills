@@ -5,23 +5,17 @@ This module contains all logic for jira-ops operations.
 All implementation functions are inlined for direct CLI usage.
 """
 
-import json
-import sys
 from collections import defaultdict
 from datetime import datetime, timedelta
-from pathlib import Path
 from typing import Any
 
 import click
 
+from jira_assistant_skills.cli.cli_utils import format_json, handle_jira_errors
 from jira_assistant_skills_lib import (
     JiraCache,
-    JiraError,
     get_jira_client,
 )
-
-from jira_assistant_skills.cli.cli_utils import format_json, handle_jira_errors
-
 
 # =============================================================================
 # Helper Functions
@@ -753,7 +747,7 @@ def _format_cache_warm(result: dict) -> str:
     ]
 
     if result.get('errors'):
-        lines.append(f"\nWarnings:")
+        lines.append("\nWarnings:")
         for err in result['errors']:
             lines.append(f"  - {err}")
 
@@ -776,7 +770,7 @@ def _format_discover_project(context: dict) -> str:
         f"Versions: {len(metadata.get('versions', []))}",
         f"Assignable Users: {len(metadata.get('assignable_users', []))}",
         "",
-        f"Pattern Analysis:",
+        "Pattern Analysis:",
         f"  Sampled Issues: {patterns.get('sample_size', 0)}",
         f"  Sample Period: {patterns.get('sample_period_days', 30)} days",
     ]

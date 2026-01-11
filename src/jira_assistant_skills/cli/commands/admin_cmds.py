@@ -11,10 +11,6 @@ Provides CLI commands for JIRA administration including:
 - Automation rules
 """
 
-import csv
-import json
-import sys
-from io import StringIO
 from typing import Any
 
 import click
@@ -25,9 +21,7 @@ from jira_assistant_skills_lib import (
     format_json,
     format_table,
     get_automation_client,
-    get_csv_string,
     get_jira_client,
-    print_error,
     validate_project_key,
     validate_project_name,
     validate_project_template,
@@ -35,7 +29,6 @@ from jira_assistant_skills_lib import (
 )
 
 from ..cli_utils import handle_jira_errors
-
 
 # =============================================================================
 # Helper Functions
@@ -2754,7 +2747,7 @@ def workflow_list(ctx, details, name_filter, scope, show_usage, fetch_all, outpu
     else:
         click.echo(_format_workflows(result["workflows"]))
         if result["has_more"]:
-            click.echo(f"\n(Use --all to fetch all workflows)")
+            click.echo("\n(Use --all to fetch all workflows)")
 
 
 @workflow_group.command(name="get")

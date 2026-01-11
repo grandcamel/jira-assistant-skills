@@ -18,7 +18,6 @@ from unittest.mock import MagicMock, Mock
 import pytest
 from click.testing import CliRunner
 
-
 # =============================================================================
 # Click Test Runner
 # =============================================================================

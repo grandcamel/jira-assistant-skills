@@ -13,7 +13,7 @@ Tests cover:
 
 import json
 from copy import deepcopy
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -29,7 +29,6 @@ from jira_assistant_skills.cli.commands.lifecycle_cmds import (
     _transition_issue_impl,
     lifecycle,
 )
-
 
 # =============================================================================
 # Tests for _get_transitions_impl

@@ -26,7 +26,6 @@ from jira_assistant_skills_lib import (
 
 from ..cli_utils import format_json, handle_jira_errors, parse_comma_list
 
-
 # =============================================================================
 # Constants
 # =============================================================================

@@ -9,7 +9,7 @@ Tests cover:
 """
 
 from copy import deepcopy
-from unittest.mock import MagicMock, patch, PropertyMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -17,8 +17,6 @@ from jira_assistant_skills.cli.commands.ops_cmds import (
     _cache_clear_impl,
     _cache_status_impl,
     _cache_warm_impl,
-    _discover_metadata,
-    _discover_patterns,
     _discover_project_impl,
     _format_bytes,
     _format_cache_clear,
@@ -28,7 +26,6 @@ from jira_assistant_skills.cli.commands.ops_cmds import (
     _is_critical_error,
     ops,
 )
-
 
 # =============================================================================
 # Helper Function Tests

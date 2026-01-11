@@ -11,16 +11,14 @@ Tests cover:
 """
 
 from copy import deepcopy
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
 from jira_assistant_skills.cli.commands.dev_cmds import (
-    COMMIT_PREFIXES,
     DEFAULT_PREFIX,
     ISSUE_KEY_PATTERN,
     ISSUE_TYPE_PREFIXES,
-    MAX_BRANCH_LENGTH,
     _build_commit_url,
     _create_branch_name_impl,
     _create_pr_description_impl,
@@ -35,7 +33,6 @@ from jira_assistant_skills.cli.commands.dev_cmds import (
     _sanitize_for_branch,
     dev,
 )
-
 
 # =============================================================================
 # Constants Tests

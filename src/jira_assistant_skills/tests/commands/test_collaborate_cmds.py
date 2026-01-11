@@ -10,9 +10,8 @@ Tests cover:
 - update-fields: Update custom fields
 """
 
-import json
 from copy import deepcopy
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -29,10 +28,8 @@ from jira_assistant_skills.cli.commands.collaborate_cmds import (
     _send_notification_impl,
     _update_comment_impl,
     _update_custom_fields_impl,
-    _upload_attachment_impl,
     collaborate,
 )
-
 
 # =============================================================================
 # Comment Implementation Tests
@@ -70,7 +67,7 @@ class TestAddCommentImpl:
             "jira_assistant_skills.cli.commands.collaborate_cmds.get_jira_client",
             return_value=mock_jira_client,
         ):
-            result = _add_comment_impl(
+            _add_comment_impl(
                 issue_key="PROJ-123",
                 body="Private comment",
                 visibility_type="role",

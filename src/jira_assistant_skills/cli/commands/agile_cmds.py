@@ -44,8 +44,12 @@ from jira_assistant_skills_lib import (
     validate_project_key,
 )
 
-from ..cli_utils import format_json, handle_jira_errors, parse_comma_list, parse_json_arg
-
+from ..cli_utils import (
+    format_json,
+    handle_jira_errors,
+    parse_comma_list,
+    parse_json_arg,
+)
 
 # =============================================================================
 # Constants

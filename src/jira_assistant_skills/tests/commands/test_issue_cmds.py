@@ -21,8 +21,6 @@ from jira_assistant_skills.cli.commands.issue_cmds import (
     _update_issue_impl,
     issue,
 )
-from jira_assistant_skills_lib import format_issue, format_json
-
 
 # =============================================================================
 # Tests for _get_issue_impl

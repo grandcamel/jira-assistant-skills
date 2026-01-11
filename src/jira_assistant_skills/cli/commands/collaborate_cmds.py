@@ -19,7 +19,6 @@ from typing import Any
 import click
 
 from jira_assistant_skills_lib import (
-    JiraError,
     UserNotFoundError,
     ValidationError,
     adf_to_text,
@@ -27,7 +26,6 @@ from jira_assistant_skills_lib import (
     format_table,
     get_jira_client,
     markdown_to_adf,
-    print_error,
     print_info,
     print_success,
     resolve_user_to_account_id,
@@ -36,8 +34,7 @@ from jira_assistant_skills_lib import (
     validate_issue_key,
 )
 
-from ..cli_utils import handle_jira_errors, parse_json_arg
-
+from ..cli_utils import handle_jira_errors
 
 # =============================================================================
 # Comment Implementation Functions

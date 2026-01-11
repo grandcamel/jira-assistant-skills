@@ -35,7 +35,6 @@ from jira_assistant_skills.cli.commands.time_cmds import (
 )
 from jira_assistant_skills_lib import ValidationError
 
-
 # =============================================================================
 # Fixtures
 # =============================================================================

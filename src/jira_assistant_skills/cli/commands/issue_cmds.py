@@ -10,6 +10,7 @@ from pathlib import Path
 
 import click
 
+from jira_assistant_skills.cli.cli_utils import parse_comma_list, parse_json_arg
 from jira_assistant_skills_lib import (
     JiraError,
     NotFoundError,
@@ -27,9 +28,6 @@ from jira_assistant_skills_lib import (
     validate_issue_key,
     validate_project_key,
 )
-
-from jira_assistant_skills.cli.cli_utils import parse_comma_list, parse_json_arg
-
 
 # =============================================================================
 # Implementation Functions

@@ -11,7 +11,7 @@ Tests cover:
 
 import json
 import os
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from click.testing import CliRunner
@@ -21,27 +21,14 @@ from jira_assistant_skills.cli.commands.search_cmds import (
     COMMON_FIELDS,
     FUNCTION_EXAMPLES,
     JQL_TEMPLATES,
-    # Helper functions
-    _format_value_for_jql,
-    _get_return_type,
-    _suggest_correction,
     # Search implementation functions
     _build_jql_impl,
     _bulk_update_impl,
-    _export_results_impl,
-    _get_fields_impl,
-    _get_functions_impl,
-    _get_suggestions_impl,
-    _search_issues_impl,
-    _validate_jql_impl,
     # Filter implementation functions
     _create_filter_impl,
     _delete_filter_impl,
+    _export_results_impl,
     _favourite_filter_impl,
-    _get_filters_impl,
-    _run_filter_impl,
-    _share_filter_impl,
-    _update_filter_impl,
     # Formatting functions
     _format_fields,
     _format_filter_detail,
@@ -50,11 +37,23 @@ from jira_assistant_skills.cli.commands.search_cmds import (
     _format_search_output,
     _format_suggestions,
     _format_validation_result,
+    # Helper functions
+    _format_value_for_jql,
+    _get_fields_impl,
+    _get_filters_impl,
+    _get_functions_impl,
+    _get_return_type,
+    _get_suggestions_impl,
+    _run_filter_impl,
+    _search_issues_impl,
+    _share_filter_impl,
+    _suggest_correction,
+    _update_filter_impl,
+    _validate_jql_impl,
     # Click commands
     search,
 )
 from jira_assistant_skills_lib import JiraError, ValidationError
-
 
 # =============================================================================
 # Fixtures

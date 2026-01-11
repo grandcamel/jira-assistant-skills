@@ -14,7 +14,7 @@ Tests cover:
 """
 
 from copy import deepcopy
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -30,7 +30,6 @@ from jira_assistant_skills.cli.commands.relationships_cmds import (
     _unlink_issue_impl,
     relationships,
 )
-
 
 # =============================================================================
 # Link Implementation Tests

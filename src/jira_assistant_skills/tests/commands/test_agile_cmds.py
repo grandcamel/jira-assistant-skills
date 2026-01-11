@@ -1,19 +1,16 @@
 """Tests for agile_cmds.py - Agile/Scrum commands."""
 
 import json
-from collections import defaultdict
-from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 
 import pytest
 from click.testing import CliRunner
 
-from jira_assistant_skills_lib import JiraError, ValidationError
-
 from jira_assistant_skills.cli.commands.agile_cmds import (
     FIBONACCI_SEQUENCE,
     VALID_EPIC_COLORS,
     _add_to_epic_impl,
+    _close_sprint_impl,
     _convert_description_to_adf,
     _create_epic_impl,
     _create_sprint_impl,
@@ -38,13 +35,10 @@ from jira_assistant_skills.cli.commands.agile_cmds import (
     _parse_date_safe,
     _rank_issue_impl,
     _start_sprint_impl,
-    _close_sprint_impl,
     _update_sprint_impl,
     agile,
-    epic,
-    sprint,
 )
-
+from jira_assistant_skills_lib import JiraError, ValidationError
 
 # =============================================================================
 # Fixtures
@@ -379,7 +373,7 @@ class TestEpicImplementation:
             "jira_assistant_skills.cli.commands.agile_cmds.get_agile_fields",
             return_value={"epic_name": "customfield_10011", "epic_color": "customfield_10012"},
         ):
-            result = _create_epic_impl(
+            _create_epic_impl(
                 project="PROJ",
                 summary="Epic Summary",
                 assignee="self",
@@ -904,7 +898,7 @@ class TestEstimationImplementation:
             "jira_assistant_skills.cli.commands.agile_cmds.get_agile_field",
             return_value="customfield_10016",
         ):
-            result = _estimate_issue_impl(issue_keys=["PROJ-1"], points=0)
+            _estimate_issue_impl(issue_keys=["PROJ-1"], points=0)
 
         # Points 0 should set to None
         call_args = mock_client.update_issue.call_args[0]

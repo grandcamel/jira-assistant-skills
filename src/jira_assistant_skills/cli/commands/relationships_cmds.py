@@ -11,6 +11,7 @@ from typing import Any
 
 import click
 
+from jira_assistant_skills.cli.cli_utils import format_json, handle_jira_errors
 from jira_assistant_skills_lib import (
     JiraError,
     ValidationError,
@@ -19,9 +20,6 @@ from jira_assistant_skills_lib import (
     validate_issue_key,
     validate_jql,
 )
-
-from jira_assistant_skills.cli.cli_utils import handle_jira_errors, format_json
-
 
 # =============================================================================
 # Constants
