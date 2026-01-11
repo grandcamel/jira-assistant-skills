@@ -1,5 +1,21 @@
 # Changelog
 
+## [5.0.0](https://github.com/grandcamel/JIRA-Assistant-Skills/compare/v4.0.0...v5.0.0) (2026-01-11)
+
+
+### ⚠ BREAKING CHANGES
+
+* CLI moved to jira-assistant-skills package
+
+### Bug Fixes
+
+* use dynamic version from package metadata in CLI ([ccd0b66](https://github.com/grandcamel/JIRA-Assistant-Skills/commit/ccd0b66535e26b57c55a8302b04f3d83baf9e957))
+
+
+### Code Refactoring
+
+* make this plugin-only, CLI now in jira-assistant-skills package ([f486431](https://github.com/grandcamel/JIRA-Assistant-Skills/commit/f4864316aeb27752eeaf7e2066067d54bd448a24))
+
 ## [3.0.0](https://github.com/grandcamel/JIRA-Assistant-Skills/compare/v2.2.7...v3.0.0) (2026-01-10)
 
 
