@@ -1,11 +1,20 @@
 import os
+from importlib.metadata import version
 
 import click
 
 
+def get_version() -> str:
+    """Get package version from metadata."""
+    try:
+        return version("jira-assistant-skills")
+    except Exception:
+        return "unknown"
+
+
 # --- Global Options Design ---
 @click.group(invoke_without_command=True)
-@click.version_option(version="1.0.0")  # Use importlib.metadata for robustness later
+@click.version_option(version=get_version())
 @click.option(
     "--output",
     "-o",
