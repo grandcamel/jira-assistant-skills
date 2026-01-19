@@ -28,15 +28,17 @@ This project provides 14 specialized skills for interacting with JIRA via natura
 ### Directory Structure
 
 ```
+.claude-plugin/
+├── plugin.json                # Plugin manifest
+└── marketplace.json           # Marketplace registry
+
 .claude/
 ├── settings.example.json      # Example config (copy to settings.local.json)
 └── settings.local.json        # Personal credentials (gitignored)
 
-./ # Plugin package
-├── plugin.json                # Plugin manifest
-├── commands/                  # Slash commands
-├── config/                    # Configuration examples
-└── skills/
+commands/                      # Slash commands (at project root)
+config/                        # Configuration examples
+skills/                        # Skills (autodiscovered at project root)
     ├── jira-assistant/        # Hub router
     ├── jira-issue/            # Issue CRUD
     ├── jira-lifecycle/        # Workflow transitions
@@ -66,6 +68,9 @@ jira-assistant-skills-lib/     # PyPI library (source)
 │   └── *.py                   # Core modules
 └── tests/                     # 952 unit tests
 ```
+
+Note: All plugin components (commands/, skills/) are at project root.
+Paths in `.claude-plugin/plugin.json` are relative to project root.
 
 ### Shared Library Pattern
 
