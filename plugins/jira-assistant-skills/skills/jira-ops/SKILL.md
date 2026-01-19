@@ -18,6 +18,18 @@ triggers:
 
 Cache management, request batching, and operational utilities for JIRA Assistant.
 
+## Risk Levels
+
+| Operation | Risk | Notes |
+|-----------|------|-------|
+| Discover project | `-` | Read-only analysis |
+| Cache status | `-` | Read-only |
+| Cache warm | `-` | Populates local cache |
+| Cache clear (dry-run) | `-` | Preview only |
+| Cache clear | `!` | Local cache cleared, will re-fetch |
+
+**Risk Legend**: `-` Safe, read-only | `!` Caution, modifiable | `!!` Warning, destructive but recoverable | `!!!` Danger, irreversible
+
 ## When to Use This Skill
 
 Use this skill when you need to:

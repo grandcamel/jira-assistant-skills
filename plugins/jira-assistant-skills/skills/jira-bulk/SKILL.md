@@ -11,6 +11,21 @@ allowed-tools: ["Bash", "Read", "Glob", "Grep"]
 
 Bulk operations for JIRA issue management at scale - transitions, assignments, priorities, cloning, and deletion.
 
+## Risk Levels
+
+| Operation | Risk | Notes |
+|-----------|------|-------|
+| Dry-run any operation | `-` | Preview only, no changes |
+| Bulk transition | `!!` | Affects many issues; use --dry-run first |
+| Bulk assign | `!!` | Affects many issues; use --dry-run first |
+| Bulk set-priority | `!!` | Affects many issues; use --dry-run first |
+| Bulk clone | `!` | Creates many issues; can delete |
+| Bulk delete | `!!!` | **IRREVERSIBLE** - issues permanently lost |
+
+**Risk Legend**: `-` Safe, read-only | `!` Caution, modifiable | `!!` Warning, destructive but recoverable | `!!!` Danger, irreversible
+
+**CRITICAL**: Always use `--dry-run` before executing bulk operations. Bulk delete is permanent and cannot be undone.
+
 ## When to use this skill
 
 **IMPORTANT:** Always use the `jira-as` CLI. Never run Python scripts directly.

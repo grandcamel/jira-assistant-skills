@@ -11,6 +11,20 @@ allowed-tools: ["Bash", "Read", "Glob", "Grep"]
 
 Query and discovery operations for JIRA issues using JQL (JIRA Query Language).
 
+## Risk Levels
+
+| Operation | Risk | Notes |
+|-----------|------|-------|
+| Query/search | `-` | Read-only |
+| Validate JQL | `-` | Read-only |
+| Export results | `-` | Read-only (local file) |
+| List filters | `-` | Read-only |
+| Create filter | `-` | Easily reversible (can delete) |
+| Share filter | `!` | Can be unshared |
+| Delete filter | `!!` | Filter lost, but can recreate |
+
+**Risk Legend**: `-` Safe, read-only | `!` Caution, modifiable | `!!` Warning, destructive but recoverable | `!!!` Danger, irreversible
+
 ## When to use this skill
 
 ### Perfect for:

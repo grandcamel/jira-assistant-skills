@@ -11,6 +11,24 @@ allowed-tools: ["Bash", "Read", "Glob", "Grep"]
 
 Workflow and lifecycle management for JIRA issues.
 
+## Risk Levels
+
+| Operation | Risk | Notes |
+|-----------|------|-------|
+| List transitions | `-` | Read-only |
+| List versions/components | `-` | Read-only |
+| Transition issue | `!` | Can transition back |
+| Assign/unassign | `!` | Can reassign |
+| Resolve issue | `!` | Can reopen |
+| Reopen issue | `!` | Can resolve again |
+| Create version/component | `-` | Easily reversible |
+| Update version/component | `!` | Can be undone |
+| Release version | `!` | Can unrelease |
+| Archive version | `!` | Can unarchive |
+| Delete component | `!!` | Issues lose component association |
+
+**Risk Legend**: `-` Safe, read-only | `!` Caution, modifiable | `!!` Warning, destructive but recoverable | `!!!` Danger, irreversible
+
 ## Quick Discovery
 
 **Use this skill to:** Drive issues through workflows, assign ownership, manage releases and components.

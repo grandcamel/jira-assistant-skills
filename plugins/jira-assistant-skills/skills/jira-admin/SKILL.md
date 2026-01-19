@@ -15,6 +15,35 @@ allowed-tools: ["Bash", "Read", "Glob", "Grep"]
 
 Comprehensive administration tools for JIRA Cloud covering 8 major subsystems.
 
+## Risk Levels
+
+| Operation | Risk | Notes |
+|-----------|------|-------|
+| List/get (any resource) | `-` | Read-only |
+| Search users | `-` | Read-only |
+| Check permissions | `-` | Read-only |
+| Create project | `-` | Easily reversible (can delete) |
+| Create group | `-` | Easily reversible (can delete) |
+| Create permission/notification scheme | `-` | Can delete |
+| Create issue type | `-` | Can delete |
+| Update project settings | `!` | Can be undone |
+| Update permission scheme | `!` | Can be modified |
+| Enable/disable automation | `!` | Can toggle back |
+| Invoke automation rule | `!` | Rule executes; effects vary |
+| Add user to group/role | `!` | Can remove |
+| Remove user from group/role | `!` | Can re-add |
+| Assign scheme to project | `!` | Can reassign |
+| Archive project | `!` | Can restore |
+| Add/remove screen fields | `!` | Can reverse |
+| Delete issue type | `!!` | Issues lose type |
+| Delete group | `!!` | Members lose group access |
+| Delete permission scheme | `!!` | Projects lose permissions |
+| Delete project | `!!!` | **IRREVERSIBLE** - all issues lost |
+
+**Risk Legend**: `-` Safe, read-only | `!` Caution, modifiable | `!!` Warning, destructive but recoverable | `!!!` Danger, irreversible
+
+**CRITICAL**: Project deletion is irreversible. Always use `--dry-run` when available.
+
 ---
 
 ## What This Skill Does

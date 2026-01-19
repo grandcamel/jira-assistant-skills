@@ -11,6 +11,18 @@ allowed-tools: ["Bash", "Read", "Glob", "Grep"]
 
 Core CRUD operations for JIRA issues - create, read, update, and delete tickets.
 
+## Risk Levels
+
+| Operation | Risk | Notes |
+|-----------|------|-------|
+| Get/view issue | `-` | Read-only |
+| Create issue | `-` | Easily reversible (can delete) |
+| Update fields | `!` | Can be undone via edit |
+| Delete issue | `!!` | Recoverable from trash (30 days) |
+| Delete with --force | `!!!` | **IRREVERSIBLE** - bypasses trash |
+
+**Risk Legend**: `-` Safe, read-only | `!` Caution, modifiable | `!!` Warning, destructive but recoverable | `!!!` Danger, irreversible
+
 ## ⚠️ PRIMARY USE CASE: Viewing Issue Details
 
 **This skill MUST be invoked when the user wants to see issue information.**

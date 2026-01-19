@@ -12,6 +12,16 @@ allowed-tools: ["Bash", "Read", "Glob", "Grep"]
 
 This hub routes requests to specialized JIRA skills. It does not execute JIRA operations directly—it helps find the right skill.
 
+## Risk Levels
+
+| Operation | Risk | Notes |
+|-----------|------|-------|
+| Route to skill | `-` | Read-only routing decision |
+| Skill discovery | `-` | Lists available skills |
+| Context tracking | `-` | In-memory only |
+
+**Risk Legend**: `-` Safe, read-only | `!` Caution, modifiable | `!!` Warning, destructive but recoverable | `!!!` Danger, irreversible
+
 ## Quick Reference
 
 | I want to... | Use this skill | Risk |

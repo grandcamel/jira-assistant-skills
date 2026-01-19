@@ -9,6 +9,22 @@ allowed-tools: ["Bash", "Read", "Glob", "Grep"]
 
 # JIRA Time Tracking Skill
 
+## Risk Levels
+
+| Operation | Risk | Notes |
+|-----------|------|-------|
+| View worklogs | `-` | Read-only |
+| View time tracking | `-` | Read-only |
+| Generate reports | `-` | Read-only |
+| Export timesheets | `-` | Read-only (local file) |
+| Log time | `-` | Easily reversible (can delete) |
+| Update worklog | `!` | Previous value lost |
+| Set estimates | `!` | Can update again |
+| Bulk log time | `!` | Creates multiple worklogs |
+| Delete worklog | `!!` | Time data lost, can re-log |
+
+**Risk Legend**: `-` Safe, read-only | `!` Caution, modifiable | `!!` Warning, destructive but recoverable | `!!!` Danger, irreversible
+
 ## When to use this skill
 
 Use the **jira-time** skill when you need to:

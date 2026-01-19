@@ -11,6 +11,25 @@ allowed-tools: ["Bash", "Read", "Glob", "Grep"]
 
 Agile and Scrum workflow management for JIRA - epics, sprints, backlogs, and story points.
 
+## Risk Levels
+
+| Operation | Risk | Notes |
+|-----------|------|-------|
+| List sprints/epics | `-` | Read-only |
+| Get backlog/velocity | `-` | Read-only |
+| Create epic | `-` | Easily reversible (can delete) |
+| Create subtask | `-` | Easily reversible (can delete) |
+| Create sprint | `-` | Easily reversible (can delete) |
+| Add issues to epic | `!` | Can remove from epic |
+| Remove issues from epic | `!` | Can re-add to epic |
+| Move issues to sprint | `!` | Can move back to backlog |
+| Set story points | `!` | Can update estimate |
+| Start sprint | `!` | Sprint state change |
+| Close sprint | `!` | Cannot undo - issues move to next sprint |
+| Rank issues | `!` | Can re-rank |
+
+**Risk Legend**: `-` Safe, read-only | `!` Caution, modifiable | `!!` Warning, destructive but recoverable | `!!!` Danger, irreversible
+
 ## When to use this skill
 
 Use this skill when you need to:

@@ -26,6 +26,25 @@ use_when:
 
 Collaboration features for JIRA issues - comments, attachments, watchers, and notifications.
 
+## Risk Levels
+
+| Operation | Risk | Notes |
+|-----------|------|-------|
+| List comments/attachments | `-` | Read-only |
+| List watchers | `-` | Read-only |
+| View activity history | `-` | Read-only |
+| Add comment | `-` | Easily reversible (can delete) |
+| Upload attachment | `-` | Easily reversible (can delete) |
+| Add watcher | `-` | Can remove watcher |
+| Send notification | `-` | Cannot unsend but harmless |
+| Update comment | `!` | Previous text lost |
+| Update custom fields | `!` | Can be undone via edit |
+| Remove watcher | `!` | Can re-add |
+| Delete comment | `!!` | Comment text lost |
+| Delete attachment | `!!` | File lost, must re-upload |
+
+**Risk Legend**: `-` Safe, read-only | `!` Caution, modifiable | `!!` Warning, destructive but recoverable | `!!!` Danger, irreversible
+
 ## When to use this skill
 
 Use this skill when you need to:

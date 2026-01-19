@@ -11,6 +11,19 @@ allowed-tools: ["Bash", "Read", "Glob", "Grep"]
 
 Developer workflow integration for JIRA including Git, CI/CD, and release automation.
 
+## Risk Levels
+
+| Operation | Risk | Notes |
+|-----------|------|-------|
+| Generate branch name | `-` | Read-only, local output |
+| Parse commits | `-` | Read-only, local analysis |
+| Get commits | `-` | Read-only |
+| Generate PR description | `-` | Read-only, local output |
+| Link commit | `-` | Adds metadata, easily removed |
+| Link PR | `-` | Adds metadata, easily removed |
+
+**Risk Legend**: `-` Safe, read-only | `!` Caution, modifiable | `!!` Warning, destructive but recoverable | `!!!` Danger, irreversible
+
 **Quick Start:** [Get started in 10 minutes](docs/QUICK_START.md)
 
 ## When to Use This Skill

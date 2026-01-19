@@ -11,6 +11,22 @@ allowed-tools: ["Bash", "Read", "Glob", "Grep"]
 
 Issue linking and dependency management for JIRA - create, view, and analyze issue relationships.
 
+## Risk Levels
+
+| Operation | Risk | Notes |
+|-----------|------|-------|
+| Get link types | `-` | Read-only |
+| Get links/blockers | `-` | Read-only |
+| Get dependencies | `-` | Read-only |
+| Link statistics | `-` | Read-only |
+| Create link | `-` | Easily reversible (can unlink) |
+| Remove link | `!` | Link data lost, can recreate |
+| Bulk link | `!` | Many links created, can remove |
+| Clone issue | `-` | Creates new issue, can delete |
+| Clone with subtasks | `!` | Creates multiple issues |
+
+**Risk Legend**: `-` Safe, read-only | `!` Caution, modifiable | `!!` Warning, destructive but recoverable | `!!!` Danger, irreversible
+
 ## When to use this skill
 
 Use this skill when you need to:

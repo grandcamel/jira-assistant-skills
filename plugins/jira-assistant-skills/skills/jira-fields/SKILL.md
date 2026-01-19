@@ -11,6 +11,18 @@ allowed-tools: ["Bash", "Read", "Glob", "Grep"]
 
 Manage custom fields and screen configurations in JIRA for Agile and other workflows.
 
+## Risk Levels
+
+| Operation | Risk | Notes |
+|-----------|------|-------|
+| List fields | `-` | Read-only |
+| Check project fields | `-` | Read-only |
+| Configure agile (dry-run) | `-` | Preview only |
+| Configure agile | `!` | Can be reconfigured |
+| Create field | `!` | Requires admin; can be deleted |
+
+**Risk Legend**: `-` Safe, read-only | `!` Caution, modifiable | `!!` Warning, destructive but recoverable | `!!!` Danger, irreversible
+
 ## When to use this skill
 
 **Use when you need to:**

@@ -11,6 +11,31 @@ allowed-tools: ["Bash", "Read", "Glob", "Grep"]
 
 Complete ITSM (IT Service Management) and ITIL workflow support for Jira Service Management (JSM).
 
+## Risk Levels
+
+| Operation | Risk | Notes |
+|-----------|------|-------|
+| List service desks/queues | `-` | Read-only |
+| Get request/SLA status | `-` | Read-only |
+| Search knowledge base | `-` | Read-only |
+| List customers/orgs | `-` | Read-only |
+| Create request | `-` | Easily reversible (can cancel) |
+| Add comment (public) | `-` | Can delete |
+| Add comment (internal) | `-` | Can delete |
+| Create customer | `-` | Can remove |
+| Create organization | `-` | Can delete |
+| Create asset | `-` | Can delete |
+| Transition request | `!` | Can transition back |
+| Add participant | `!` | Can remove |
+| Update asset | `!` | Can update again |
+| Link asset to request | `!` | Can unlink |
+| Approve request | `!` | Cannot unapprove (audit trail) |
+| Decline request | `!` | Cannot undecline (audit trail) |
+| Remove customer | `!!` | Loses service desk access |
+| Delete organization | `!!` | Customer associations lost |
+
+**Risk Legend**: `-` Safe, read-only | `!` Caution, modifiable | `!!` Warning, destructive but recoverable | `!!!` Danger, irreversible
+
 ## When to use this skill
 
 Use jira-jsm when you encounter:
