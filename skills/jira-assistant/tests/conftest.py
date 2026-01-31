@@ -22,9 +22,11 @@ try:
         record_test_result,
         record_test_session_summary,
         set_suite_context_from_traceparent,
-        shutdown as otel_shutdown,
         start_suite_span,
         start_worker_span,
+    )  # noqa: I001
+    from otel_metrics import (
+        shutdown as otel_shutdown,
     )
 except ImportError:
     OTEL_AVAILABLE = False

@@ -28,13 +28,11 @@ import os
 import random
 import string
 import time
-from contextlib import contextmanager
 from typing import Any, Dict, Generator, List, Optional
 
 import pytest
 
 from .jira_container import JiraConnection, cleanup_connection, get_jira_connection
-
 
 # =============================================================================
 # Connection Fixtures

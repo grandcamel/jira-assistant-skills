@@ -31,8 +31,8 @@ import pytest
 # Mark all tests in this module as 'live' - they require the Claude CLI
 pytestmark = pytest.mark.live
 
-# Import shared fixtures from conftest
-from conftest import get_test_model
+# Import shared fixtures from conftest (after sys.path modification)
+from conftest import get_test_model  # noqa: E402
 
 
 def get_current_profile() -> str:

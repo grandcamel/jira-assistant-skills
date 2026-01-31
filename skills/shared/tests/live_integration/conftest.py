@@ -4,8 +4,6 @@ Conftest for shared live integration tests.
 Re-exports fixtures for use in skill-specific live tests.
 """
 
-import pytest
-
 from .fixtures import (
     fresh_test_issue,
     issue_helper,

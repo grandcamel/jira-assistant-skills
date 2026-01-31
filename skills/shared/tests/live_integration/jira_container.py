@@ -174,7 +174,7 @@ class JiraContainer:
                 # Try to connect to JIRA REST API
                 import urllib.request
 
-                url = f"http://localhost:8080/rest/api/2/serverInfo"
+                url = "http://localhost:8080/rest/api/2/serverInfo"
                 req = urllib.request.Request(url, method="GET")
                 req.add_header("Accept", "application/json")
 

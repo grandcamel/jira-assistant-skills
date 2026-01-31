@@ -46,7 +46,7 @@ if str(TESTS_DIR) not in sys.path:
 
 # OpenTelemetry integration (optional)
 try:
-    from otel_metrics import (
+    from otel_metrics import (  # noqa: I001
         OTEL_AVAILABLE,
         init_telemetry,
         record_test_result,
@@ -60,8 +60,8 @@ except ImportError:
     record_test_session_summary = None
     otel_shutdown = None
 
-# Import model config from conftest
-from conftest import get_test_model
+# Import model config from conftest (after sys.path modification)
+from conftest import get_test_model  # noqa: E402
 
 # Path to the golden test set
 GOLDEN_FILE = TESTS_DIR / "routing_golden.yaml"
