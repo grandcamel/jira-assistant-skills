@@ -20,8 +20,7 @@ Agile and Scrum workflow management for JIRA - epics, sprints, backlogs, and sto
 | Create epic | `-` | Easily reversible (can delete) |
 | Create subtask | `-` | Easily reversible (can delete) |
 | Create sprint | `-` | Easily reversible (can delete) |
-| Add issues to epic | `!` | Can remove from epic |
-| Remove issues from epic | `!` | Can re-add to epic |
+| Add issues to epic | `!` | Can move to different epic or remove |
 | Move issues to sprint | `!` | Can move back to backlog |
 | Set story points | `!` | Can update estimate |
 | Start sprint | `!` | Sprint state change |
@@ -96,8 +95,11 @@ jira-as agile epic create --project PROJ --summary "Mobile App MVP"
 jira-as agile epic create --project PROJ --summary "MVP" --epic-name "Mobile MVP" --color blue
 jira-as agile epic get PROJ-100 --with-children
 jira-as agile epic add-issues --epic PROJ-100 --issues PROJ-101,PROJ-102
-jira-as agile epic remove-issues --epic PROJ-100 --issues PROJ-103
+jira-as agile epic add-issues --epic PROJ-100 --jql "project = PROJ AND type = Story AND status = Open"
+jira-as agile epic add-issues --epic PROJ-100 --issues PROJ-101 --dry-run  # Preview changes
 ```
+
+**Note:** To remove issues from an epic, move them to a different epic or use `jira-as issue update PROJ-103 --epic none` to clear the epic link.
 
 ### Subtask Management
 ```bash
@@ -114,6 +116,8 @@ jira-as agile sprint get --board 123 --active               # Get active sprint 
 jira-as agile sprint get 456 --include-issues               # Get sprint with issues
 jira-as agile sprint create --board 123 --name "Sprint 42" --goal "Launch MVP"
 jira-as agile sprint move-issues --sprint 456 --issues PROJ-101,PROJ-102
+jira-as agile sprint move-issues --sprint 456 --jql "project = PROJ AND sprint IS EMPTY"
+jira-as agile sprint move-issues --backlog --issues PROJ-101,PROJ-102  # Move to backlog
 jira-as agile sprint manage --sprint 456 --start
 jira-as agile sprint manage --sprint 456 --close --move-incomplete-to 457
 ```
@@ -122,9 +126,11 @@ jira-as agile sprint manage --sprint 456 --close --move-incomplete-to 457
 ```bash
 jira-as agile backlog --board 123
 jira-as agile backlog --board 123 --group-by epic
+jira-as agile backlog --project PROJ                        # Use project instead of board
 jira-as agile rank PROJ-101 --before PROJ-100
 jira-as agile rank PROJ-101 --after PROJ-102
-jira-as agile rank PROJ-101 --position top
+jira-as agile rank PROJ-101 --top --board 123               # Move to top (requires --board)
+jira-as agile rank PROJ-101 --bottom --board 123            # Move to bottom (requires --board)
 ```
 
 ### Story Points and Estimation

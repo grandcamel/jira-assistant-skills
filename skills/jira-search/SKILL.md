@@ -20,8 +20,10 @@ Query and discovery operations for JIRA issues using JQL (JIRA Query Language).
 | Export results | `-` | Read-only (local file) |
 | List filters | `-` | Read-only |
 | Create filter | `-` | Easily reversible (can delete) |
+| Update filter | `!` | Can be reverted |
 | Share filter | `!` | Can be unshared |
 | Delete filter | `!!` | Filter lost, but can recreate |
+| Bulk update | `!!` | Use --dry-run first; changes reversible but tedious |
 
 **Risk Legend**: `-` Safe, read-only | `!` Caution, modifiable | `!!` Warning, destructive but recoverable | `!!!` Danger, irreversible
 
@@ -52,7 +54,7 @@ jira-as search query "project = PROJ AND type = Bug AND status = Open"
 jira-as search export "project = PROJ" --output report.csv
 
 # Save a filter for reuse
-jira-as search filter create "My Bugs" "type = Bug AND assignee = currentUser()" --favourite
+jira-as search filter create --name "My Bugs" --jql "type = Bug AND assignee = currentUser()" --favourite
 ```
 
 For detailed setup, see [docs/QUICK_START.md](docs/QUICK_START.md).
@@ -66,15 +68,18 @@ For detailed setup, see [docs/QUICK_START.md](docs/QUICK_START.md).
 | `jira-as search query` | Execute JQL queries | `jira-as search query "project = PROJ"` |
 | `jira-as search export` | Export to CSV/JSON | `jira-as search export "JQL" -o report.csv` |
 | `jira-as search validate` | Check JQL syntax | `jira-as search validate "your query"` |
-| `jira-as search build` | Build JQL from options | `jira-as search build --project PROJ --status Open` |
-| `jira-as search suggest` | Get field value suggestions | `jira-as search suggest --field status` |
-| `jira-as search fields` | List available JQL fields | `jira-as search fields` |
-| `jira-as search functions` | List available JQL functions | `jira-as search functions` |
-| `jira-as search filter list` | List saved filters | `jira-as search filter list --favourite` |
-| `jira-as search filter create` | Save a reusable filter | `jira-as search filter create "Name" "JQL"` |
-| `jira-as search filter run` | Run a saved filter | `jira-as search filter run 10042` |
+| `jira-as search build` | Build JQL from clauses | `jira-as search build --clause "project = PROJ" --clause "status = Open"` |
+| `jira-as search bulk-update` | Bulk update issues from search | `jira-as search bulk-update "JQL" --add-labels bug --dry-run` |
+| `jira-as search suggest` | Get field value suggestions | `jira-as search suggest --field status --no-cache` |
+| `jira-as search fields` | List available JQL fields | `jira-as search fields --custom-only` |
+| `jira-as search functions` | List available JQL functions | `jira-as search functions --with-examples` |
+| `jira-as search filter list` | List saved filters | `jira-as search filter list --favourites` |
+| `jira-as search filter create` | Save a reusable filter | `jira-as search filter create --name "Name" --jql "JQL"` |
+| `jira-as search filter update` | Update an existing filter | `jira-as search filter update 10042 --name "New Name"` |
+| `jira-as search filter run` | Run a saved filter | `jira-as search filter run --id 10042` |
+| `jira-as search filter favourite` | Toggle favourite status | `jira-as search filter favourite 10042 --add` |
 | `jira-as search filter share` | Share filter with users/groups | `jira-as search filter share 10042 --project PROJ` |
-| `jira-as search filter delete` | Delete a saved filter | `jira-as search filter delete 10042 --force` |
+| `jira-as search filter delete` | Delete a saved filter | `jira-as search filter delete 10042 --yes` |
 
 All commands support `--help` for full documentation.
 
@@ -96,6 +101,10 @@ All commands support `--help` for full documentation.
 | `--output`, `-o` | Output format: `text` (default), `json` |
 | `--max-results`, `-m` | Maximum results to return |
 | `--fields` | Comma-separated list of fields |
+| `--show-links`, `-l` | Show issue links in output |
+| `--show-time`, `-t` | Show time tracking info |
+| `--show-agile`, `-a` | Show agile fields (story points, sprint) |
+| `--page-token`, `-p` | Pagination token for large results |
 
 ## Examples by Category
 
@@ -118,38 +127,85 @@ jira-as search query "project = PROJ" --max-results 50
 # Validate syntax
 jira-as search validate "project = PROJ AND status = Open"
 
-# Build JQL from options
-jira-as search build --project PROJ --status Open --assignee currentUser()
+# Build JQL from clauses
+jira-as search build --clause "project = PROJ" --clause "status = Open" --validate
+jira-as search build --clause "assignee = currentUser()" --order-by created --desc
+jira-as search build --template sprint-backlog  # Use a predefined template
+jira-as search build --list-templates           # List available templates
 
 # Get field suggestions
 jira-as search suggest --field status
 jira-as search suggest --field status --prefix "In"
 jira-as search suggest --field assignee --prefix "john"
+jira-as search suggest --field priority --no-cache   # Skip cache
+jira-as search suggest --field status --refresh      # Refresh cached values
 
 # List available fields and operators
 jira-as search fields
+jira-as search fields --custom-only             # Only custom fields
+jira-as search fields --system-only             # Only system fields
+jira-as search fields --filter priority         # Filter by name
 
 # List available JQL functions
 jira-as search functions
+jira-as search functions --list-only            # Only list-returning functions
+jira-as search functions --with-examples        # Include usage examples
 ```
 
 ### Saved Filters
 
 ```bash
-# Create filter
-jira-as search filter create "Sprint Issues" "sprint IN openSprints()" --favourite
+# Create filter (use --name and --jql options)
+jira-as search filter create --name "Sprint Issues" --jql "sprint IN openSprints()" --favourite
+jira-as search filter create --name "Team Filter" --jql "project = PROJ" --description "Team issues" --share-project PROJ
 
 # List filters
-jira-as search filter list --favourite
+jira-as search filter list --favourites          # Your favourite filters
+jira-as search filter list --my                  # Your own filters
+jira-as search filter list --search "Sprint"     # Search by name
+jira-as search filter list --owner "john@co.com" # By owner
+jira-as search filter list --project PROJ        # By project scope
 
-# Run filter (by filter ID)
-jira-as search filter run 10042
+# Run filter (use --id or --name option)
+jira-as search filter run --id 10042
+jira-as search filter run --name "Sprint Issues"
+
+# Update filter
+jira-as search filter update 10042 --name "New Name" --jql "updated JQL"
+jira-as search filter update 10042 --description "New description"
+
+# Toggle favourite status
+jira-as search filter favourite 10042 --add
+jira-as search filter favourite 10042 --remove
 
 # Share filter
 jira-as search filter share 10042 --project PROJ
+jira-as search filter share 10042 --project PROJ --role Developers
+jira-as search filter share 10042 --group jira-users
+jira-as search filter share 10042 --global
+jira-as search filter share 10042 --list         # View current permissions
+jira-as search filter share 10042 --unshare --project PROJ  # Remove permission
 
-# Delete filter
-jira-as search filter delete 10042 --force
+# Delete filter (use --yes to skip confirmation, --dry-run to preview)
+jira-as search filter delete 10042 --dry-run     # Preview deletion
+jira-as search filter delete 10042 --yes         # Skip confirmation
+```
+
+### Bulk Update
+
+```bash
+# Add labels to all matching issues (dry-run first!)
+jira-as search bulk-update "project = PROJ AND status = Open" --add-labels needs-review --dry-run
+jira-as search bulk-update "project = PROJ AND status = Open" --add-labels needs-review --yes
+
+# Remove labels
+jira-as search bulk-update "type = Bug AND labels = stale" --remove-labels stale --dry-run
+
+# Change priority
+jira-as search bulk-update "project = PROJ AND priority = Low" --priority Medium --dry-run
+
+# Limit number of issues updated
+jira-as search bulk-update "project = PROJ" --add-labels batch1 --max-issues 50 --dry-run
 ```
 
 ### Export
