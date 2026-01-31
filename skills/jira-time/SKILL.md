@@ -96,6 +96,14 @@ All commands support these common options:
 | `--visibility-value TEXT` | Role name or group name for visibility |
 | `-w/--worklog-id ID` | Worklog ID (for update/delete operations) |
 
+### Worklog filter options
+
+| Option | Description |
+|--------|-------------|
+| `-s/--since DATE` | Start date for filtering worklogs |
+| `-u/--until DATE` | End date for filtering worklogs |
+| `-a/--author USER` | Filter by worklog author |
+
 ### Report-specific options
 
 | Option | Description |
@@ -166,11 +174,13 @@ jira-as time log PROJ-123 -t 2h -o json
 # List all worklogs for an issue
 jira-as time worklogs PROJ-123
 
-# Filter by author
+# Filter by author (-a is short for --author)
+jira-as time worklogs PROJ-123 -a currentUser()
 jira-as time worklogs PROJ-123 --author currentUser()
 
-# Filter by date range
-jira-as time worklogs PROJ-123 --since 2025-01-01 --until 2025-01-31
+# Filter by date range (-s, -u are short forms)
+jira-as time worklogs PROJ-123 -s 2026-01-01 -u 2026-01-31
+jira-as time worklogs PROJ-123 --since 2026-01-01 --until 2026-01-31
 
 # Output as JSON
 jira-as time worklogs PROJ-123 -o json
