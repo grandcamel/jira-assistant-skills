@@ -33,10 +33,10 @@ This hub routes requests to specialized JIRA skills. It does not execute JIRA op
 | Add comments, attachments, watchers | jira-collaborate | - |
 | Link issues, view dependencies, blocker chains | jira-relationships | - |
 | Log time, manage worklogs, time reports | jira-time | - |
-| Handle service desk requests, SLAs, queues | jira-jsm | - |
-| Update 10+ issues at once | jira-bulk | ⚠️⚠️ |
+| Handle service desk requests, SLAs, queues, approvals, assets, knowledge base | jira-jsm | - |
+| Bulk operations on many issues (50+) with dry-run preview | jira-bulk | ⚠️⚠️ |
 | Git branch names, commits, PR descriptions | jira-dev | - |
-| Find custom field IDs | jira-fields | - |
+| Custom field discovery and Agile field configuration | jira-fields | - |
 | Project discovery, cache management, diagnostics | jira-ops | - |
 | Project settings, permissions, automation rules | jira-admin | ⚠️⚠️ |
 
@@ -48,21 +48,21 @@ This hub routes requests to specialized JIRA skills. It does not execute JIRA op
 
 1. **Explicit skill mention wins** - If user says "use jira-agile", use it
 2. **Entity signals** - Issue key present → likely jira-issue or jira-lifecycle
-3. **Quantity determines bulk** - More than 10 issues → jira-bulk
+3. **Quantity determines bulk** - 50+ issues → jira-bulk (consider bulk for 10+, required for 50+)
 4. **Keywords drive routing**:
    - "show", "view", "display", "get", "retrieve", "see", "details", "look up", "check" (with issue reference) → jira-issue
    - "create", "update", "delete" (single issue) → jira-issue
    - "search", "find", "JQL", "filter" → jira-search
    - "sprint", "epic", "backlog", "story points", "subtask" → jira-agile
-   - "transition", "move to", "assign", "close" → jira-lifecycle
-   - "comment", "attach", "watch" → jira-collaborate
+   - "transition", "move to", "assign", "close", "version", "release", "component", "resolve", "reopen", "archive" → jira-lifecycle
+   - "comment", "attach", "watch", "notify", "notification", "activity", "history", "changelog" → jira-collaborate
    - "link", "blocks", "depends on", "clone", "dependency graph", "blocker chain" → jira-relationships
    - "log time", "worklog", "estimate", "time report", "timesheet" → jira-time
    - "service desk", "SLA", "customer", "request", "queue", "approval", "knowledge base", "asset" → jira-jsm
    - "branch name", "commit", "PR" → jira-dev
    - "custom field", "field ID" → jira-fields
-   - "cache", "warm cache", "project discovery" → jira-ops
-   - "permissions", "project settings", "automation", "automation rule" → jira-admin
+   - "cache", "warm cache", "project discovery", "diagnostics", "performance", "request batching" → jira-ops
+   - "permissions", "project settings", "automation", "automation rule", "users", "groups", "notifications", "screens", "issue types", "workflows" → jira-admin
 
 ---
 
@@ -70,7 +70,7 @@ This hub routes requests to specialized JIRA skills. It does not execute JIRA op
 
 | Skill | Does NOT handle | Route to instead |
 |-------|-----------------|------------------|
-| jira-issue | Bulk (>10), transitions, comments, sprints, time | jira-bulk, jira-lifecycle, jira-collaborate, jira-agile, jira-time |
+| jira-issue | Bulk (50+), transitions, comments, sprints, time | jira-bulk, jira-lifecycle, jira-collaborate, jira-agile, jira-time |
 | jira-search | Single issue lookup, issue modifications | jira-issue, jira-bulk |
 | jira-lifecycle | Field updates, bulk transitions | jira-issue, jira-bulk |
 | jira-agile | Issue CRUD (except epic/subtask), JQL, time tracking | jira-issue, jira-search, jira-time |

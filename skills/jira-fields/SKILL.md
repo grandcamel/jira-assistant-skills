@@ -70,7 +70,7 @@ All scripts support these common options:
 
 | Option | Description |
 |--------|-------------|
-| `--output FORMAT` | Output format: `text` (default) or `json` |
+| `-o, --output [text\|json]` | Output format: `text` (default) or `json` |
 | `--help` | Show help message and exit |
 
 ## Available Commands
@@ -90,6 +90,7 @@ All commands support `--help` for full documentation.
 jira-as fields list
 
 # Filter by name pattern
+jira-as fields list -f "story"
 jira-as fields list --filter "story"
 
 # Show only Agile-related fields
@@ -117,6 +118,7 @@ jira-as fields check-project PROJ --check-agile
 jira-as fields configure-agile PROJ
 
 # Preview changes without applying (dry run)
+jira-as fields configure-agile PROJ -n
 jira-as fields configure-agile PROJ --dry-run
 
 # Specify custom field IDs
@@ -136,6 +138,41 @@ jira-as fields create --name "Epic Link" --type select
 
 # Create with description
 jira-as fields create --name "Effort" --type number --description "Effort in hours"
+```
+
+### Supported Field Types
+
+The `fields create` command supports the following 12 field types:
+
+| Type | Description | Example Use Case |
+|------|-------------|------------------|
+| `text` | Single-line text input | Short identifiers, codes |
+| `textarea` | Multi-line text input | Detailed descriptions, notes |
+| `number` | Numeric value | Story Points, Effort hours |
+| `date` | Date picker (no time) | Due dates, target dates |
+| `datetime` | Date and time picker | Scheduled start/end times |
+| `select` | Single-choice dropdown | Priority, Category |
+| `multiselect` | Multiple-choice dropdown | Labels, Components |
+| `checkbox` | Boolean true/false | Flags, toggles |
+| `radio` | Radio button group | Exclusive options |
+| `url` | URL/hyperlink field | Documentation links |
+| `user` | User picker | Reviewers, Approvers |
+| `labels` | Tag/label field | Classification tags |
+
+```bash
+# Examples for each field type
+jira-as fields create --name "External ID" --type text
+jira-as fields create --name "Notes" --type textarea
+jira-as fields create --name "Complexity" --type number
+jira-as fields create --name "Target Date" --type date
+jira-as fields create --name "Meeting Time" --type datetime
+jira-as fields create --name "Category" --type select
+jira-as fields create --name "Affected Teams" --type multiselect
+jira-as fields create --name "Approved" --type checkbox
+jira-as fields create --name "Environment" --type radio
+jira-as fields create --name "Documentation" --type url
+jira-as fields create --name "Reviewer" --type user
+jira-as fields create --name "Tags" --type labels
 ```
 
 ## Searching for Agile Fields
@@ -184,7 +221,7 @@ All scripts use consistent exit codes:
 - Limited API support for field configuration
 - Fields are managed per-project in the UI
 - Some operations require manual UI configuration
-- Use `check_project_fields.py` to detect project type
+- Use `jira-as fields check-project PROJ` to detect project type
 
 ### Required Permissions
 

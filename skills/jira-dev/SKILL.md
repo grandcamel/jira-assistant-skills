@@ -109,8 +109,14 @@ jira-as dev pr-description PROJ-123 --include-checklist
 # Generate PR description with labels and components
 jira-as dev pr-description PROJ-123 --include-labels --include-components
 
+# Generate PR description and copy to clipboard
+jira-as dev pr-description PROJ-123 --copy
+
 # Link PR to issue (--pr is required)
 jira-as dev link-pr PROJ-123 --pr https://github.com/org/repo/pull/456
+
+# Link PR with title
+jira-as dev link-pr PROJ-123 --pr https://github.com/org/repo/pull/456 --title "Fix authentication bug"
 
 # Link PR with status and author
 jira-as dev link-pr PROJ-123 --pr https://github.com/org/repo/pull/456 --status merged --author "Jane Doe"

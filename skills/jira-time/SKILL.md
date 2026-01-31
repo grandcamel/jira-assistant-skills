@@ -76,30 +76,53 @@ All commands support `--help` for full documentation.
 
 All commands support these common options:
 
-| Option | Description |
-|--------|-------------|
-| `--format FORMAT` | Output format: text (default), json, or csv |
-| `--help` | Show help message with all available options |
+| Option | Description | Availability |
+|--------|-------------|--------------|
+| `-o/--output` | Output format: text (default), json | log, worklogs, update-worklog, delete-worklog, tracking, bulk-log |
+| `-f/--format` | Output format: text, json, csv | report (text/csv/json), export (csv/json only) |
+| `--help` | Show help message with all available options | All commands |
 
 ### Worklog-specific options
 
 | Option | Description |
 |--------|-------------|
-| `--time TIME` | Time spent (e.g., 2h, 1d 4h, 30m) |
-| `--comment TEXT` | Description of work performed |
-| `--started DATE` | When work was started (default: now) |
+| `-t/--time TIME` | Time spent (e.g., 2h, 1d 4h, 30m) |
+| `-c/--comment TEXT` | Description of work performed |
+| `-s/--started DATE` | When work was started (default: now) |
 | `--adjust-estimate MODE` | How to adjust remaining estimate: auto, leave, new, manual |
+| `--new-estimate TIME` | New remaining estimate (for adjust=new or adjust=manual) |
+| `--reduce-by TIME` | Amount to reduce estimate (for adjust=manual with log) |
+| `--increase-by TIME` | Amount to increase estimate (for adjust=manual with delete) |
+| `--visibility-type TYPE` | Worklog visibility: role or group |
+| `--visibility-value TEXT` | Role name or group name for visibility |
+| `-w/--worklog-id ID` | Worklog ID (for update/delete operations) |
 
 ### Report-specific options
 
 | Option | Description |
 |--------|-------------|
-| `--period PERIOD` | Time period: today, yesterday, this-week, last-week, this-month, last-month |
-| `--user USER` | Filter by user (use currentUser() for yourself) |
-| `--project PROJECT` | Filter by project key |
-| `--since DATE` | Start date for filtering |
+| `--period PERIOD` | Time period: today, yesterday, this-week, last-week, this-month, last-month, or YYYY-MM format |
+| `-u/--user USER` | Filter by user (use currentUser() for yourself) |
+| `-p/--project PROJECT` | Filter by project key |
+| `-s/--since DATE` | Start date for filtering |
 | `--until DATE` | End date for filtering |
-| `--group-by FIELD` | Group results by: issue, day, or user |
+| `-g/--group-by FIELD` | Group results by: issue, day, or user |
+
+### Export-specific options
+
+| Option | Description |
+|--------|-------------|
+| `-o/--output FILE` | Output file path (e.g., timesheets.csv) |
+| `-f/--format FORMAT` | File format: csv (default) or json |
+
+### Bulk-log-specific options
+
+| Option | Description |
+|--------|-------------|
+| `-j/--jql JQL` | JQL query to select issues |
+| `-i/--issues LIST` | Comma-separated issue keys |
+| `-n/--dry-run` | Preview without making changes |
+| `-f/--force` | Skip confirmation prompt |
 
 ## Exit Codes
 
@@ -117,16 +140,28 @@ All commands return standard exit codes:
 
 ```bash
 # Log 2 hours of work
-jira-as time log PROJ-123 --time 2h
+jira-as time log PROJ-123 -t 2h
 
 # Log time with a comment
-jira-as time log PROJ-123 --time "1d 4h" --comment "Debugging authentication issue"
+jira-as time log PROJ-123 -t "1d 4h" -c "Debugging authentication issue"
 
 # Log time for yesterday
-jira-as time log PROJ-123 --time 2h --started yesterday
+jira-as time log PROJ-123 -t 2h -s yesterday
 
 # Log time without adjusting estimate
-jira-as time log PROJ-123 --time 2h --adjust-estimate leave
+jira-as time log PROJ-123 -t 2h --adjust-estimate leave
+
+# Log time with manual estimate reduction
+jira-as time log PROJ-123 -t 2h --adjust-estimate manual --reduce-by 1h
+
+# Log time and set new remaining estimate
+jira-as time log PROJ-123 -t 2h --adjust-estimate new --new-estimate 4h
+
+# Log time with visibility restriction
+jira-as time log PROJ-123 -t 2h --visibility-type role --visibility-value Developers
+
+# Output as JSON
+jira-as time log PROJ-123 -t 2h -o json
 ```
 
 ### View worklogs
@@ -142,84 +177,132 @@ jira-as time worklogs PROJ-123 --author currentUser()
 jira-as time worklogs PROJ-123 --since 2025-01-01 --until 2025-01-31
 
 # Output as JSON
-jira-as time worklogs PROJ-123 --output json
+jira-as time worklogs PROJ-123 -o json
 ```
 
 ### Manage estimates
 
 ```bash
 # Set original estimate
-jira-as time estimate PROJ-123 --original "2d"
+jira-as time estimate PROJ-123 --original 2d
 
 # Set remaining estimate
 jira-as time estimate PROJ-123 --remaining "1d 4h"
 
+# Set both estimates together (recommended)
+jira-as time estimate PROJ-123 --original 2d --remaining 1d
+
 # View time tracking summary
 jira-as time tracking PROJ-123
+
+# View time tracking as JSON
+jira-as time tracking PROJ-123 -o json
+```
+
+### Update worklogs
+
+```bash
+# Update time on existing worklog
+jira-as time update-worklog PROJ-123 -w 12345 -t 3h
+
+# Update worklog comment
+jira-as time update-worklog PROJ-123 -w 12345 -c "Updated description"
+
+# Update worklog start time
+jira-as time update-worklog PROJ-123 -w 12345 -s 2025-01-15
+
+# Update with automatic estimate adjustment
+jira-as time update-worklog PROJ-123 -w 12345 -t 4h --adjust-estimate auto
+
+# Update and set new remaining estimate
+jira-as time update-worklog PROJ-123 -w 12345 -t 4h --adjust-estimate new --new-estimate 2d
+
+# Output as JSON
+jira-as time update-worklog PROJ-123 -w 12345 -t 3h -o json
 ```
 
 ### Generate reports
 
 ```bash
 # My time for last week
-jira-as time report --user currentUser() --period last-week
+jira-as time report -u currentUser() --period last-week
 
 # Project time for this month
-jira-as time report --project PROJ --period this-month
+jira-as time report -p PROJ --period this-month
+
+# Report for specific month using YYYY-MM format
+jira-as time report -p PROJ --period 2025-01
 
 # Export to CSV for billing
-jira-as time report --project PROJ --since 2025-01-01 --until 2025-01-31 --format csv > timesheet.csv
+jira-as time report -p PROJ -s 2025-01-01 --until 2025-01-31 -f csv > timesheet.csv
 
 # Group by day for daily summary
-jira-as time report --project PROJ --period this-week --group-by day
+jira-as time report -p PROJ --period this-week -g day
 
 # Group by user for team summary
-jira-as time report --project PROJ --period this-month --group-by user --format json
+jira-as time report -p PROJ --period this-month -g user -f json
 ```
 
 ### Export timesheets
 
 ```bash
 # Export last month's timesheets to CSV
-jira-as time export --project PROJ --period last-month --output timesheets.csv
+jira-as time export -p PROJ --period last-month -o timesheets.csv
+
+# Export specific month using YYYY-MM format
+jira-as time export -p PROJ --period 2025-01 -o january.csv
 
 # Export to JSON for integration
-jira-as time export --project PROJ --since 2025-01-01 --until 2025-01-31 --format json
+jira-as time export -p PROJ -s 2025-01-01 --until 2025-01-31 -f json -o timesheets.json
 
 # Export user's timesheets for billing
-jira-as time export --user alice@company.com --period this-month --output billing.csv
+jira-as time export -u alice@company.com --period this-month -o billing.csv
 ```
+
+**Note:** For export, `-o/--output` specifies the file path and `-f/--format` specifies the format (csv or json).
 
 ### Bulk operations
 
 ```bash
 # Preview bulk time logging (dry run)
-jira-as time bulk-log --issues PROJ-1,PROJ-2,PROJ-3 --time 15m --comment "Sprint planning" --dry-run
+jira-as time bulk-log -i PROJ-1,PROJ-2 -t 15m -c "Sprint planning" -n
 
 # Log standup time to multiple issues
-jira-as time bulk-log --issues PROJ-1,PROJ-2,PROJ-3 --time 15m --comment "Sprint planning"
+jira-as time bulk-log -i PROJ-1,PROJ-2 -t 15m -c "Sprint planning"
 
 # Log time to JQL results with dry run
-jira-as time bulk-log --jql "sprint = 456" --time 15m --comment "Daily standup" --dry-run
+jira-as time bulk-log -j "sprint = 456" -t 15m -c "Daily standup" -n
 
 # Execute after confirming dry run output
-jira-as time bulk-log --jql "sprint = 456" --time 15m --comment "Daily standup"
+jira-as time bulk-log -j "sprint = 456" -t 15m -c "Daily standup"
+
+# Skip confirmation prompt with force flag
+jira-as time bulk-log -i PROJ-1,PROJ-2 -t 15m -c "Team meeting" -f
+
+# Output results as JSON
+jira-as time bulk-log -i PROJ-1,PROJ-2 -t 15m -c "Meeting" -o json
 ```
 
 ### Delete worklogs
 
 ```bash
 # Preview worklog deletion (dry run)
-jira-as time delete-worklog PROJ-123 --worklog-id 12345 --dry-run
+jira-as time delete-worklog PROJ-123 -w 12345 --dry-run
 
 # Delete with automatic estimate adjustment
-jira-as time delete-worklog PROJ-123 --worklog-id 12345 --adjust-estimate auto
+jira-as time delete-worklog PROJ-123 -w 12345 --adjust-estimate auto
 
 # Delete without modifying estimate
-jira-as time delete-worklog PROJ-123 --worklog-id 12345 --adjust-estimate leave
+jira-as time delete-worklog PROJ-123 -w 12345 --adjust-estimate leave
+
+# Delete and set new remaining estimate
+jira-as time delete-worklog PROJ-123 -w 12345 --adjust-estimate new --new-estimate 3d
+
+# Delete and increase estimate by specific amount (manual mode)
+jira-as time delete-worklog PROJ-123 -w 12345 --adjust-estimate manual --increase-by 2h
 
 # Delete without confirmation prompt
-jira-as time delete-worklog PROJ-123 --worklog-id 12345 --yes
+jira-as time delete-worklog PROJ-123 -w 12345 --yes
 ```
 
 ## Dry Run Support
@@ -231,15 +314,15 @@ The following commands support `--dry-run` for previewing changes without making
 | `jira-as time bulk-log` | Shows which issues would receive worklogs and the time that would be logged |
 | `jira-as time delete-worklog` | Shows worklog details that would be deleted and estimate impact |
 
-**Dry-Run Pattern**: Always use `--dry-run` first when performing bulk operations or deleting worklogs. This preview-before-execute workflow prevents accidental data changes:
+**Dry-Run Pattern**: Always use `-n/--dry-run` first when performing bulk operations or deleting worklogs. This preview-before-execute workflow prevents accidental data changes:
 
 ```bash
 # Step 1: Preview the operation
-jira-as time bulk-log --jql "sprint = 456" --time 15m --dry-run
+jira-as time bulk-log -j "sprint = 456" -t 15m -n
 
 # Step 2: Review the output carefully
 # Step 3: Execute only after confirming the preview is correct
-jira-as time bulk-log --jql "sprint = 456" --time 15m --comment "Daily standup"
+jira-as time bulk-log -j "sprint = 456" -t 15m -c "Daily standup"
 ```
 
 ## Time format
@@ -319,7 +402,7 @@ Worklogs use UTC internally. If time appears on wrong date:
 Large JQL result sets may timeout:
 ```bash
 # Use smaller batches instead of one large query
-jira-as time bulk-log --issues PROJ-1,PROJ-2,PROJ-3 --time 15m
+jira-as time bulk-log -i PROJ-1,PROJ-2 -t 15m
 ```
 
 #### Worklog visibility issues
@@ -334,7 +417,7 @@ For complete error code reference, see [Error Codes](docs/reference/error-codes.
 **Why is my estimate not updating?**
 JIRA Cloud bug (JRACLOUD-67539). Set both estimates together:
 ```bash
-jira-as time estimate PROJ-123 --original "2d" --remaining "1d 4h"
+jira-as time estimate PROJ-123 --original 2d --remaining "1d 4h"
 ```
 
 **How do I log time for someone else?**
