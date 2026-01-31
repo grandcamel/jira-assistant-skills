@@ -108,8 +108,13 @@ jira-as fields check-project PROJ
 # Check fields for a specific issue type
 jira-as fields check-project PROJ --type Story
 
-# Check Agile field availability
+# Check Agile field availability (-a is short for --check-agile)
+jira-as fields check-project PROJ -a
 jira-as fields check-project PROJ --check-agile
+
+# Output as JSON (-o is short for --output)
+jira-as fields check-project PROJ -o json
+jira-as fields check-project PROJ --output json
 ```
 
 ### Configure Agile Fields

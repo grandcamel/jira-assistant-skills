@@ -74,10 +74,10 @@ All commands support these options:
 
 | Option | Purpose | When to Use |
 |--------|---------|-------------|
-| `--dry-run` / `-n` | Preview changes | Always use for >10 issues |
-| `--yes` / `-y` | Skip confirmation | Scripted automation |
-| `--max-issues N` / `-m` | Limit scope (default: 100) | Testing, large operations |
-| `--output` / `-o` | Output format (text/json) | JSON for scripting |
+| `-n/--dry-run` | Preview changes | Always use for >10 issues |
+| `-y/--yes` | Skip confirmation | Scripted automation |
+| `-m/--max-issues N` | Limit scope (default: 100) | Testing, large operations |
+| `-o/--output FORMAT` | Output format: text (default), json | JSON for scripting |
 
 ### Transition-Only Options
 
@@ -120,6 +120,9 @@ jira-as bulk assign --jql "assignee=john.leaving" --unassign
 
 ```bash
 jira-as bulk set-priority --jql "type=Bug AND labels=critical" --priority Highest
+
+# Output as JSON
+jira-as bulk set-priority --jql "type=Bug" --priority High --dry-run -o json
 ```
 
 ### Bulk Clone

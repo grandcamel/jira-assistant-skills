@@ -60,6 +60,7 @@ All commands support `--help` for full option documentation.
 ### Workflow Transitions
 ```bash
 jira-as lifecycle transitions PROJ-123                    # List available transitions
+jira-as lifecycle transitions PROJ-123 --output json      # Output as JSON
 jira-as lifecycle transition PROJ-123 --to "In Progress"  # Transition by status name
 jira-as lifecycle transition PROJ-123 --id 31             # Transition by ID
 jira-as lifecycle transition PROJ-123 --to Done --resolution Fixed  # With resolution
@@ -88,11 +89,12 @@ jira-as lifecycle reopen PROJ-123 --comment "Reopening for additional work"  # R
 ### Version Management
 ```bash
 jira-as lifecycle version list PROJ                       # List versions
+jira-as lifecycle version list PROJ --output json         # Output as JSON
 jira-as lifecycle version list PROJ --unreleased          # Show only unreleased versions
 jira-as lifecycle version list PROJ --archived            # Include archived versions
 jira-as lifecycle version create PROJ --name "v2.0.0"     # Create version
 jira-as lifecycle version create PROJ --name "v2.0.0" --description "Major release"  # With description
-jira-as lifecycle version create PROJ --name "v2.0.0" --start-date 2025-01-01 --release-date 2025-03-01
+jira-as lifecycle version create PROJ --name "v2.0.0" --start-date 2026-01-01 --release-date 2026-03-01
 jira-as lifecycle version create PROJ --name "v2.0.0" --released --dry-run  # Preview creation
 jira-as lifecycle version create PROJ --name "v2.0.0" --archived  # Create as archived
 jira-as lifecycle version release PROJ "v1.0.0"           # Release a version
@@ -106,6 +108,7 @@ jira-as lifecycle version archive PROJ "v0.9.0"           # Archive a version
 
 ```bash
 jira-as lifecycle component list PROJ                     # List components (shows IDs)
+jira-as lifecycle component list PROJ --output json       # Output as JSON
 jira-as lifecycle component create PROJ --name "API"      # Create component
 jira-as lifecycle component create PROJ --name "API" --description "REST API layer"  # With description
 jira-as lifecycle component create PROJ --name "Backend" --lead 5b10a2844c20165700ede21g
