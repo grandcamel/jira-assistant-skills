@@ -168,8 +168,8 @@ jira-as collaborate notify PROJ-123 --voters --subject "Vote counted"
 # Send notification to a group
 jira-as collaborate notify PROJ-123 --group developers --subject "Team update"
 
-# Send notification to specific users (use account IDs or emails)
-jira-as collaborate notify PROJ-123 --user user@example.com --subject "Review needed"
+# Send notification to specific users (requires account ID)
+jira-as collaborate notify PROJ-123 --user 5b10ac8d82e05b22cc7d4ef5 --subject "Review needed"
 
 # Send notification to assignee and reporter
 jira-as collaborate notify PROJ-123 --assignee --reporter --subject "Please review"
@@ -186,6 +186,15 @@ jira-as collaborate activity PROJ-123 --field-type custom --limit 10
 
 # View activity with pagination
 jira-as collaborate activity PROJ-123 --limit 10 --offset 20
+
+# Update custom fields (JSON format)
+jira-as collaborate update-fields PROJ-123 --fields '{"customfield_10014": "value"}'
+
+# Update multiple fields
+jira-as collaborate update-fields PROJ-123 --fields '{"customfield_10014": "Epic Name", "customfield_10016": 5}'
+
+# Update with array values
+jira-as collaborate update-fields PROJ-123 --fields '{"labels": ["urgent", "customer"]}'
 ```
 
 ## Common Options

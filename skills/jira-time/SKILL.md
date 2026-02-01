@@ -89,12 +89,14 @@ All commands support these common options:
 | `-t/--time TIME` | Time spent (e.g., 2h, 1d 4h, 30m) |
 | `-c/--comment TEXT` | Description of work performed |
 | `-s/--started DATE` | When work was started (default: now) |
-| `--adjust-estimate MODE` | How to adjust remaining estimate: auto, leave, new, manual |
+| `--adjust-estimate MODE` | How to adjust remaining estimate: auto, leave, new, manual (see note below) |
 | `--new-estimate TIME` | New remaining estimate (for adjust=new or adjust=manual) |
 | `--increase-by TIME` | Amount to increase estimate (for adjust=manual with delete-worklog) |
 | `--visibility-type TYPE` | Worklog visibility: role or group |
 | `--visibility-value TEXT` | Role name or group name for visibility |
 | `-w/--worklog-id ID` | Worklog ID (for update/delete operations) |
+
+> **Note:** The `manual` mode (with `--reduce-by` or `--increase-by`) is only available for `log` and `delete-worklog` commands. The `update-worklog` command supports only `auto`, `leave`, and `new` modes.
 
 ### Worklog filter options
 

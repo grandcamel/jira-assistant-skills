@@ -189,7 +189,7 @@ jira-as search filter share 10042 --project PROJ --role Developers
 jira-as search filter share 10042 --group jira-users
 jira-as search filter share 10042 --global
 jira-as search filter share 10042 --list         # View current permissions
-jira-as search filter share 10042 --unshare --project PROJ  # Remove permission
+jira-as search filter share 10042 --unshare 10100  # Remove permission by ID (use --list first)
 
 # Delete filter (use --yes to skip confirmation, --dry-run to preview)
 jira-as search filter delete 10042 --dry-run     # Preview deletion
