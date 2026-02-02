@@ -890,6 +890,107 @@ Solutions:
 - **Test mocks**: Mock fixtures must include `__enter__` and `__exit__`
 - **Linear history**: Repository requires rebase merges, no merge commits
 
+## Routing Test Lessons Learned
+
+### Fundamental Insight: LLMs Don't Ask Meta-Questions
+
+**Modern LLMs are trained to be helpful and make reasonable assumptions.** Tests expecting Claude to ask "which skill do you want?" will fail because Claude picks a sensible option and proceeds.
+
+**Example:** Input "show me the sprint" expects disambiguation, but Claude reasonably picks `jira-agile` and shows sprint details.
+
+**Recommendation:** Don't test for disambiguation. Instead, test that Claude routes to a *valid* skill from the options.
+
+### Clarification Detection Pitfalls
+
+The test harness detects "clarification" by looking for question marks and certain phrases. This is problematic because Claude asks questions for different reasons:
+
+| Type | Example | Should Pass? |
+|------|---------|--------------|
+| Disambiguation | "Which skill do you want?" | No (flaky) |
+| Parameter clarification | "Which file to attach?" | Yes (valid) |
+| Permission request | "Would you like me to run this?" | Yes (valid) |
+
+**Lesson:** Distinguish between disambiguation (routing uncertainty) and parameter clarification (skill chosen, needs input). Permission requests are NOT clarification.
+
+### Pattern Matching Pitfalls
+
+Inference patterns detect skills from response content when debug logs aren't available. Key issues:
+
+1. **Order matters**: Check specific skills before generic ones
+2. **Response contamination**: A response about `jira-issue` may mention "lifecycle" in passing
+3. **CLI patterns vary**: `jira-as issue` vs `jira issue` vs `jira-as issue get`
+
+**Best practices:**
+- Put highly specific patterns first (jira-dev, jira-fields, jira-ops)
+- Put generic patterns last (jira-issue, jira-search)
+- Use word boundaries in regex (`\b`)
+- Test patterns against actual response text
+
+### Test Configuration Best Practices
+
+The routing golden test file (`routing_golden.yaml`) supports these fields:
+
+```yaml
+- id: TC001
+  category: direct
+  input: "assign TES-789 to john@example.com"
+  expected_skill: jira-lifecycle
+  alternate_skills:           # Other valid skills
+    - jira-issue
+  certainty: medium           # high/medium/low
+  skip: true                  # Skip flaky tests
+  skip_reason: "Too vague - Claude reasonably picks a skill"
+```
+
+### Categories and Expected Behavior
+
+| Category | Expected | Reality |
+|----------|----------|---------|
+| `direct` | Route to specific skill | Generally works |
+| `disambiguation` | Ask clarifying question | **Fails often** - Claude picks a skill |
+| `negative` | Route to skill A, NOT skill B | Works but inference can be wrong |
+| `workflow` | Route to first skill in sequence | **Fails** - Claude may start anywhere |
+| `context` | Use conversation history | Requires multi-turn (skip these) |
+| `edge` | Handle edge cases | Mixed results |
+
+### Recommendations for New Tests
+
+1. **Avoid disambiguation tests** - They're fundamentally flawed
+2. **Use `alternate_skills`** for inputs with multiple valid interpretations
+3. **Use `skip: true`** for tests that fail due to LLM behavior, not bugs
+4. **Workflow tests should accept any skill** from the workflow list
+5. **Context tests should be skipped** until multi-turn support is added
+6. **Direct tests should be specific** - Include issue keys, project names, explicit action words
+
+### Test Stability Metrics
+
+Target pass rates by category:
+
+| Category | Target | Notes |
+|----------|--------|-------|
+| Direct | >90% | Most stable |
+| Negative | >85% | Depends on inference accuracy |
+| Workflow | >80% | Accept any workflow skill |
+| Edge | >75% | Inherently variable |
+| Disambiguation | N/A | Skip most of these |
+| Context | N/A | Skip until multi-turn |
+
+### Debugging Routing Issues
+
+1. **Check debug logs**: `~/.claude/debug/{session_id}.txt` shows skill loading
+2. **Check response text**: What CLI commands does Claude mention?
+3. **Check permission denials**: What was Claude trying to run?
+4. **Check inference patterns**: Does the response match expected patterns?
+
+### Common Failure Modes
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| Wrong skill detected | Inference pattern order | Reorder patterns |
+| "Asked clarification" false positive | Permission request detected as question | Exclude permission phrases |
+| Workflow test fails | First skill expectation | Accept any workflow skill |
+| Disambiguation never triggers | LLM makes decisions | Skip or convert to `alternate_skills` |
+
 ## Related Resources
 
 | Document | Content |
@@ -901,3 +1002,5 @@ Solutions:
 | `docs/ARCHITECTURE.md` | System architecture |
 | `docs/quick-start.md` | Getting started guide |
 | `docs/troubleshooting.md` | Detailed troubleshooting |
+| `skills/jira-assistant/tests/routing_golden.yaml` | Routing test definitions |
+| `skills/jira-assistant/tests/test_routing.py` | Routing test implementation |
