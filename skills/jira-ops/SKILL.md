@@ -1,6 +1,6 @@
 ---
 name: "jira-operations"
-description: "Cache management, request batching, and operational utilities. Use when optimizing performance, managing cache, or diagnosing JIRA API issues."
+description: "JIRA cache and performance operations. TRIGGERS: 'warm the cache', 'warm cache', 'cache status', 'clear cache', 'cache warm', 'cache for project', 'discover project', 'project discovery', 'cache hit rate', 'optimize performance', 'rate limit'. Use for JIRA API performance optimization and project context discovery. NOT FOR: project configuration/settings (use jira-admin), issue operations (use jira-issue), bulk issue modifications (use jira-bulk)."
 version: "1.0.0"
 author: "jira-assistant-skills"
 license: "MIT"

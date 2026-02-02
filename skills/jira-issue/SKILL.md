@@ -1,6 +1,6 @@
 ---
 name: "jira-issue-management"
-description: "JIRA issue operations: create, read, update, delete. ALWAYS use this skill when user wants to: (1) create new bugs/tasks/stories, (2) show/view/display/get/see/retrieve/check issue details or information, (3) look up issues, (4) update issue fields, (5) delete issues. Especially trigger when user says 'show me', 'get', 'view', 'details of', 'look at', or references 'the bug/issue/task we just created'."
+description: "Core JIRA issue CRUD - create bugs/tasks/stories, get issue details, update fields, delete issues. TRIGGERS: 'show me [KEY]', 'get issue [KEY]', 'view issue', 'create a bug/task/story', 'update [KEY]', 'delete [KEY]', 'details of [KEY]', 'look up [KEY]', 'what's in [KEY]'. NOT FOR: epics (use jira-agile), transitions/status changes (use jira-lifecycle), comments/attachments (use jira-collaborate), time tracking (use jira-time), bulk operations on 10+ issues (use jira-bulk), dependencies/blockers (use jira-relationships), branch names/PR descriptions (use jira-dev)."
 version: "1.0.0"
 author: "jira-assistant-skills"
 license: "MIT"

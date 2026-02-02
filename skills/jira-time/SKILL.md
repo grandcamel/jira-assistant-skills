@@ -1,6 +1,6 @@
 ---
 name: "jira-time-tracking"
-description: "Time tracking and worklog management with estimation, reporting, and billing integration. Use for logging work, managing estimates, generating reports, bulk operations, and team time tracking policies."
+description: "Time tracking, worklogs, and time reports. TRIGGERS: 'log time', 'time spent on', 'log hours', 'log work', 'worklog', 'time tracking', 'timesheet', 'how much time', 'time logged', 'time report', 'export timesheet', 'set estimate', 'remaining estimate', 'original estimate'. Use for time-related queries and operations on issues. NOT FOR: SLA tracking (use jira-jsm), date-based issue searches (use jira-search), issue field updates unrelated to time (use jira-issue)."
 version: "1.0.0"
 author: "jira-assistant-skills"
 license: "MIT"

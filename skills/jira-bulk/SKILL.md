@@ -1,6 +1,6 @@
 ---
 name: "jira-bulk-operations"
-description: "Bulk operations for 50+ issues - transitions, assignments, priorities, cloning, and deletion. Use when: updating multiple issues simultaneously (dry-run preview included), needing rollback safety, or coordinating team changes. Handles partial failures gracefully."
+description: "Bulk operations for multiple issues at scale. TRIGGERS: 'bulk update', 'bulk close', 'bulk transition', 'bulk assign', 'transition N issues' (N >= 10), 'update all bugs', 'close 50 issues', 'mass transition', 'update multiple issues', quantities like '50 issues', '100 bugs', '20+ tickets'. Use for operations on 10+ issues. NOT FOR: single issue transitions (use jira-lifecycle), searching only without modifications (use jira-search), single issue field updates (use jira-issue)."
 version: "1.0.0"
 author: "jira-assistant-skills"
 license: "MIT"

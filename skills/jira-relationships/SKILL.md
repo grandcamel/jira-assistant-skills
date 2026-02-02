@@ -1,6 +1,6 @@
 ---
 name: "jira-issue-relationships"
-description: "Issue linking and dependency management - create links, view blockers, analyze dependencies, clone issues. Use when linking issues, finding blocker chains, or cloning with relationships."
+description: "Issue linking, blockers, and dependency analysis. TRIGGERS: 'what's blocking', 'what is blocking', 'is blocked by', 'link issues', 'link to', 'blockers for', 'depends on', 'clone issue', 'clone with', 'blocking chain', 'dependency graph', 'show dependencies', 'get blockers', 'relates to', 'duplicates'. Use for issue dependencies, relationships, and cloning. NOT FOR: epic linking (use jira-agile), field updates (use jira-issue), bulk cloning (use jira-bulk)."
 version: "1.0.0"
 author: "jira-assistant-skills"
 license: "MIT"

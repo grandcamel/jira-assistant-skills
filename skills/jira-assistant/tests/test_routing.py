@@ -330,80 +330,154 @@ def infer_skill_from_response(response: str, permission_denials: list) -> str | 
             cmd = denial.get("tool_input", {}).get("command", "")
             all_text += " " + cmd.lower()
 
-    # Map CLI patterns to skills
+    # Map CLI patterns to skills - ORDER MATTERS (more specific first)
+    # Note: jira-as is the CLI command, patterns support both "jira" and "jira-as"
     patterns = {
+        # jira-issue: Core CRUD operations - check FIRST for direct issue references
         "jira-issue": [
-            r"jira\s+issue\s+(create|get|update|delete)",
-            r"create.*bug",
-            r"create.*task",
-            r"create.*story",
+            r"jira[\s-]*as?\s+issue\s+(create|get|update|delete)",
+            r"show\s+me\s+[a-z]+-\d+",  # "show me TES-123" (case-insensitive)
+            r"get\s+issue\s+[a-z]+-\d+",  # "get issue TES-123"
+            r"view\s+(issue\s+)?[a-z]+-\d+",  # "view TES-123" or "view issue TES-123"
+            r"details\s+(of\s+)?[a-z]+-\d+",  # "details of TES-123"
+            r"create\s+(a\s+)?(new\s+)?bug(?!\s+report)",  # "create a bug" but not "bug report"
+            r"create\s+(a\s+)?(new\s+)?task",
+            r"create\s+(a\s+)?(new\s+)?story",
+            r"update\s+[a-z]+-\d+",  # "update TES-123"
+            r"delete\s+[a-z]+-\d+",  # "delete TES-123"
         ],
+        # jira-search: JQL and finding issues
         "jira-search": [
-            r"jira\s+search",
+            r"jira[\s-]*as?\s+search",
             r"jql[:\s]",
-            r"find\s+.*issues",
+            r"find\s+(all\s+)?(open\s+)?issues",
+            r"search\s+for\s+issues",
+            r"search\s+jira",
+            r"list\s+(all\s+)?bugs",
+            r"export\s+.*results",
         ],
+        # jira-lifecycle: Status transitions and assignments
         "jira-lifecycle": [
-            r"jira\s+lifecycle",
-            r"transition\s+.*to",
-            r"assign\s+.*to",
-            r"move.*to\s+(done|progress|review)",
+            r"jira[\s-]*as?\s+lifecycle",
+            r"transition\s+[a-z]+-\d+\s+to",
+            r"move\s+[a-z]+-\d+\s+to",
+            r"assign\s+[a-z]+-\d+\s+to",
+            r"close\s+[a-z]+-\d+",  # Single issue close
+            r"resolve\s+[a-z]+-\d+",
+            r"reopen\s+[a-z]+-\d+",
+            r"move.*to\s+(done|in\s*progress|review|closed)",
+            r"change\s+status",
         ],
+        # jira-agile: Epics, sprints, backlog - specific agile terms
         "jira-agile": [
-            r"jira\s+agile",
-            r"sprint",
-            r"epic",
-            r"backlog",
-            r"story\s*points?",
+            r"jira[\s-]*as?\s+agile",
+            r"create\s+(an?\s+)?epic",  # "create an epic" or "create epic"
+            r"new\s+epic",
+            r"show\s+(the\s+)?backlog",  # "show the backlog"
+            r"view\s+backlog",
+            r"add\s+to\s+sprint",
+            r"move\s+to\s+sprint",
+            r"sprint\s+(list|create|get|planning|active)",
+            r"set\s+story\s*points?",
+            r"story\s*points?\s+(for|on)",
+            r"velocity\s+(for|report)",
+            r"create\s+subtask",
+            r"link\s+to\s+epic",
+            r"epic\s+(for|link|add)",
         ],
+        # jira-collaborate: Comments and attachments
         "jira-collaborate": [
-            r"jira\s+collaborate",
-            r"add\s+comment",
-            r"attach",
+            r"jira[\s-]*as?\s+collaborate",
+            r"add\s+(a\s+)?comment",
+            r"post\s+comment",
+            r"attach(ment)?",
             r"watcher",
+            r"notify",
         ],
+        # jira-relationships: Issue linking and blockers
         "jira-relationships": [
-            r"jira\s+relationships?",
-            r"link\s+.*to",
-            r"clone\s+",
-            r"blocking",
+            r"jira[\s-]*as?\s+relationships?",
+            r"what'?s\s+blocking",  # "what's blocking" or "whats blocking"
+            r"blockers?\s+(for|on)",  # "blockers for TES-123"
+            r"is\s+blocked\s+by",
+            r"link\s+[a-z]+-\d+\s+to",  # "link TES-123 to TES-456"
+            r"depends\s+on",
+            r"clone\s+(issue|[a-z]+-\d+)",  # "clone issue" or "clone TES-123"
+            r"blocking\s+chain",
+            r"dependency\s+graph",
+            r"show\s+dependencies",
         ],
+        # jira-time: Time tracking
         "jira-time": [
-            r"jira\s+time",
+            r"jira[\s-]*as?\s+time",
+            r"time\s+spent\s+on",  # "time spent on TES-123"
+            r"log\s+(time|work|\d+\s*h)",  # "log time" or "log 2h"
             r"log\s+.*hours?",
             r"worklog",
-            r"estimate",
+            r"how\s+much\s+time",
+            r"time\s+report",
+            r"timesheet",
+            r"(original|remaining)\s+estimate",
         ],
+        # jira-jsm: Service desk
         "jira-jsm": [
-            r"jira\s+jsm",
+            r"jira[\s-]*as?\s+jsm",
             r"service\s*desk",
-            r"sla",
-            r"customer",
+            r"sla\s+(breach|target|status)",
+            r"customer\s+(request|portal)",
+            r"approval",
+            r"queue",
         ],
+        # jira-bulk: Bulk operations - quantity indicators
         "jira-bulk": [
-            r"jira\s+bulk",
-            r"bulk\s+(update|transition|assign)",
+            r"jira[\s-]*as?\s+bulk",
+            r"bulk\s+(update|transition|assign|close|delete)",
+            r"\d{2,}\s+issues",  # "50 issues", "100 bugs" (2+ digits)
+            r"(update|close|transition|assign)\s+(all|multiple)\s+",
+            r"mass\s+(update|transition|close)",
+            r"batch\s+(update|transition)",
         ],
+        # jira-dev: Git integration
         "jira-dev": [
-            r"jira\s+dev",
-            r"branch\s*name",
-            r"pr\s+description",
-            r"commit",
+            r"jira[\s-]*as?\s+dev",
+            r"(generate|create)\s+branch\s*name",  # "generate branch name"
+            r"branch\s+name\s+(for|from)",
+            r"(write|generate|create)\s+pr\s+description",  # "write PR description"
+            r"pr\s+description\s+for",
+            r"link\s+pr",
+            r"link\s+pull\s+request",
+            r"parse\s+commit",
+            r"smart\s+commit",
         ],
+        # jira-fields: Field discovery
         "jira-fields": [
-            r"jira\s+fields?",
+            r"jira[\s-]*as?\s+fields?",
+            r"field\s+id\s+(for|of)",  # "field ID for story points"
+            r"what'?s\s+the\s+field\s+id",  # "what's the field ID"
+            r"what\s+fields?\s+(are\s+)?available",  # "what fields available"
+            r"list\s+(custom\s+)?fields",
             r"custom\s*field",
-            r"field\s*id",
+            r"customfield_\d+",
+            r"configure\s+agile\s+fields",
         ],
+        # jira-ops: Cache and performance
         "jira-ops": [
-            r"jira\s+ops",
-            r"cache",
-            r"warm.*cache",
+            r"jira[\s-]*as?\s+ops",
+            r"warm\s+(the\s+)?cache",  # "warm the cache" or "warm cache"
+            r"cache\s+(status|clear|warm)",
+            r"clear\s+cache",
+            r"discover\s+project",
+            r"project\s+discovery",
         ],
+        # jira-admin: Admin operations - LAST (most general/fallback)
         "jira-admin": [
-            r"jira\s+admin",
-            r"permission",
-            r"project\s+settings?",
+            r"jira[\s-]*as?\s+admin",
+            r"permission\s+scheme",  # More specific than just "permission"
+            r"project\s+settings",
+            r"automation\s+rules?",
+            r"notification\s+scheme",
+            r"workflow\s+scheme",
+            r"issue\s+type\s+scheme",
         ],
     }
 

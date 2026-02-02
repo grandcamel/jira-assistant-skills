@@ -1,6 +1,6 @@
 ---
 name: "jira-agile-management"
-description: "Epic, sprint, and backlog management - create/link epics, manage sprints, estimate with story points, rank backlog issues."
+description: "Epic creation and sprint management - create epics, manage sprints, view backlog, estimate with story points. TRIGGERS: 'create an epic', 'create epic', 'new epic', 'show the backlog', 'view backlog', 'add to sprint', 'move to sprint', 'set story points', 'sprint planning', 'epic for', 'link to epic', 'sprint list', 'active sprint', 'velocity', 'create subtask'. NOT FOR: bugs/tasks/stories without epic context (use jira-issue), field ID discovery (use jira-fields), searching issues by JQL (use jira-search), transitioning issues through workflow (use jira-lifecycle)."
 version: "1.0.0"
 author: "jira-assistant-skills"
 license: "MIT"

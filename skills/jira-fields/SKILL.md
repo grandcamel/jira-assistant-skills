@@ -1,6 +1,6 @@
 ---
 name: "jira-custom-fields"
-description: "Custom field management and configuration - list fields, check project fields, configure Agile fields. Use when discovering custom fields, checking Agile field availability, or configuring project fields."
+description: "Custom field discovery and configuration. TRIGGERS: 'field ID for', 'what's the field ID', 'what is the field ID', 'list custom fields', 'what fields are available', 'what custom fields', 'show custom fields', 'customfield_', 'find field', 'agile fields', 'configure agile fields', 'story points field'. Use for JIRA field metadata and discovery. NOT FOR: setting field values on issues (use jira-issue), setting story points (use jira-agile), searching by field values (use jira-search)."
 version: "1.0.0"
 author: "jira-assistant-skills"
 license: "MIT"

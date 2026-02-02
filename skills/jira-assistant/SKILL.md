@@ -93,6 +93,16 @@ Ask the user before routing when:
 - Request is vague or could be interpreted multiple ways
 - Destructive operations are implied
 
+### Disambiguation Table
+
+| Pattern | Ambiguity | Question | Options |
+|---------|-----------|----------|---------|
+| "update issues" (no count) | Single vs multiple | "One issue or multiple?" | jira-issue, jira-bulk |
+| "show the sprint" | Details vs issues | "Sprint details or issues in sprint?" | jira-agile, jira-search |
+| "link PR" | Link to JIRA or create link | "Link PR to JIRA issue or create issue relationship?" | jira-dev, jira-relationships |
+| "close them" (after search) | Single vs bulk | "Close all N issues found?" | jira-bulk (with confirmation) |
+| "delete issues" | Count unclear | "How many issues? (One uses jira-issue, multiple uses jira-bulk)" | jira-issue, jira-bulk |
+
 ### Disambiguation Examples
 
 **"Show me the sprint"**
@@ -114,6 +124,13 @@ Ask: "What would you like to update - fields, status, or multiple issues?"
 Context determines:
 - Epic context explicit → jira-agile
 - Just issue creation → jira-issue
+
+**"Find all P1 bugs and close them"**
+Multi-step workflow:
+1. First search with jira-search to find issues
+2. Then confirm count before using jira-bulk to close
+
+Ask: "I found N bugs. Want me to close them all?"
 
 ---
 

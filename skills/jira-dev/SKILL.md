@@ -1,6 +1,6 @@
 ---
 name: "jira-developer-integration"
-description: "Developer workflow integration for JIRA - Git branch names, commit parsing, PR descriptions. Use when generating branch names from issues, linking commits, or creating PR descriptions. Also use to troubleshoot Development Panel issues or automate CI/CD integration."
+description: "Git and developer workflow integration. TRIGGERS: 'generate branch name', 'create branch name', 'branch name for', 'write PR description', 'PR description for', 'link PR', 'link pull request', 'parse commit', 'extract issue from commit', 'smart commit', 'development panel'. Use for Git, GitHub, GitLab, Bitbucket integration with JIRA. NOT FOR: issue field updates (use jira-issue), searching issues (use jira-search), status transitions (use jira-lifecycle)."
 version: "1.0.0"
 author: "jira-assistant-skills"
 license: "MIT"
