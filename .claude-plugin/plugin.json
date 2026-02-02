@@ -6,5 +6,12 @@
     "name": "grandcamel"
   },
   "repository": "https://github.com/grandcamel/jira-assistant-skills",
-  "agents": ["agents/**/*.md"]
+  "license": "MIT",
+  "keywords": [
+    "jira",
+    "atlassian",
+    "agile",
+    "issues",
+    "automation"
+  ]
 }
